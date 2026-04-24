@@ -30,42 +30,22 @@ npm link              # 把 ecc-tailor 注册为全局 CLI 命令
 ## 快速开始
 
 ```bash
-# 1. 创建配置
-mkdir -p ~/.config/ecc-tailor
-cat > ~/.config/ecc-tailor/config.json << 'EOF'
-{
-  "global": {
-    "bundles": ["global"],
-    "extras": {
-      "rulesLanguages": ["common", "java", "python", "typescript"]
-    }
-  },
-  "projects": [
-    {
-      "path": "/absolute/path/to/my-java-project",
-      "bundles": ["java-proj"]
-    }
-  ],
-  "hooks": {
-    "install": true,
-    "profile": "standard",
-    "claudeMemCompat": true
-  }
-}
-EOF
+# 1. 安装全局 bundle + hooks（无需配置文件，开箱即用）
+ecc-tailor apply
 
-# 2. 预览
-ecc-tailor apply --dry-run
-
-# 3. 安装
+# 2. 给项目加上栈相关的 bundle
+cd ~/code/my-java-project
+ecc-tailor add bundle java-proj --to project:$(pwd)
 ecc-tailor apply
 ```
 
-首次运行会自动 clone ECC 到 `~/.local/share/ecc-tailor/ecc/`。如果本地已有 ECC clone：
+首次运行会自动 clone ECC 到 `~/.local/share/ecc-tailor/ecc/`。如果本地已有 ECC clone，创建 `~/.config/ecc-tailor/config.json`：
 
 ```json
-{ "eccPath": "/path/to/everything-claude-code", ... }
+{ "eccPath": "/path/to/everything-claude-code" }
 ```
+
+不写配置文件时使用默认值：global bundle、standard hook profile、claude-mem 兼容模式。完整配置项见[配置参考](#配置参考)。
 
 ## Bundle 列表
 

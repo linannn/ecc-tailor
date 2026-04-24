@@ -30,42 +30,22 @@ Requires Node >= 18. Zero npm dependencies.
 ## Quick Start
 
 ```bash
-# 1. Create config
-mkdir -p ~/.config/ecc-tailor
-cat > ~/.config/ecc-tailor/config.json << 'EOF'
-{
-  "global": {
-    "bundles": ["global"],
-    "extras": {
-      "rulesLanguages": ["common", "java", "python", "typescript"]
-    }
-  },
-  "projects": [
-    {
-      "path": "/absolute/path/to/my-java-project",
-      "bundles": ["java-proj"]
-    }
-  ],
-  "hooks": {
-    "install": true,
-    "profile": "standard",
-    "claudeMemCompat": true
-  }
-}
-EOF
+# 1. Install global bundle + hooks (no config needed — sensible defaults)
+ecc-tailor apply
 
-# 2. Preview
-ecc-tailor apply --dry-run
-
-# 3. Install
+# 2. Add stack-specific bundles to your project
+cd ~/code/my-java-project
+ecc-tailor add bundle java-proj --to project:$(pwd)
 ecc-tailor apply
 ```
 
-On first run, ECC is automatically cloned to `~/.local/share/ecc-tailor/ecc/`. To use an existing local clone:
+On first run, ECC is automatically cloned to `~/.local/share/ecc-tailor/ecc/`. To use an existing local clone, create `~/.config/ecc-tailor/config.json`:
 
 ```json
-{ "eccPath": "/path/to/everything-claude-code", ... }
+{ "eccPath": "/path/to/everything-claude-code" }
 ```
+
+Without a config file, ecc-tailor uses these defaults: global bundle, standard hook profile, claude-mem compatibility on. See [Config Reference](#config-reference) for full customization.
 
 ## Bundles
 
