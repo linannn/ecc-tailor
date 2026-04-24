@@ -23,13 +23,11 @@ Per-bundle listing of all agents and skills with descriptions.
 | agent | pr-test-analyzer | PR test coverage quality review |
 | agent | doc-updater | Documentation and codemap maintenance |
 | agent | docs-lookup | Library/framework docs via Context7 MCP |
-| agent | harness-optimizer | Agent harness configuration tuning |
 | agent | refactor-cleaner | Dead code cleanup and consolidation |
 | skill | coding-standards | Cross-project conventions: naming, readability, immutability |
 | skill | api-design | REST API patterns: resources, status codes, pagination, versioning |
 | skill | tdd-workflow | Write-tests-first methodology with 80%+ coverage |
 | skill | verification-loop | Comprehensive verification for Claude Code sessions |
-| skill | plankton-code-quality | Auto-formatting and linting on every file edit via hooks |
 | skill | strategic-compact | Manual context compaction at logical intervals |
 | skill | git-workflow | Branching strategies, commit conventions, merge vs rebase |
 | skill | gateguard | Per-file fact-forcing gate, blocks edits until investigation (+2.25 quality) |
@@ -354,6 +352,7 @@ Per-bundle listing of all agents and skills with descriptions.
 | Type | Name | Description |
 |---|---|---|
 | agent | loop-operator | Operate autonomous loops, monitor progress, intervene on stall |
+| agent | harness-optimizer | Agent harness configuration tuning |
 | skill | agentic-engineering | Eval-first execution, decomposition, cost-aware model routing |
 | skill | autonomous-agent-harness | Persistent memory, scheduled ops, computer use, task queuing |
 | skill | autonomous-loops | Sequential pipelines to RFC-driven multi-agent DAG systems |

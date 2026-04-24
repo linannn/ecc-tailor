@@ -23,13 +23,11 @@
 | agent | pr-test-analyzer | PR 测试覆盖质量审查 |
 | agent | doc-updater | 文档与 codemap 维护 |
 | agent | docs-lookup | 通过 Context7 MCP 查找库/框架文档 |
-| agent | harness-optimizer | Agent harness 配置调优 |
 | agent | refactor-cleaner | 死代码清理与整合 |
 | skill | coding-standards | 跨项目编码规范：命名、可读性、不变性 |
 | skill | api-design | REST API 模式：资源、状态码、分页、版本控制 |
 | skill | tdd-workflow | 先写测试方法论，80%+ 覆盖率 |
 | skill | verification-loop | Claude Code 会话综合验证 |
-| skill | plankton-code-quality | 每次文件编辑自动格式化与 lint |
 | skill | strategic-compact | 在逻辑节点手动压缩上下文 |
 | skill | git-workflow | 分支策略、commit 规范、merge vs rebase |
 | skill | gateguard | 每文件事实验证门控，编辑前强制调查（+2.25 质量） |
@@ -354,6 +352,7 @@
 | 类型 | 名称 | 说明 |
 |---|---|---|
 | agent | loop-operator | 运行自主循环、监控进度、卡住时介入 |
+| agent | harness-optimizer | Agent harness 配置调优 |
 | skill | agentic-engineering | 评估优先执行、任务分解、成本感知模型路由 |
 | skill | autonomous-agent-harness | 持久记忆、定时操作、计算机使用、任务队列 |
 | skill | autonomous-loops | 从顺序管道到 RFC 驱动的多 agent DAG |

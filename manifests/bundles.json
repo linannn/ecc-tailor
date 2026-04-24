@@ -6,12 +6,12 @@
       "code-reviewer", "code-simplifier", "comment-analyzer",
       "silent-failure-hunter", "tdd-guide", "type-design-analyzer",
       "performance-optimizer", "pr-test-analyzer",
-      "doc-updater", "docs-lookup", "harness-optimizer", "refactor-cleaner"
+      "doc-updater", "docs-lookup", "refactor-cleaner"
     ],
     "skills": [
       "coding-standards", "api-design",
       "tdd-workflow", "verification-loop",
-      "plankton-code-quality", "strategic-compact",
+      "strategic-compact",
       "git-workflow", "gateguard", "architecture-decision-records"
     ]
   },
@@ -166,7 +166,7 @@
   },
   "agent-dev": {
     "description": "AI agent development and orchestration",
-    "agents": ["loop-operator"],
+    "agents": ["loop-operator", "harness-optimizer"],
     "skills": [
       "agentic-engineering", "autonomous-agent-harness", "autonomous-loops",
       "continuous-agent-loop", "agent-harness-construction",

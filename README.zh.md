@@ -59,7 +59,7 @@ ecc-tailor apply
 
 | Bundle | Agents | Skills | 适用场景 |
 |---|---|---|---|
-| `global` | 16 | 9 | 栈无关基础（planner、architect、tdd 等） |
+| `global` | 15 | 8 | 栈无关基础（planner、architect、tdd 等） |
 | `java-proj` | 2 | 6 | Spring Boot 项目 |
 | `py-proj` | 1 | 2 | Python 项目 |
 | `py-django-proj` | 继承 py-proj | +4 | Django 项目 |
@@ -91,7 +91,7 @@ ecc-tailor apply
 | `a11y` | 1 | 1 | 无障碍 / WCAG 合规 |
 | `seo` | 1 | 1 | SEO 审计与优化 |
 | `gan-harness` | 3 | 1 | GAN 多 agent 对抗生成 |
-| `agent-dev` | 1 | 14 | AI agent 开发与编排 |
+| `agent-dev` | 2 | 14 | AI agent 开发与编排 |
 | `research` | 0 | 4 | 深度调研、网络搜索、市场分析 |
 | `content` | 0 | 13 | 写作、视频、社交媒体、演示文稿 |
 | `ops` | 2 | 12 | 邮件、Jira、GitHub、Slack 工作流自动化 |

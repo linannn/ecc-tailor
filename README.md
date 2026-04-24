@@ -59,7 +59,7 @@ Without a config file, ecc-tailor uses these defaults: global bundle, standard h
 
 | Bundle | Agents | Skills | Use case |
 |---|---|---|---|
-| `global` | 16 | 9 | Stack-agnostic basics (planner, architect, tdd, etc.) |
+| `global` | 15 | 8 | Stack-agnostic basics (planner, architect, tdd, etc.) |
 | `java-proj` | 2 | 6 | Spring Boot projects |
 | `py-proj` | 1 | 2 | Python projects |
 | `py-django-proj` | extends py-proj | +4 | Django projects |
@@ -91,7 +91,7 @@ Without a config file, ecc-tailor uses these defaults: global bundle, standard h
 | `a11y` | 1 | 1 | Accessibility / WCAG compliance |
 | `seo` | 1 | 1 | SEO audits and optimization |
 | `gan-harness` | 3 | 1 | GAN multi-agent adversarial generation |
-| `agent-dev` | 1 | 14 | AI agent development and orchestration |
+| `agent-dev` | 2 | 14 | AI agent development and orchestration |
 | `research` | 0 | 4 | Deep research, web search, market analysis |
 | `content` | 0 | 13 | Writing, video, social media, presentations |
 | `ops` | 2 | 12 | Email, Jira, GitHub, Slack workflow automation |
