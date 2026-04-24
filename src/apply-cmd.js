@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { loadConfig } from './config.js';
 import { loadState, saveState } from './state.js';
 import { loadBundles } from './bundles.js';
@@ -5,6 +7,9 @@ import { resolveEccRoot, getEccRef } from './ecc-repo.js';
 import { scanEcc } from './fs-scan.js';
 import { resolveDesired } from './resolve.js';
 import { planApply, executeApply } from './apply.js';
+import { paths } from './paths.js';
+import { writeHookWrapper, effectiveDisabled } from './hooks-wrapper.js';
+import { rewriteEccHooksJson, mergeHooksIntoSettings } from './hooks-merge.js';
 import log from './logger.js';
 
 /**
@@ -67,14 +72,47 @@ export async function applyCmd(args) {
   // 9. Execute
   await executeApply(plan, state, { ecc: eccRoot });
 
-  // 10. Update state metadata
+  // 10. Hook integration (only when hooks.install is enabled)
+  if (config.hooks?.install) {
+    const { claudeMemCompat, disabled = [], profile = 'standard' } = config.hooks;
+
+    // 10a. Compute effective disabled list
+    const effectiveDisabledList = effectiveDisabled({ claudeMemCompat, disabled });
+
+    // 10b. Write hook wrapper script
+    const wrapperPath = writeHookWrapper({ eccRoot, profile, disabled: effectiveDisabledList });
+
+    // 10c. Read ECC's hooks/hooks.json
+    const eccHooksJsonRaw = await readFile(join(eccRoot, 'hooks', 'hooks.json'), 'utf8');
+    const eccHooksJson = JSON.parse(eccHooksJsonRaw);
+
+    // 10d. Rewrite hooks to use wrapper
+    const rewritten = rewriteEccHooksJson(eccHooksJson, wrapperPath);
+
+    // 10e. Merge into settings.json
+    const settingsFile = paths.claudeSettings();
+    const { backupPath, addedCounts } = await mergeHooksIntoSettings(rewritten, { settingsFile });
+
+    // 10f. Update state
+    state.hooks = {
+      installed: true,
+      settingsBackup: backupPath,
+      addedEntries: addedCounts,
+      markerId: 'ecc-tailor',
+    };
+
+    // 10g. Log
+    log.ok(`hooks merged into ${settingsFile} (backup: ${backupPath})`);
+  }
+
+  // 11. Update state metadata
   state.eccRef    = getEccRef(eccRoot);
   state.lastApply = new Date().toISOString();
 
-  // 11. Save state
+  // 12. Save state
   saveState(state);
 
-  // 12/13. Print outcome
+  // 13. Print outcome
   if (addCount === 0 && removeCount === 0) {
     log.info('Nothing to do.');
   } else {
