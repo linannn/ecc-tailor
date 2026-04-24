@@ -8,7 +8,7 @@ import { scanEcc } from './fs-scan.js';
 import { applyCmd } from './apply-cmd.js';
 import { removeLayerCmd } from './remove-layer.js';
 
-const VALID_TYPES = ['skill', 'agent', 'bundle', 'rule'];
+const VALID_TYPES = ['skill', 'agent', 'bundle', 'rule', 'command', 'context'];
 
 /**
  * Parse add/remove CLI args.
@@ -71,9 +71,11 @@ function parseScope(scope) {
  * Map type → extras key.
  */
 function extrasKey(type) {
-  if (type === 'skill')  return 'skills';
-  if (type === 'agent')  return 'agents';
-  if (type === 'rule')   return 'rulesLanguages';
+  if (type === 'skill')   return 'skills';
+  if (type === 'agent')   return 'agents';
+  if (type === 'rule')    return 'rulesLanguages';
+  if (type === 'command') return 'commands';
+  if (type === 'context') return 'contexts';
   return null; // bundle uses bundles[]
 }
 
@@ -88,7 +90,7 @@ function extrasKey(type) {
 function ensureProject(cfg, projectPath) {
   let entry = cfg.projects.find(p => p.path === projectPath);
   if (!entry) {
-    entry = { path: projectPath, bundles: [], extras: { agents: [], skills: [], rulesLanguages: [] } };
+    entry = { path: projectPath, bundles: [], extras: { agents: [], skills: [], rulesLanguages: [], commands: [], contexts: [] } };
     cfg.projects.push(entry);
   }
   // Ensure extras sub-keys exist
@@ -96,6 +98,8 @@ function ensureProject(cfg, projectPath) {
   if (!Array.isArray(entry.extras.skills))         entry.extras.skills = [];
   if (!Array.isArray(entry.extras.agents))         entry.extras.agents = [];
   if (!Array.isArray(entry.extras.rulesLanguages)) entry.extras.rulesLanguages = [];
+  if (!Array.isArray(entry.extras.commands))        entry.extras.commands = [];
+  if (!Array.isArray(entry.extras.contexts))        entry.extras.contexts = [];
   if (!Array.isArray(entry.bundles))               entry.bundles = [];
   return entry;
 }
@@ -150,7 +154,8 @@ export async function addCmd(args) {
     }
 
     const inv = scanEcc(eccRoot);
-    const listKey = type === 'skill' ? 'skills' : type === 'agent' ? 'agents' : 'rules';
+    const typeToInvKey = { skill: 'skills', agent: 'agents', rule: 'rules', command: 'commands', context: 'contexts' };
+    const listKey = typeToInvKey[type];
 
     for (const name of names) {
       const found = inv[listKey].some(item => item.name === name);

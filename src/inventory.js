@@ -171,9 +171,11 @@ export async function inventoryCmd(args) {
 
   // --detail mode: print full file content for a named item
   if (detail) {
-    const skill = inv.skills.find(s => s.name === detail);
-    const agent = inv.agents.find(a => a.name === detail);
-    const rule  = inv.rules.find(r => r.name === detail);
+    const skill   = inv.skills.find(s => s.name === detail);
+    const agent   = inv.agents.find(a => a.name === detail);
+    const rule    = inv.rules.find(r => r.name === detail);
+    const command = inv.commands.find(c => c.name === detail);
+    const context = (inv.contexts ?? []).find(c => c.name === detail);
 
     let filePath;
     if (skill) {
@@ -182,6 +184,10 @@ export async function inventoryCmd(args) {
       filePath = join(eccRoot, agent.path);
     } else if (rule) {
       filePath = join(eccRoot, rule.path);
+    } else if (command) {
+      filePath = join(eccRoot, command.path);
+    } else if (context) {
+      filePath = join(eccRoot, context.path);
     } else {
       log.err(`"${detail}" not found in inventory`);
       process.exitCode = 2;
@@ -263,6 +269,14 @@ export async function inventoryCmd(args) {
   if (showAll || type === 'command') {
     printSection(
       'COMMANDS', inv.commands, 'command',
+      selectedSkills, selectedAgents, ignoredSkills, ignoredAgents,
+      filterRe, state,
+    );
+  }
+
+  if (showAll || type === 'context') {
+    printSection(
+      'CONTEXTS', inv.contexts ?? [], 'context',
       selectedSkills, selectedAgents, ignoredSkills, ignoredAgents,
       filterRe, state,
     );

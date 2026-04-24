@@ -21,9 +21,11 @@ export function resolveDesired(config, bundles, inv, { home }) {
   const result = [];
 
   // Build lookup sets for fast validation
-  const agentNames = new Set(inv.agents.map(a => a.name));
-  const skillNames = new Set(inv.skills.map(s => s.name));
-  const ruleNames  = new Set(inv.rules.map(r => r.name));
+  const agentNames   = new Set(inv.agents.map(a => a.name));
+  const skillNames   = new Set(inv.skills.map(s => s.name));
+  const ruleNames    = new Set(inv.rules.map(r => r.name));
+  const commandNames = new Set(inv.commands.map(c => c.name));
+  const contextNames = new Set((inv.contexts ?? []).map(c => c.name));
 
   // -------------------------------------------------------------------------
   // Global layer
@@ -84,6 +86,34 @@ export function resolveDesired(config, bundles, inv, { home }) {
       dst: join(home, '.claude', 'rules', lang),
       eccSrc: `rules/${lang}`,
       kind: 'rules-dir',
+      ownedBy: 'global',
+      ephemeral: false,
+    });
+  }
+
+  // Commands (global only, per-file symlink)
+  for (const name of (globalExtras.commands ?? [])) {
+    if (!commandNames.has(name)) {
+      throw new Error(`command "${name}" not found in ECC`);
+    }
+    result.push({
+      dst: join(home, '.claude', 'commands', `${name}.md`),
+      eccSrc: `commands/${name}.md`,
+      kind: 'command',
+      ownedBy: 'global',
+      ephemeral: false,
+    });
+  }
+
+  // Contexts (global only, per-file symlink)
+  for (const name of (globalExtras.contexts ?? [])) {
+    if (!contextNames.has(name)) {
+      throw new Error(`context "${name}" not found in ECC`);
+    }
+    result.push({
+      dst: join(home, '.claude', 'contexts', `${name}.md`),
+      eccSrc: `contexts/${name}.md`,
+      kind: 'context',
       ownedBy: 'global',
       ephemeral: false,
     });

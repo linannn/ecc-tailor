@@ -43,6 +43,13 @@ export function makeFakeEcc(root) {
     );
   }
 
+  // contexts/*.md
+  const contextsDir = join(root, 'contexts');
+  mkdirSync(contextsDir, { recursive: true });
+  for (const ctx of ['dev', 'research', 'review']) {
+    writeFileSync(join(contextsDir, `${ctx}.md`), `# ${ctx} context\n`, 'utf8');
+  }
+
   // rules/common/style.md
   const rulesDir = join(root, 'rules', 'common');
   mkdirSync(rulesDir, { recursive: true });

@@ -5,7 +5,7 @@ export const DEFAULT_CONFIG = {
   eccPath: null,
   global: {
     bundles: ['global'],
-    extras: { agents: [], skills: [], rulesLanguages: [] },
+    extras: { agents: [], skills: [], rulesLanguages: [], commands: [], contexts: [] },
     excludes: { agents: [], skills: [] },
   },
   projects: [],

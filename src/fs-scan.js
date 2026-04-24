@@ -106,5 +106,14 @@ export function scanEcc(eccRoot) {
       description: '',
     }));
 
-  return { agents, skills, rules, commands };
+  // contexts/*.md
+  const contexts = safeDirents(join(eccRoot, 'contexts'))
+    .filter(d => d.isFile() && d.name.endsWith('.md'))
+    .map(d => ({
+      name: d.name.slice(0, -3),
+      path: `contexts/${d.name}`,
+      description: '',
+    }));
+
+  return { agents, skills, rules, commands, contexts };
 }
