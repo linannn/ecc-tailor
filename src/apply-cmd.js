@@ -11,6 +11,7 @@ import { planApply, executeApply } from './apply.js';
 import { paths } from './paths.js';
 import { writeHookWrapper, effectiveDisabled } from './hooks-wrapper.js';
 import { rewriteEccHooksJson, mergeHooksIntoSettings } from './hooks-merge.js';
+import { checkForUpdates } from './upgrade-notify.js';
 import log from './logger.js';
 
 /**
@@ -123,6 +124,9 @@ export async function applyCmd(args) {
 
   // 13. Save state
   saveState(state);
+
+  // 13b. Passive upgrade notification (best-effort, non-blocking)
+  try { await checkForUpdates(eccRoot, state); saveState(state); } catch { /* best-effort */ }
 
   // 14. Print outcome
   if (addCount === 0 && removeCount === 0 && !config.hooks?.install) {
