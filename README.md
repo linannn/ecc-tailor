@@ -2,7 +2,7 @@
 
 **English** | [中文](README.zh.md)
 
-A selective installer for [Everything Claude Code (ECC)](https://github.com/affaan-m/everything-claude-code). Cherry-pick what you need from 181 skills / 48 agents by tech stack instead of installing everything.
+A selective installer for [Everything Claude Code (ECC)](https://github.com/affaan-m/everything-claude-code). Cherry-pick what you need from 235 skills / 47 agents by tech stack instead of installing everything.
 
 ## Why
 
@@ -20,8 +20,10 @@ ECC's built-in installer is too coarse — `--with lang:java` pulls in 38 skills
 ```bash
 git clone https://github.com/<you>/ecc-tailor.git
 cd ecc-tailor
-npm link
+npm link              # registers `ecc-tailor` as a global CLI command
 ```
+
+`npm link` creates a symlink from your system PATH to `bin/ecc-tailor` in this repo, so you can run `ecc-tailor` from anywhere in the terminal.
 
 Requires Node >= 18. Zero npm dependencies.
 
