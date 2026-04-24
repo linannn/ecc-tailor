@@ -174,20 +174,25 @@ test('scan bundle is ephemeral', () => {
   assert.equal(result.ephemeral, true);
 });
 
-test('global bundle has 16 agents', () => {
+test('global bundle has 16 agents and 9 skills', () => {
   const bundles = loadBundles();
   assert.equal(bundles.global.agents.length, 16);
+  assert.equal(bundles.global.skills.length, 9);
 });
 
-test('all 10 bundles are present', () => {
+test('all 33 bundles are present', () => {
   const bundles = loadBundles();
   const expected = [
-    'global', 'java-proj', 'py-proj', 'py-django-proj',
-    'ts-backend-proj', 'ts-frontend-proj', 'ts-nestjs-proj',
-    'ai-app-dev', 'security', 'scan',
+    'global', 'java-proj', 'py-proj', 'py-django-proj', 'py-ml-proj',
+    'ts-backend-proj', 'ts-frontend-proj', 'ts-nestjs-proj', 'nuxt-proj',
+    'go-proj', 'rust-proj', 'kotlin-proj', 'cpp-proj', 'csharp-proj',
+    'swift-proj', 'dart-flutter-proj', 'laravel-proj', 'perl-proj',
+    'ai-app-dev', 'security', 'database', 'devops',
+    'healthcare', 'opensource', 'a11y', 'seo', 'gan-harness',
+    'agent-dev', 'research', 'content', 'ops', 'crypto', 'scan',
   ];
   for (const name of expected) {
     assert.ok(name in bundles, `bundle "${name}" should exist`);
   }
-  assert.equal(Object.keys(bundles).length, expected.length, 'should have exactly 10 bundles');
+  assert.equal(Object.keys(bundles).length, expected.length, `should have exactly ${expected.length} bundles`);
 });

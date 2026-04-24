@@ -32,7 +32,7 @@ export function makeFakeEcc(root) {
     'agent-sort', 'skill-stocktake', 'repo-scan',
     'workspace-surface-audit', 'ecc-tools-cost-audit',
     'rules-distill', 'agent-eval', 'skill-comply',
-    'codebase-onboarding',
+    'codebase-onboarding', 'configure-ecc', 'context-budget',
   ]) {
     const skillDir = join(root, 'skills', skillName);
     mkdirSync(skillDir, { recursive: true });

@@ -11,7 +11,8 @@
     "skills": [
       "coding-standards", "api-design",
       "tdd-workflow", "verification-loop",
-      "plankton-code-quality", "strategic-compact"
+      "plankton-code-quality", "strategic-compact",
+      "git-workflow", "gateguard", "architecture-decision-records"
     ]
   },
   "java-proj": {
@@ -19,7 +20,7 @@
     "agents": ["java-reviewer", "java-build-resolver"],
     "skills": [
       "springboot-patterns", "springboot-tdd", "springboot-verification",
-      "java-coding-standards", "jpa-patterns"
+      "java-coding-standards", "jpa-patterns", "springboot-security"
     ]
   },
   "py-proj": {
@@ -30,7 +31,13 @@
   "py-django-proj": {
     "description": "Python + Django project",
     "extends": "py-proj",
-    "skills": ["django-patterns", "django-tdd", "django-verification"]
+    "skills": ["django-patterns", "django-tdd", "django-verification", "django-security"]
+  },
+  "py-ml-proj": {
+    "description": "Python ML / deep learning",
+    "extends": "py-proj",
+    "agents": ["pytorch-build-resolver"],
+    "skills": ["pytorch-patterns"]
   },
   "ts-backend-proj": {
     "description": "TypeScript/JS backend",
@@ -40,22 +47,167 @@
   "ts-frontend-proj": {
     "description": "TypeScript/JS frontend",
     "agents": ["typescript-reviewer", "build-error-resolver", "e2e-runner"],
-    "skills": ["frontend-patterns", "frontend-design"]
+    "skills": ["frontend-patterns", "frontend-design", "e2e-testing", "nextjs-turbopack"]
   },
   "ts-nestjs-proj": {
     "description": "NestJS project",
     "extends": "ts-backend-proj",
     "skills": ["nestjs-patterns"]
   },
+  "nuxt-proj": {
+    "description": "Nuxt project",
+    "extends": "ts-frontend-proj",
+    "skills": ["nuxt4-patterns"]
+  },
+  "go-proj": {
+    "description": "Go project",
+    "agents": ["go-reviewer", "go-build-resolver"],
+    "skills": ["golang-patterns", "golang-testing"]
+  },
+  "rust-proj": {
+    "description": "Rust project",
+    "agents": ["rust-reviewer", "rust-build-resolver"],
+    "skills": ["rust-patterns", "rust-testing"]
+  },
+  "kotlin-proj": {
+    "description": "Kotlin / Android / KMP",
+    "agents": ["kotlin-reviewer", "kotlin-build-resolver"],
+    "skills": [
+      "kotlin-patterns", "kotlin-testing", "kotlin-coroutines-flows",
+      "kotlin-exposed-patterns", "kotlin-ktor-patterns",
+      "android-clean-architecture", "compose-multiplatform-patterns"
+    ]
+  },
+  "cpp-proj": {
+    "description": "C++ project",
+    "agents": ["cpp-reviewer", "cpp-build-resolver"],
+    "skills": ["cpp-coding-standards", "cpp-testing"]
+  },
+  "csharp-proj": {
+    "description": "C# / .NET project",
+    "agents": ["csharp-reviewer"],
+    "skills": ["dotnet-patterns", "csharp-testing"]
+  },
+  "swift-proj": {
+    "description": "Swift / iOS / macOS",
+    "agents": [],
+    "skills": [
+      "swiftui-patterns", "swift-concurrency-6-2",
+      "swift-actor-persistence", "swift-protocol-di-testing",
+      "liquid-glass-design", "foundation-models-on-device"
+    ]
+  },
+  "dart-flutter-proj": {
+    "description": "Dart / Flutter",
+    "agents": ["dart-build-resolver", "flutter-reviewer"],
+    "skills": ["dart-flutter-patterns", "flutter-dart-code-review"]
+  },
+  "laravel-proj": {
+    "description": "Laravel / PHP",
+    "agents": [],
+    "skills": [
+      "laravel-patterns", "laravel-tdd", "laravel-verification",
+      "laravel-security", "laravel-plugin-discovery"
+    ]
+  },
+  "perl-proj": {
+    "description": "Perl project",
+    "agents": [],
+    "skills": ["perl-patterns", "perl-testing", "perl-security"]
+  },
   "ai-app-dev": {
     "description": "Claude API / MCP server development",
     "agents": [],
-    "skills": ["claude-api", "mcp-server-patterns"]
+    "skills": ["claude-api", "mcp-server-patterns", "cost-aware-llm-pipeline"]
   },
   "security": {
     "description": "Security hardening",
     "agents": ["security-reviewer"],
-    "skills": ["security-review", "security-scan"]
+    "skills": ["security-review", "security-scan", "security-bounty-hunter"]
+  },
+  "database": {
+    "description": "Database design and operations",
+    "agents": ["database-reviewer"],
+    "skills": ["database-migrations", "postgres-patterns", "clickhouse-io"]
+  },
+  "devops": {
+    "description": "Deployment and infrastructure",
+    "agents": [],
+    "skills": ["docker-patterns", "deployment-patterns", "benchmark"]
+  },
+  "healthcare": {
+    "description": "Healthcare / medical",
+    "agents": ["healthcare-reviewer"],
+    "skills": [
+      "healthcare-cdss-patterns", "healthcare-emr-patterns",
+      "healthcare-eval-harness", "healthcare-phi-compliance",
+      "hipaa-compliance"
+    ]
+  },
+  "opensource": {
+    "description": "Open source release pipeline",
+    "agents": ["opensource-forker", "opensource-packager", "opensource-sanitizer"],
+    "skills": ["opensource-pipeline"]
+  },
+  "a11y": {
+    "description": "Accessibility / WCAG compliance",
+    "agents": ["a11y-architect"],
+    "skills": ["accessibility"]
+  },
+  "seo": {
+    "description": "SEO optimization",
+    "agents": ["seo-specialist"],
+    "skills": ["seo"]
+  },
+  "gan-harness": {
+    "description": "GAN multi-agent adversarial generation",
+    "agents": ["gan-evaluator", "gan-generator", "gan-planner"],
+    "skills": ["gan-style-harness"]
+  },
+  "agent-dev": {
+    "description": "AI agent development and orchestration",
+    "agents": ["loop-operator"],
+    "skills": [
+      "agentic-engineering", "autonomous-agent-harness", "autonomous-loops",
+      "continuous-agent-loop", "agent-harness-construction",
+      "agent-introspection-debugging", "eval-harness",
+      "enterprise-agent-ops", "dmux-workflows",
+      "santa-method", "council", "team-builder",
+      "ralphinho-rfc-pipeline", "safety-guard"
+    ]
+  },
+  "research": {
+    "description": "Research and analysis",
+    "agents": [],
+    "skills": ["deep-research", "exa-search", "market-research", "research-ops"]
+  },
+  "content": {
+    "description": "Content creation and social media",
+    "agents": [],
+    "skills": [
+      "article-writing", "brand-voice", "content-engine", "crosspost",
+      "frontend-slides", "manim-video", "video-editing",
+      "remotion-video-creation", "fal-ai-media", "videodb",
+      "ui-demo", "investor-materials", "investor-outreach"
+    ]
+  },
+  "ops": {
+    "description": "Business operations automation",
+    "agents": ["chief-of-staff", "conversation-analyzer"],
+    "skills": [
+      "email-ops", "messages-ops", "google-workspace-ops",
+      "unified-notifications-ops", "knowledge-ops", "project-flow-ops",
+      "jira-integration", "github-ops", "terminal-ops",
+      "automation-audit-ops", "finance-billing-ops", "customer-billing-ops"
+    ]
+  },
+  "crypto": {
+    "description": "Web3 / DeFi security",
+    "agents": [],
+    "skills": [
+      "defi-amm-security", "evm-token-decimals",
+      "llm-trading-agent-security", "nodejs-keccak256"
+    ]
   },
   "scan": {
     "description": "Ephemeral evaluation tools",
@@ -65,7 +217,7 @@
       "agent-sort", "skill-stocktake", "repo-scan",
       "workspace-surface-audit", "ecc-tools-cost-audit",
       "rules-distill", "agent-eval", "skill-comply",
-      "codebase-onboarding"
+      "codebase-onboarding", "configure-ecc", "context-budget"
     ]
   }
 }
