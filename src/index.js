@@ -1,4 +1,5 @@
 import log from './logger.js';
+import { applyCmd } from './apply-cmd.js';
 
 function printHelp() {
   log.h1('ecc-tailor');
@@ -14,8 +15,8 @@ function printHelp() {
   log.info('  -h, --help  Show help');
 }
 
-async function cmdApply(_argv) {
-  log.info('apply: not yet implemented');
+async function cmdApply(argv) {
+  await applyCmd(argv);
 }
 
 async function cmdStatus(_argv) {
