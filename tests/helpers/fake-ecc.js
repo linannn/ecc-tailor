@@ -27,14 +27,21 @@ export function makeFakeEcc(root) {
     'utf8',
   );
 
-  // skills/agent-sort/SKILL.md
-  const agentSortDir = join(root, 'skills', 'agent-sort');
-  mkdirSync(agentSortDir, { recursive: true });
-  writeFileSync(
-    join(agentSortDir, 'SKILL.md'),
-    '---\nname: agent-sort\ndescription: fake agent-sort\n---\n',
-    'utf8',
-  );
+  // skills used by the scan bundle
+  for (const skillName of [
+    'agent-sort', 'skill-stocktake', 'repo-scan',
+    'workspace-surface-audit', 'ecc-tools-cost-audit',
+    'rules-distill', 'agent-eval', 'skill-comply',
+    'codebase-onboarding',
+  ]) {
+    const skillDir = join(root, 'skills', skillName);
+    mkdirSync(skillDir, { recursive: true });
+    writeFileSync(
+      join(skillDir, 'SKILL.md'),
+      `---\nname: ${skillName}\ndescription: fake ${skillName}\n---\n`,
+      'utf8',
+    );
+  }
 
   // rules/common/style.md
   const rulesDir = join(root, 'rules', 'common');

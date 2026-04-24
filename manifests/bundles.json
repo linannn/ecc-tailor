@@ -1,28 +1,71 @@
 {
   "global": {
-    "description": "Stack-agnostic core",
-    "agents": ["planner", "code-reviewer"],
-    "skills": ["coding-standards", "tdd-workflow"]
+    "description": "Stack-agnostic core → ~/.claude/",
+    "agents": [
+      "planner", "architect", "code-architect", "code-explorer",
+      "code-reviewer", "code-simplifier", "comment-analyzer",
+      "silent-failure-hunter", "tdd-guide", "type-design-analyzer",
+      "performance-optimizer", "pr-test-analyzer",
+      "doc-updater", "docs-lookup", "harness-optimizer", "refactor-cleaner"
+    ],
+    "skills": [
+      "coding-standards", "api-design",
+      "tdd-workflow", "verification-loop",
+      "plankton-code-quality", "strategic-compact"
+    ]
   },
   "java-proj": {
-    "description": "Java + Spring Boot",
-    "agents": ["java-reviewer"],
-    "skills": ["springboot-patterns"]
+    "description": "Java + Spring Boot project",
+    "agents": ["java-reviewer", "java-build-resolver"],
+    "skills": [
+      "springboot-patterns", "springboot-tdd", "springboot-verification",
+      "java-coding-standards", "jpa-patterns"
+    ]
+  },
+  "py-proj": {
+    "description": "Python project",
+    "agents": ["python-reviewer"],
+    "skills": ["python-patterns", "python-testing"]
+  },
+  "py-django-proj": {
+    "description": "Python + Django project",
+    "extends": "py-proj",
+    "skills": ["django-patterns", "django-tdd", "django-verification"]
   },
   "ts-backend-proj": {
-    "description": "TS backend base",
-    "agents": ["typescript-reviewer"],
+    "description": "TypeScript/JS backend",
+    "agents": ["typescript-reviewer", "build-error-resolver"],
     "skills": ["backend-patterns"]
   },
+  "ts-frontend-proj": {
+    "description": "TypeScript/JS frontend",
+    "agents": ["typescript-reviewer", "build-error-resolver", "e2e-runner"],
+    "skills": ["frontend-patterns", "frontend-design"]
+  },
   "ts-nestjs-proj": {
-    "description": "NestJS",
+    "description": "NestJS project",
     "extends": "ts-backend-proj",
     "skills": ["nestjs-patterns"]
   },
+  "ai-app-dev": {
+    "description": "Claude API / MCP server development",
+    "agents": [],
+    "skills": ["claude-api", "mcp-server-patterns"]
+  },
+  "security": {
+    "description": "Security hardening",
+    "agents": ["security-reviewer"],
+    "skills": ["security-review", "security-scan"]
+  },
   "scan": {
-    "description": "Ephemeral eval tools",
+    "description": "Ephemeral evaluation tools",
     "ephemeral": true,
     "agents": [],
-    "skills": ["agent-sort"]
+    "skills": [
+      "agent-sort", "skill-stocktake", "repo-scan",
+      "workspace-surface-audit", "ecc-tools-cost-audit",
+      "rules-distill", "agent-eval", "skill-comply",
+      "codebase-onboarding"
+    ]
   }
 }

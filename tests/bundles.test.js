@@ -17,8 +17,10 @@ test('loadBundles: reads JSON and contains expected bundles', () => {
 test('resolveBundle: flat bundle resolves correctly', () => {
   const bundles = loadBundles();
   const result = resolveBundle(bundles, 'java-proj');
-  assert.deepEqual(result.agents, ['java-reviewer']);
-  assert.deepEqual(result.skills, ['springboot-patterns']);
+  assert.ok(result.agents.includes('java-reviewer'), 'should include java-reviewer');
+  assert.ok(result.agents.includes('java-build-resolver'), 'should include java-build-resolver');
+  assert.ok(result.skills.includes('springboot-patterns'), 'should include springboot-patterns');
+  assert.ok(result.skills.includes('java-coding-standards'), 'should include java-coding-standards');
 });
 
 // ---------------------------------------------------------------------------
