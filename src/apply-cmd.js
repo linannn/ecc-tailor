@@ -113,7 +113,7 @@ export async function applyCmd(args) {
   saveState(state);
 
   // 13. Print outcome
-  if (addCount === 0 && removeCount === 0) {
+  if (addCount === 0 && removeCount === 0 && !config.hooks?.install) {
     log.info('Nothing to do.');
   } else {
     log.ok('apply complete');
