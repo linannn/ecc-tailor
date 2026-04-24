@@ -1,0 +1,21 @@
+{
+  "name": "ecc-tailor",
+  "version": "0.1.0-dev",
+  "type": "module",
+  "bin": {
+    "ecc-tailor": "bin/ecc-tailor"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test tests/",
+    "test:one": "node --test"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "manifests/",
+    "templates/"
+  ]
+}
