@@ -1,0 +1,28 @@
+{
+  "global": {
+    "description": "Stack-agnostic core",
+    "agents": ["planner", "code-reviewer"],
+    "skills": ["coding-standards", "tdd-workflow"]
+  },
+  "java-proj": {
+    "description": "Java + Spring Boot",
+    "agents": ["java-reviewer"],
+    "skills": ["springboot-patterns"]
+  },
+  "ts-backend-proj": {
+    "description": "TS backend base",
+    "agents": ["typescript-reviewer"],
+    "skills": ["backend-patterns"]
+  },
+  "ts-nestjs-proj": {
+    "description": "NestJS",
+    "extends": "ts-backend-proj",
+    "skills": ["nestjs-patterns"]
+  },
+  "scan": {
+    "description": "Ephemeral eval tools",
+    "ephemeral": true,
+    "agents": [],
+    "skills": ["agent-sort"]
+  }
+}
