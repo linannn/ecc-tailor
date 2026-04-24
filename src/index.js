@@ -5,6 +5,7 @@ import { inventoryCmd } from './inventory.js';
 import { forkCmd } from './fork.js';
 import { statusCmd } from './status.js';
 import { doctorCmd } from './doctor.js';
+import { scanCmd } from './scan-cmd.js';
 
 function printHelp() {
   log.h1('ecc-tailor');
@@ -15,6 +16,7 @@ function printHelp() {
   log.info('  apply     Apply the tailor manifest to the target environment');
   log.info('  status    Show current tailor status');
   log.info('  doctor    Run health checks on the installation');
+  log.info('  scan      Attach/detach ephemeral evaluation bundle');
   log.info('  help      Show this help message');
   log.info('');
   log.info('Options:');
@@ -62,6 +64,9 @@ export async function main(argv) {
       break;
     case 'fork':
       await forkCmd(rest);
+      break;
+    case 'scan':
+      await scanCmd(rest);
       break;
     default:
       log.err(`Unknown command: ${cmd}`);
