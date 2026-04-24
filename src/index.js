@@ -1,5 +1,6 @@
 import log from './logger.js';
 import { applyCmd } from './apply-cmd.js';
+import { addCmd, removeIncrementalCmd } from './add-remove.js';
 
 function printHelp() {
   log.h1('ecc-tailor');
@@ -37,6 +38,12 @@ export async function main(argv) {
       break;
     case 'status':
       await cmdStatus(rest);
+      break;
+    case 'add':
+      await addCmd(rest);
+      break;
+    case 'remove':
+      await removeIncrementalCmd(rest);
       break;
     default:
       log.err(`Unknown command: ${cmd}`);
