@@ -42,7 +42,7 @@
   "ts-backend-proj": {
     "description": "TypeScript/JS backend",
     "agents": ["typescript-reviewer", "build-error-resolver"],
-    "skills": ["backend-patterns"]
+    "skills": ["backend-patterns", "api-design"]
   },
   "ts-frontend-proj": {
     "description": "TypeScript/JS frontend",
