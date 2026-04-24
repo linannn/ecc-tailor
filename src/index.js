@@ -3,6 +3,8 @@ import { applyCmd } from './apply-cmd.js';
 import { addCmd, removeIncrementalCmd } from './add-remove.js';
 import { inventoryCmd } from './inventory.js';
 import { forkCmd } from './fork.js';
+import { statusCmd } from './status.js';
+import { doctorCmd } from './doctor.js';
 
 function printHelp() {
   log.h1('ecc-tailor');
@@ -12,6 +14,7 @@ function printHelp() {
   log.info('Commands:');
   log.info('  apply     Apply the tailor manifest to the target environment');
   log.info('  status    Show current tailor status');
+  log.info('  doctor    Run health checks on the installation');
   log.info('  help      Show this help message');
   log.info('');
   log.info('Options:');
@@ -23,7 +26,11 @@ async function cmdApply(argv) {
 }
 
 async function cmdStatus(_argv) {
-  log.info('status: not yet implemented');
+  statusCmd();
+}
+
+async function cmdDoctor(_argv) {
+  await doctorCmd();
 }
 
 export async function main(argv) {
@@ -40,6 +47,9 @@ export async function main(argv) {
       break;
     case 'status':
       await cmdStatus(rest);
+      break;
+    case 'doctor':
+      await cmdDoctor(rest);
       break;
     case 'add':
       await addCmd(rest);
