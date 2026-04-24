@@ -79,5 +79,18 @@ export async function applyCmd(args) {
     log.info('Nothing to do.');
   } else {
     log.ok('apply complete');
+
+    // Print rules notice if any rules-dir items were added
+    const addedRules = plan.toAdd.filter(item => item.kind === 'rules-dir');
+    if (addedRules.length > 0) {
+      log.info('');
+      log.warn('rules installed — NOT auto-loaded by Claude Code');
+      log.info('To activate, add to ~/.claude/CLAUDE.md:');
+      for (const item of addedRules) {
+        // Extract language from eccSrc, e.g. "rules/common" → "common"
+        const lang = item.eccSrc.split('/')[1];
+        log.dim(`  @rules/${lang}/<file>.md`);
+      }
+    }
   }
 }
