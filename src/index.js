@@ -2,6 +2,7 @@ import log from './logger.js';
 import { applyCmd } from './apply-cmd.js';
 import { addCmd, removeIncrementalCmd } from './add-remove.js';
 import { inventoryCmd } from './inventory.js';
+import { forkCmd } from './fork.js';
 
 function printHelp() {
   log.h1('ecc-tailor');
@@ -48,6 +49,9 @@ export async function main(argv) {
       break;
     case 'inventory':
       await inventoryCmd(rest);
+      break;
+    case 'fork':
+      await forkCmd(rest);
       break;
     default:
       log.err(`Unknown command: ${cmd}`);
