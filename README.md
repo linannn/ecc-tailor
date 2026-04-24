@@ -1,19 +1,19 @@
 # ecc-tailor
 
-Selective installer for [Everything Claude Code (ECC)](https://github.com/affaan-m/everything-claude-code). Cherry-pick agents, skills, rules, and hooks by stack instead of loading the entire 181-skill / 48-agent bundle.
+[Everything Claude Code (ECC)](https://github.com/affaan-m/everything-claude-code) 的按需安装工具。从 181 个 skill / 48 个 agent 的超大配置集中，按技术栈精选你需要的部分。
 
-## Why
+## 为什么需要这个
 
-ECC's built-in installer has coarse granularity — `--with lang:java` pulls in 38 skills including Rust/Kotlin/Django/Laravel. It doesn't support per-project scoping, and agents are all-or-nothing. ecc-tailor fixes this with:
+ECC 自带安装器粒度太粗——`--with lang:java` 会拉进 38 个 skill（包括 Rust/Kotlin/Django/Laravel），不支持项目级安装，agent 要么全装要么全不装。ecc-tailor 解决这些问题：
 
-- **Per-file granularity** — pick individual agents and skills
-- **Two-tier install** — global (`~/.claude/`) + per-project (`<proj>/.claude/`)
-- **Config-as-code** — one JSON file declares everything, `apply` makes it so
-- **Symlink model** — zero-copy, instant ECC upgrades via `git pull`
-- **Hook integration** — ECC's 26 hooks merged into your settings.json with profile/disabled controls
-- **Upgrade workflow** — passive notifications + interactive 3-way decisions for new capabilities
+- **逐个可选** — 精确到单个 agent / skill
+- **两级安装** — 通用的放全局 `~/.claude/`，栈相关的放项目 `<proj>/.claude/`
+- **配置即代码** — 一个 JSON 文件声明所有，`apply` 一键生效
+- **Symlink 模式** — 零拷贝，ECC `git pull` 后立即生效
+- **Hook 集成** — ECC 的 26 条 hook 按 profile/disabled 精细控制
+- **升级检测** — 被动通知新能力 + 交互式三选一决策
 
-## Install
+## 安装
 
 ```bash
 git clone https://github.com/<you>/ecc-tailor.git
@@ -21,12 +21,12 @@ cd ecc-tailor
 npm link
 ```
 
-Node >= 18 required. Zero npm dependencies.
+需要 Node >= 18，零 npm 依赖。
 
-## Quick Start
+## 快速开始
 
 ```bash
-# 1. Create config
+# 1. 创建配置
 mkdir -p ~/.config/ecc-tailor
 cat > ~/.config/ecc-tailor/config.json << 'EOF'
 {
@@ -50,35 +50,35 @@ cat > ~/.config/ecc-tailor/config.json << 'EOF'
 }
 EOF
 
-# 2. Preview
+# 2. 预览
 ecc-tailor apply --dry-run
 
-# 3. Install
+# 3. 安装
 ecc-tailor apply
 ```
 
-First run auto-clones ECC to `~/.local/share/ecc-tailor/ecc/`. To use an existing local clone:
+首次运行会自动 clone ECC 到 `~/.local/share/ecc-tailor/ecc/`。如果本地已有 ECC clone：
 
 ```json
 { "eccPath": "/path/to/everything-claude-code", ... }
 ```
 
-## Bundles
+## Bundle 列表
 
-| Bundle | Agents | Skills | Use case |
+| Bundle | Agents | Skills | 适用场景 |
 |---|---|---|---|
-| `global` | 16 | 6 | Stack-agnostic core (planner, architect, tdd, etc.) |
-| `java-proj` | 2 | 5 | Spring Boot projects |
-| `py-proj` | 1 | 2 | Python projects |
-| `py-django-proj` | extends py-proj | +3 | Django projects |
-| `ts-backend-proj` | 2 | 1 | Node/Express/Fastify backend |
-| `ts-frontend-proj` | 3 | 2 | React/Next/Vue frontend |
-| `ts-nestjs-proj` | extends ts-backend | +1 | NestJS projects |
-| `ai-app-dev` | 0 | 2 | Claude API / MCP server dev |
-| `security` | 1 | 2 | Security review + scanning |
-| `scan` | 0 | 9 | Ephemeral evaluation tools |
+| `global` | 16 | 6 | 栈无关基础（planner、architect、tdd 等） |
+| `java-proj` | 2 | 5 | Spring Boot 项目 |
+| `py-proj` | 1 | 2 | Python 项目 |
+| `py-django-proj` | 继承 py-proj | +3 | Django 项目 |
+| `ts-backend-proj` | 2 | 1 | Node/Express/Fastify 后端 |
+| `ts-frontend-proj` | 3 | 2 | React/Next/Vue 前端 |
+| `ts-nestjs-proj` | 继承 ts-backend | +1 | NestJS 项目 |
+| `ai-app-dev` | 0 | 2 | Claude API / MCP server 开发 |
+| `security` | 1 | 2 | 安全审查 + 扫描 |
+| `scan` | 0 | 9 | 临时评估工具（用完即删） |
 
-A project can consume multiple bundles:
+一个项目可以组合多个 bundle：
 
 ```json
 {
@@ -87,91 +87,91 @@ A project can consume multiple bundles:
 }
 ```
 
-## Commands
+## 命令
 
-### Core
-
-```bash
-ecc-tailor apply [--dry-run]        # Sync symlinks + hooks per config
-ecc-tailor status                    # Print installed items summary
-ecc-tailor doctor                    # Health check (broken links, config validity)
-```
-
-### Incremental changes
+### 核心
 
 ```bash
-ecc-tailor add skill <name> --to global
-ecc-tailor add skill <name> --to project:$(pwd)
-ecc-tailor add bundle <name> --to project:$(pwd)
-ecc-tailor remove skill <name> --from global
+ecc-tailor apply [--dry-run]        # 按配置同步 symlink + hook
+ecc-tailor status                    # 查看已安装内容
+ecc-tailor doctor                    # 健康检查（断链、配置合法性）
 ```
 
-### Explore ECC
+### 增量修改
 
 ```bash
-ecc-tailor inventory --type skill                     # All 181 skills with selection markers
-ecc-tailor inventory --type skill --state unselected   # What you haven't picked yet
-ecc-tailor inventory --detail <name>                   # Full SKILL.md content
+ecc-tailor add skill <name> --to global                  # 全局加 skill
+ecc-tailor add skill <name> --to project:$(pwd)          # 给当前项目加 skill
+ecc-tailor add bundle <name> --to project:$(pwd)         # 给当前项目加 bundle
+ecc-tailor remove skill <name> --from global             # 移除
 ```
 
-### Scan a new project
+### 浏览 ECC 资源
+
+```bash
+ecc-tailor inventory --type skill                        # 全部 181 个 skill，标记选中状态
+ecc-tailor inventory --type skill --state unselected     # 只看没选的
+ecc-tailor inventory --detail <name>                     # 查看某个 skill 的完整内容
+```
+
+### 扫描新项目
 
 ```bash
 cd ~/code/new-project
-ecc-tailor scan attach .      # Install 9 evaluation skills temporarily
-# In Claude Code: run /agent-sort to get recommendations
-ecc-tailor add bundle java-proj --to project:$(pwd)   # Act on recommendations
-ecc-tailor scan detach .      # Clean up eval tools
+ecc-tailor scan attach .           # 临时装 9 个评估 skill
+# 在 Claude Code 里跑 /agent-sort 获取建议
+ecc-tailor add bundle java-proj --to project:$(pwd)      # 根据建议装
+ecc-tailor scan detach .           # 清理评估工具
 ```
 
-### Fork (customize)
+### Fork（本地定制）
 
 ```bash
 ecc-tailor fork ~/.claude/agents/planner.md
-# Symlink → real file. Edit freely; apply won't overwrite it.
+# symlink 变成真文件，随便改，apply 不会覆盖
 ```
 
-### Upgrade ECC
+### 升级 ECC
 
 ```bash
 ecc-tailor upgrade
-# Fetches latest ECC, shows new skills/agents, lets you:
-#   [a]pprove — add to config
-#   [i]gnore  — never ask again
-#   [s]kip    — ask next time
+# 拉取最新 ECC，列出新增的 skill/agent，逐个问你：
+#   [a]pprove — 加到配置里装上
+#   [i]gnore  — 永远不再提醒
+#   [s]kip    — 这次不装，下次还问
 ```
 
-### Hooks
+### Hook 管理
 
 ```bash
-ecc-tailor hooks status
-ecc-tailor hooks set-profile strict          # minimal | standard | strict
-ecc-tailor hooks disable <hook-id>
-ecc-tailor hooks enable <hook-id>
-ecc-tailor hooks claude-mem-compat off       # Enable hooks that overlap with claude-mem
+ecc-tailor hooks status                          # 查看当前 profile + disabled
+ecc-tailor hooks set-profile strict              # minimal | standard | strict
+ecc-tailor hooks disable <hook-id>               # 禁用某条 hook
+ecc-tailor hooks enable <hook-id>                # 启用
+ecc-tailor hooks claude-mem-compat off           # 关闭 claude-mem 兼容（启用被自动禁用的 8 条 hook）
 ```
 
 ## Slash Command
 
-`apply` installs `/ecc-tailor` as a Claude Code slash command. In any session:
+`apply` 会自动安装 `/ecc-tailor` 斜杠命令到 `~/.claude/commands/`。在 Claude Code 会话里直接用自然语言：
 
 ```
-/ecc-tailor add hexagonal-architecture to this project
-/ecc-tailor scan this project and recommend what to install
-/ecc-tailor status
+/ecc-tailor 给当前项目加上 hexagonal-architecture
+/ecc-tailor 扫描一下这个项目应该装什么
+/ecc-tailor 看看状态
 ```
 
-## How It Works
+## 工作原理
 
-- **Symlinks** — agents are file-level symlinks, skills and rules are directory-level symlinks pointing into the ECC clone
-- **State** — `~/.local/state/ecc-tailor/state.json` tracks every symlink, fork, and ephemeral scan
-- **Hooks** — a generated wrapper script (`~/.local/share/ecc-tailor/bin/run-hook.sh`) sets `ECC_HOOK_PROFILE` and `ECC_DISABLED_HOOKS` env vars; ECC's own `run-with-flags.js` handles the rest
-- **Conflicts** — if a target path already exists and isn't managed by ecc-tailor, apply aborts with a clear message
-- **Idempotent** — running `apply` twice produces the same result
+- **Symlink** — agent 按文件链接，skill 和 rule 按目录链接，指向 ECC clone
+- **State** — `~/.local/state/ecc-tailor/state.json` 记录所有 symlink、fork、临时扫描
+- **Hook** — 生成 wrapper 脚本设置 `ECC_HOOK_PROFILE` + `ECC_DISABLED_HOOKS` 环境变量，ECC 自己的 `run-with-flags.js` 负责判断
+- **冲突** — 目标路径已存在且不是 ecc-tailor 管理的 → 终止并报错，绝不覆盖
+- **幂等** — 跑两次 `apply` 结果一样
 
-## Config Reference
+## 配置参考
 
-`~/.config/ecc-tailor/config.json`:
+`~/.config/ecc-tailor/config.json`：
 
 ```json
 {
@@ -204,32 +204,32 @@ ecc-tailor hooks claude-mem-compat off       # Enable hooks that overlap with cl
 }
 ```
 
-| Field | Description |
+| 字段 | 说明 |
 |---|---|
-| `eccPath` | Override ECC clone location (null = auto-manage) |
-| `global.bundles` | Bundle names for `~/.claude/` |
-| `global.extras.*` | Additional agents/skills/rules beyond bundles |
-| `global.excludes.*` | Remove specific items from bundles |
-| `projects[].bundles` | Array — a project can consume multiple bundles |
+| `eccPath` | ECC clone 路径（null = 自动管理） |
+| `global.bundles` | 全局安装的 bundle 列表 |
+| `global.extras.*` | bundle 之外额外加的 agent/skill/rule |
+| `global.excludes.*` | 从 bundle 里排除的 |
+| `projects[].bundles` | 数组，一个项目可吃多个 bundle |
 | `hooks.profile` | `minimal` / `standard` / `strict` |
-| `hooks.claudeMemCompat` | Auto-disable 8 hooks that overlap with claude-mem |
-| `hooks.disabled` | Additional hook IDs to disable |
+| `hooks.claudeMemCompat` | 自动禁用 8 条和 claude-mem 功能重叠的 hook |
+| `hooks.disabled` | 额外手动禁用的 hook ID |
 
-## Uninstall
+## 卸载
 
 ```bash
-ecc-tailor remove --all              # Remove all symlinks + hooks
-npm unlink -g ecc-tailor             # Remove CLI
-rm -rf ~/.config/ecc-tailor          # Remove config
-rm -rf ~/.local/state/ecc-tailor     # Remove state
-rm -rf ~/.local/share/ecc-tailor     # Remove ECC clone + wrapper
+ecc-tailor remove --all              # 删除所有 symlink + hook
+npm unlink -g ecc-tailor             # 移除 CLI
+rm -rf ~/.config/ecc-tailor          # 删除配置
+rm -rf ~/.local/state/ecc-tailor     # 删除状态
+rm -rf ~/.local/share/ecc-tailor     # 删除 ECC clone + wrapper
 ```
 
-## Development
+## 开发
 
 ```bash
-npm test                             # Unit + integration tests (84 tests)
-ECC_PATH=/path/to/ecc npm test       # + real ECC validation (10 E2E tests)
+npm test                             # 单元 + 集成测试（84 个）
+ECC_PATH=/path/to/ecc npm test       # + 真实 ECC 验证（10 个 E2E 测试）
 ```
 
 ## License
