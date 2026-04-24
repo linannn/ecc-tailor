@@ -1,5 +1,6 @@
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { readFile, copyFile, mkdir } from 'node:fs/promises';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { loadConfig } from './config.js';
 import { loadState, saveState } from './state.js';
 import { loadBundles } from './bundles.js';
@@ -105,14 +106,25 @@ export async function applyCmd(args) {
     log.ok(`hooks merged into ${settingsFile} (backup: ${backupPath})`);
   }
 
-  // 11. Update state metadata
+  // 11. Install slash command → ~/.claude/commands/ecc-tailor.md
+  const templateSrc = join(
+    dirname(fileURLToPath(import.meta.url)),
+    '..',
+    'templates',
+    'ecc-tailor-command.md',
+  );
+  const commandDst = paths.claudeCommand('ecc-tailor');
+  await mkdir(dirname(commandDst), { recursive: true });
+  await copyFile(templateSrc, commandDst);
+
+  // 12. Update state metadata
   state.eccRef    = getEccRef(eccRoot);
   state.lastApply = new Date().toISOString();
 
-  // 12. Save state
+  // 13. Save state
   saveState(state);
 
-  // 13. Print outcome
+  // 14. Print outcome
   if (addCount === 0 && removeCount === 0 && !config.hooks?.install) {
     log.info('Nothing to do.');
   } else {
