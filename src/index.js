@@ -7,6 +7,7 @@ import { statusCmd } from './status.js';
 import { doctorCmd } from './doctor.js';
 import { scanCmd } from './scan-cmd.js';
 import { upgradeCmd } from './upgrade.js';
+import { hooksCmd } from './hooks-cmd.js';
 
 function printHelp() {
   log.h1('ecc-tailor');
@@ -19,6 +20,7 @@ function printHelp() {
   log.info('  status    Show current tailor status');
   log.info('  doctor    Run health checks on the installation');
   log.info('  scan      Attach/detach ephemeral evaluation bundle');
+  log.info('  hooks     Manage hook profile and disabled list');
   log.info('  help      Show this help message');
   log.info('');
   log.info('Options:');
@@ -72,6 +74,9 @@ export async function main(argv) {
       break;
     case 'upgrade':
       await upgradeCmd(rest);
+      break;
+    case 'hooks':
+      await hooksCmd(rest);
       break;
     default:
       log.err(`Unknown command: ${cmd}`);
