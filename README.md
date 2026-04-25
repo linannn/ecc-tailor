@@ -147,6 +147,7 @@ Default scope is the current project. Use `--to global` / `--from global` to tar
 ecc-tailor add skill <name>                              # Add skill to current project
 ecc-tailor add bundle <name>                             # Add bundle to current project
 ecc-tailor add mcp <name>                                # Add MCP server to current project
+ecc-tailor add context <name> --to global                # Add context globally
 ecc-tailor add skill <name> --to global                  # Add skill globally
 ecc-tailor remove skill <name>                           # Remove from current project
 ecc-tailor remove mcp <name> --from global               # Remove MCP server globally
@@ -157,6 +158,7 @@ ecc-tailor remove mcp <name> --from global               # Remove MCP server glo
 ```bash
 ecc-tailor inventory --type skill                        # All skills, with selection status
 ecc-tailor inventory --type skill --state unselected     # Only unselected
+ecc-tailor inventory --type context                      # All contexts
 ecc-tailor inventory --type bundle                       # All bundles, with selection status
 ecc-tailor inventory --detail <name>                     # View bundle contents or skill/agent detail
 ```
@@ -225,6 +227,7 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
 - **State** — `~/.local/state/ecc-tailor/state.json` tracks all symlinks, forks, and ephemeral scans
 - **Hooks** — generates a wrapper script that sets `ECC_HOOK_PROFILE` + `ECC_DISABLED_HOOKS` env vars; ECC's own `run-with-flags.js` handles the rest
 - **Rules** — ECC rules auto-installed per bundle (`java-proj` → `rules/java/`); base rules (`common` or `zh`) always included; language-specific rules use `paths:` frontmatter for lazy loading (only enters context when touching matching file types)
+- **Contexts** — ECC conversation presets symlinked to `~/.claude/contexts/`; reference with `@contexts/dev` in a conversation to switch Claude's working mode (dev / review / research); not auto-loaded, zero overhead
 - **MCP** — bundle-defined MCP servers merged into `~/.claude.json` with `[ecc-tailor]` ownership markers; placeholder API keys detected and reported
 - **Provenance** — `apply` prints a dependency report showing which commands/MCP servers were installed and what brought them in
 - **Conflicts** — if the target path exists and isn't managed by ecc-tailor, abort with error (never overwrite)
@@ -247,6 +250,7 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
       "agents": [],
       "skills": ["hexagonal-architecture"],
       "commands": [],
+      "contexts": ["dev", "review", "research"],
       "mcp": [],
       "rulesLanguages": ["common", "java", "python", "typescript", "web"]
     },
@@ -289,7 +293,7 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
 | `eccPath` | Path to ECC clone (null = auto-managed) |
 | `rulesLanguage` | Base rules language: `en` (common) or `zh` (default: en) |
 | `global.bundles` | Bundles to install globally (default: `["core"]`) |
-| `global.extras.*` | Extra agents/skills/commands/mcp beyond bundles; `rulesLanguages` for additional rule sets |
+| `global.extras.*` | Extra agents/skills/commands/contexts/mcp beyond bundles; `rulesLanguages` for additional rule sets |
 | `global.excludes.*` | Exclude specific items from bundles |
 | `projects[].bundles` | Array — a project can use multiple bundles |
 | `bundleOverrides` | Per-bundle customization (exclude/add agents, skills, mcp) |
@@ -311,7 +315,7 @@ rm -rf ~/.local/share/ecc-tailor     # Remove ECC clone + wrappers
 ## Development
 
 ```bash
-npm test                             # Unit + integration tests (156)
+npm test                             # Unit + integration tests (167)
 ECC_PATH=/path/to/ecc npm test       # + real ECC verification (10 E2E tests)
 ```
 
