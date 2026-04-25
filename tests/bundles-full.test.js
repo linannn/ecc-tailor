@@ -180,11 +180,11 @@ test('core bundle has 15 agents and 9 skills', () => {
   assert.equal(bundles.core.skills.length, 9);
 });
 
-test('all 33 bundles are present', () => {
+test('all 34 bundles are present', () => {
   const bundles = loadBundles();
   const expected = [
     'core', 'java-proj', 'py-proj', 'py-django-proj', 'py-ml-proj',
-    'ts-backend-proj', 'ts-frontend-proj', 'ts-nestjs-proj', 'nuxt-proj',
+    'ts-tooling-proj', 'ts-backend-proj', 'ts-frontend-proj', 'ts-nestjs-proj', 'nuxt-proj',
     'go-proj', 'rust-proj', 'kotlin-proj', 'cpp-proj', 'csharp-proj',
     'swift-proj', 'dart-flutter-proj', 'laravel-proj', 'perl-proj',
     'ai-app-dev', 'security', 'database', 'devops',

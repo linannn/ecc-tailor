@@ -71,7 +71,7 @@ The slash command covers all CLI features. Claude translates your intent into th
 
 ## Bundles
 
-33 bundles covering 48 agents and 148 skills. A project can combine multiple:
+34 bundles covering 48 agents and 148 skills. A project can combine multiple:
 
 ```json
 { "path": "/path/to/fullstack-app", "bundles": ["ts-backend-proj", "ts-frontend-proj", "database"] }
@@ -87,6 +87,7 @@ The slash command covers all CLI features. Claude translates your intent into th
 | `py-proj` | 1 | 2 | Python projects |
 | `py-django-proj` | extends py-proj | +4 | Django projects |
 | `py-ml-proj` | extends py-proj +1 | +1 | PyTorch / deep learning |
+| `ts-tooling-proj` | 2 | 0 | TypeScript CLI tools and scripts |
 | `ts-backend-proj` | 2 | 3 | Node/Express/Fastify backends |
 | `ts-frontend-proj` | 3 | 7 | React/Next/Vue frontends |
 | `ts-nestjs-proj` | extends ts-backend | +1 | NestJS projects |

@@ -46,6 +46,12 @@
     "agents": ["pytorch-build-resolver"],
     "skills": ["pytorch-patterns"]
   },
+  "ts-tooling-proj": {
+    "description": "TypeScript/JS CLI tools and scripts",
+    "extends": "core",
+    "agents": ["typescript-reviewer", "build-error-resolver"],
+    "rules": ["typescript"]
+  },
   "ts-backend-proj": {
     "description": "TypeScript/JS backend",
     "extends": "core",

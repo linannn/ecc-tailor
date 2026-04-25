@@ -71,7 +71,7 @@ ecc-tailor add bundle java-proj
 
 ## Bundle 列表
 
-共 33 个 bundle，覆盖 48 个 agent 和 148 个 skill。一个项目可以组合多个：
+共 34 个 bundle，覆盖 48 个 agent 和 148 个 skill。一个项目可以组合多个：
 
 ```json
 { "path": "/path/to/fullstack-app", "bundles": ["ts-backend-proj", "ts-frontend-proj", "database"] }
@@ -87,6 +87,7 @@ ecc-tailor add bundle java-proj
 | `py-proj` | 1 | 2 | Python 项目 |
 | `py-django-proj` | 继承 py-proj | +4 | Django 项目 |
 | `py-ml-proj` | 继承 py-proj +1 | +1 | PyTorch / 深度学习 |
+| `ts-tooling-proj` | 2 | 0 | TypeScript CLI 工具和脚本 |
 | `ts-backend-proj` | 2 | 3 | Node/Express/Fastify 后端 |
 | `ts-frontend-proj` | 3 | 7 | React/Next/Vue 前端 |
 | `ts-nestjs-proj` | 继承 ts-backend | +1 | NestJS 项目 |
