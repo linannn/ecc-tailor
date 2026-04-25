@@ -1,5 +1,5 @@
-import { copyFileSync } from 'node:fs';
 import { readJson, writeJsonAtomic } from '../util/json.js';
+import { backupFile } from '../util/backup.js';
 
 export const MCP_MARKER = '[ecc-tailor]';
 
@@ -15,12 +15,7 @@ const PLACEHOLDER_RE = /^YOUR_.*_HERE$/;
 export function mergeMcpServers(selectedServers, { claudeJsonPath }) {
   const claudeJson = readJson(claudeJsonPath) ?? {};
 
-  const backupPath = `${claudeJsonPath}.bak.${new Date().toISOString()}`;
-  try {
-    copyFileSync(claudeJsonPath, backupPath);
-  } catch (err) {
-    if (err.code !== 'ENOENT') throw err;
-  }
+  const backupPath = backupFile(claudeJsonPath);
 
   const existing = claudeJson.mcpServers ?? {};
 

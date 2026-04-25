@@ -1,6 +1,6 @@
-import { copyFileSync } from 'node:fs';
 import { writeJsonAtomic } from '../util/json.js';
 import { readJson } from '../util/json.js';
+import { backupFile } from '../util/backup.js';
 
 /**
  * Marker prefix added to every description managed by ecc-tailor.
@@ -102,13 +102,8 @@ export async function mergeHooksIntoSettings(rewrittenEvents, { settingsFile, ec
   // 1. Read existing settings
   const settings = readJson(settingsFile) ?? {};
 
-  // 2. Backup
-  const backupPath = `${settingsFile}.bak.${new Date().toISOString()}`;
-  try {
-    copyFileSync(settingsFile, backupPath);
-  } catch (err) {
-    if (err.code !== 'ENOENT') throw err;
-  }
+  // 2. Backup (rotated — keeps last 3)
+  const backupPath = backupFile(settingsFile);
 
   // 3. Merge — first strip all prior ecc-tailor entries from every event,
   //    then append new ones. This ensures disabled hooks (removed from
