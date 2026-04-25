@@ -7,6 +7,7 @@ import { makeTmpEnv } from './helpers/tmp-env.js';
 import {
   MARKER_PREFIX,
   rewriteEccHooksJson,
+  filterDisabledHooks,
   mergeHooksIntoSettings,
   removeEccTailorHooks,
 } from '../src/hooks/hooks-merge.js';
@@ -85,6 +86,33 @@ test('rewriteEccHooksJson: preserves async and timeout fields', () => {
 
   assert.equal(entry.async, true, 'async should be preserved');
   assert.equal(entry.timeout, 300, 'timeout should be preserved');
+});
+
+// ---------------------------------------------------------------------------
+// filterDisabledHooks: removes entries by id
+// ---------------------------------------------------------------------------
+test('filterDisabledHooks: drops disabled entries and keeps others', () => {
+  const events = {
+    PreToolUse: [
+      { id: 'pre:config-protection', description: 'keep me', hooks: [] },
+      { id: 'pre:observe:continuous-learning', description: 'drop me', hooks: [] },
+    ],
+    Stop: [
+      { id: 'stop:desktop-notify', description: 'drop me too', hooks: [] },
+    ],
+  };
+
+  const result = filterDisabledHooks(events, ['pre:observe:continuous-learning', 'stop:desktop-notify']);
+
+  assert.equal(result.PreToolUse.length, 1, 'should keep 1 PreToolUse entry');
+  assert.equal(result.PreToolUse[0].id, 'pre:config-protection');
+  assert.equal(result.Stop, undefined, 'Stop event should be removed when all entries disabled');
+});
+
+test('filterDisabledHooks: returns original when no disabled list', () => {
+  const events = { PreToolUse: [{ id: 'pre:foo', hooks: [] }] };
+  assert.deepEqual(filterDisabledHooks(events, []), events);
+  assert.deepEqual(filterDisabledHooks(events, null), events);
 });
 
 // ---------------------------------------------------------------------------

@@ -13,7 +13,7 @@ import { paths } from '../core/paths.js';
 import { readJson, writeJsonAtomic } from '../util/json.js';
 import {
   writeHookWrapper, effectiveDisabled,
-  rewriteEccHooksJson, mergeHooksIntoSettings,
+  rewriteEccHooksJson, filterDisabledHooks, mergeHooksIntoSettings,
 } from '../hooks/index.js';
 import { mergeMcpServers } from '../mcp/index.js';
 import { checkForUpdates } from '../core/upgrade-notify.js';
@@ -164,8 +164,11 @@ export async function applyCmd(args) {
     const eccHooksJsonRaw = await readFile(join(eccRoot, 'hooks', 'hooks.json'), 'utf8');
     const eccHooksJson = JSON.parse(eccHooksJsonRaw);
 
-    // 10d. Rewrite hooks to use wrapper
-    const rewritten = rewriteEccHooksJson(eccHooksJson, wrapperPath);
+    // 10d. Rewrite hooks to use wrapper, then drop disabled entries
+    const rewritten = filterDisabledHooks(
+      rewriteEccHooksJson(eccHooksJson, wrapperPath),
+      effectiveDisabledList,
+    );
 
     // 10e. Merge into settings.json
     const settingsFile = paths.claudeSettings();
