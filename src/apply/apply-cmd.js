@@ -181,6 +181,11 @@ export async function applyCmd(args) {
 
     // 10g. Log
     log.ok(`hooks merged into ${settingsFile} (backup: ${backupPath})`);
+    if (claudeMemCompat && effectiveDisabledList.length > 0) {
+      log.dim(`  claude-mem compat: ${effectiveDisabledList.length} hooks disabled (overlap with claude-mem plugin)`);
+    } else if (!claudeMemCompat) {
+      log.dim('  claude-mem compat: off — all ECC session/memory hooks enabled');
+    }
   }
 
   // 10.5. MCP integration
