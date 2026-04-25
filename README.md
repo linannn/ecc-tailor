@@ -28,7 +28,7 @@ Requires Node >= 18. Zero npm dependencies.
 
 ## Quick Start
 
-> **Heads up:** `apply` creates symlinks in `~/.claude/` and merges hooks into `settings.json`. Back up your `~/.claude/` directory first if you have custom agents or skills there.
+> **Before first run:** `apply` creates symlinks in `~/.claude/` and merges hooks into `settings.json`. If you have custom content, back up first: `cp -r ~/.claude ~/.claude.bak`
 
 ```bash
 # 1. Install global bundle + hooks (no config needed — sensible defaults)

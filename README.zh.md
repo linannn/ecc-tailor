@@ -28,10 +28,10 @@ npm link
 
 ## 快速开始
 
-> **注意：** `apply` 会在 `~/.claude/` 创建 symlink 并把 hook 合并到 `settings.json`。如果你已��自定义的 agent 或 skill，建议先备份 `~/.claude/` 目录。
+> **首次运行前：** `apply` 会在 `~/.claude/` 创建 symlink 并把 hook 合并到 `settings.json`。如果你已有自定义内容，先备份：`cp -r ~/.claude ~/.claude.bak`
 
 ```bash
-# 1. 安装���局 bundle + hooks（无需配置文件，开箱即用）
+# 1. 安装全局 bundle + hooks（无需配置文件，开箱即用）
 ecc-tailor apply
 
 # 2. 给项目加上栈相关的 bundle
