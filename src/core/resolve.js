@@ -39,7 +39,8 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
   const globalExcludes = globalCfg.excludes  ?? {};
 
   // Resolve bundles → initial agent/skill lists
-  const resolved = resolveBundles(bundles, globalBundleNames);
+  const overrides = config.bundleOverrides ?? {};
+  const resolved = resolveBundles(bundles, globalBundleNames, overrides);
   const ephemeral = resolved.ephemeral;
 
   // Union with extras
@@ -131,7 +132,7 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
     const projExtras   = proj.extras   ?? {};
     const projExcludes = proj.excludes  ?? {};
 
-    const projResolved = resolveBundles(bundles, projBundleNames);
+    const projResolved = resolveBundles(bundles, projBundleNames, overrides);
     const projEphemeral = projResolved.ephemeral;
     const ownedBy = `proj:${projPath}`;
 
@@ -226,7 +227,8 @@ export function resolveMcp(config, bundles, mcpCatalog) {
   const globalExtras = (globalCfg.extras ?? {}).mcp ?? [];
   const globalExcludes = new Set((globalCfg.excludes ?? {}).mcp ?? []);
 
-  const globalResolved = resolveBundles(bundles, globalBundleNames);
+  const overridesM = config.bundleOverrides ?? {};
+  const globalResolved = resolveBundles(bundles, globalBundleNames, overridesM);
   let names = dedupe([...globalResolved.mcp, ...globalExtras]);
 
   for (const proj of (config.projects ?? [])) {
@@ -234,7 +236,7 @@ export function resolveMcp(config, bundles, mcpCatalog) {
     const projExtras = (proj.extras ?? {}).mcp ?? [];
     const projExcludes = new Set((proj.excludes ?? {}).mcp ?? []);
 
-    const projResolved = resolveBundles(bundles, projBundleNames);
+    const projResolved = resolveBundles(bundles, projBundleNames, overridesM);
     let projNames = dedupe([...projResolved.mcp, ...projExtras]);
     projNames = projNames.filter(n => !projExcludes.has(n));
 

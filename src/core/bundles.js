@@ -63,21 +63,48 @@ export function resolveBundle(bundles, name, seen = new Set()) {
 }
 
 /**
+ * Apply user-defined overrides to a resolved bundle.
+ *
+ * @param {{ agents: string[], skills: string[], mcp: string[] }} resolved
+ * @param {{ exclude?: { agents?: string[], skills?: string[], mcp?: string[] }, add?: { agents?: string[], skills?: string[], mcp?: string[] } }} [override]
+ * @returns {{ agents: string[], skills: string[], mcp: string[] }}
+ */
+export function applyBundleOverride(resolved, override) {
+  if (!override) return resolved;
+
+  const ex = override.exclude ?? {};
+  const exAgents = new Set(ex.agents ?? []);
+  const exSkills = new Set(ex.skills ?? []);
+  const exMcp    = new Set(ex.mcp ?? []);
+
+  const ad = override.add ?? {};
+
+  return {
+    ...resolved,
+    agents: dedupe([...resolved.agents.filter(a => !exAgents.has(a)), ...(ad.agents ?? [])]),
+    skills: dedupe([...resolved.skills.filter(s => !exSkills.has(s)), ...(ad.skills ?? [])]),
+    mcp:    dedupe([...resolved.mcp.filter(m => !exMcp.has(m)),       ...(ad.mcp ?? [])]),
+  };
+}
+
+/**
  * Resolve multiple bundle names and union all agents/skills/mcp (deduped).
  * `ephemeral` is true if any input bundle is ephemeral.
  *
- * @param {object} bundles  - The full manifest map from loadBundles().
- * @param {string[]} names  - Bundle names to resolve.
+ * @param {object} bundles     - The full manifest map from loadBundles().
+ * @param {string[]} names     - Bundle names to resolve.
+ * @param {object} [overrides] - Per-bundle overrides keyed by bundle name.
  * @returns {{ agents: string[], skills: string[], mcp: string[], ephemeral: boolean, description: string }}
  */
-export function resolveBundles(bundles, names) {
+export function resolveBundles(bundles, names, overrides = {}) {
   let allAgents = [];
   let allSkills = [];
   let allMcp = [];
   let anyEphemeral = false;
 
   for (const name of names) {
-    const resolved = resolveBundle(bundles, name);
+    let resolved = resolveBundle(bundles, name);
+    resolved = applyBundleOverride(resolved, overrides[name]);
     allAgents = [...allAgents, ...resolved.agents];
     allSkills = [...allSkills, ...resolved.skills];
     allMcp = [...allMcp, ...resolved.mcp];

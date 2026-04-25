@@ -125,6 +125,17 @@ ecc-tailor remove skill <name> --from global             # Remove
 ecc-tailor remove mcp <name> --from global               # Remove MCP server
 ```
 
+### Bundle Customization
+
+```bash
+ecc-tailor customize java-proj                           # Show current override + resolved result
+ecc-tailor customize java-proj exclude skills jpa-patterns  # Exclude from bundle
+ecc-tailor customize java-proj add skills hexagonal-architecture  # Add to bundle
+ecc-tailor customize java-proj reset                     # Clear all overrides
+```
+
+Overrides are stored in `bundleOverrides` in config — the upstream `bundles.json` stays untouched, so ECC updates are safe.
+
 ### Browse ECC Resources
 
 ```bash
@@ -228,6 +239,12 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
       "extras": { "skills": ["hexagonal-architecture"] }
     }
   ],
+  "bundleOverrides": {
+    "java-proj": {
+      "exclude": { "skills": ["jpa-patterns"] },
+      "add": { "skills": ["hexagonal-architecture"] }
+    }
+  },
   "hooks": {
     "install": true,
     "profile": "standard",
@@ -249,6 +266,9 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
 | `global.excludes.commands` | Suppress auto-detected command dependencies |
 | `global.excludes.mcp` | Exclude specific MCP servers |
 | `projects[].bundles` | Array — a project can use multiple bundles |
+| `bundleOverrides` | Per-bundle customization (exclude/add agents, skills, mcp) |
+| `bundleOverrides.*.exclude` | Items to remove from bundle resolution |
+| `bundleOverrides.*.add` | Items to add after bundle resolution |
 | `hooks.profile` | `minimal` / `standard` / `strict` |
 | `hooks.claudeMemCompat` | Auto-disable 8 hooks that overlap with claude-mem plugin |
 | `hooks.disabled` | Additional manually disabled hook IDs |
@@ -267,7 +287,7 @@ rm -rf ~/.local/share/ecc-tailor     # Remove ECC clone + wrappers
 ## Development
 
 ```bash
-npm test                             # Unit + integration tests (116)
+npm test                             # Unit + integration tests (127)
 ECC_PATH=/path/to/ecc npm test       # + real ECC verification (10 E2E tests)
 ```
 

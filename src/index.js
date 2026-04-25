@@ -8,6 +8,7 @@ import { doctorCmd } from './cmd/doctor.js';
 import { scanCmd } from './cmd/scan-cmd.js';
 import { upgradeCmd } from './cmd/upgrade.js';
 import { hooksCmd } from './hooks/index.js';
+import { customizeCmd } from './cmd/customize.js';
 import { depsCmd } from './deps/index.js';
 
 function printHelp() {
@@ -22,6 +23,7 @@ function printHelp() {
   log.info('  doctor    Run health checks on the installation');
   log.info('  scan      Attach/detach ephemeral evaluation bundle');
   log.info('  hooks     Manage hook profile and disabled list');
+  log.info('  customize Customize bundle contents (add/exclude items)');
   log.info('  deps      Generate docs/DEPENDENCIES.md from ECC content');
   log.info('  help      Show this help message');
   log.info('');
@@ -82,6 +84,9 @@ export async function main(argv) {
       break;
     case 'deps':
       await depsCmd(rest);
+      break;
+    case 'customize':
+      await customizeCmd(rest);
       break;
     default:
       log.err(`Unknown command: ${cmd}`);

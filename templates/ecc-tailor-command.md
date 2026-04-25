@@ -35,6 +35,10 @@ You are an interface to the `ecc-tailor` CLI. Translate natural language into CL
 | Hook status | `ecc-tailor hooks status` |
 | Customize file | `ecc-tailor fork <path>` |
 | Generate dependency docs | `ecc-tailor deps` |
+| Customize bundle | `ecc-tailor customize <bundle>` |
+| Exclude from bundle | `ecc-tailor customize <bundle> exclude <type> <name>` |
+| Add to bundle | `ecc-tailor customize <bundle> add <type> <name>` |
+| Reset bundle override | `ecc-tailor customize <bundle> reset` |
 
 ## Workflow
 

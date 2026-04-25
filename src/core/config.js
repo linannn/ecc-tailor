@@ -8,6 +8,7 @@ export const DEFAULT_CONFIG = {
     extras: { agents: [], skills: [], rulesLanguages: [], commands: [], contexts: [], mcp: [] },
     excludes: { agents: [], skills: [], mcp: [], commands: [] },
   },
+  bundleOverrides: {},
   projects: [],
   hooks: { install: true, profile: 'standard', claudeMemCompat: true, disabled: [] },
   mcp: { install: true },
@@ -69,6 +70,30 @@ export function validateConfig(cfg) {
     throw new Error(
       `hooks.profile must be one of ${VALID_PROFILES.join('/')}; got: ${JSON.stringify(profile)}`,
     );
+  }
+
+  const overrides = cfg.bundleOverrides;
+  if (overrides !== undefined && (typeof overrides !== 'object' || Array.isArray(overrides) || overrides === null)) {
+    throw new Error('bundleOverrides must be an object');
+  }
+  if (overrides) {
+    for (const [name, ov] of Object.entries(overrides)) {
+      if (typeof ov !== 'object' || Array.isArray(ov) || ov === null) {
+        throw new Error(`bundleOverrides["${name}"] must be an object with exclude/add`);
+      }
+      for (const key of ['exclude', 'add']) {
+        const sub = ov[key];
+        if (sub === undefined) continue;
+        if (typeof sub !== 'object' || Array.isArray(sub) || sub === null) {
+          throw new Error(`bundleOverrides["${name}"].${key} must be an object`);
+        }
+        for (const field of ['agents', 'skills', 'mcp']) {
+          if (sub[field] !== undefined && !Array.isArray(sub[field])) {
+            throw new Error(`bundleOverrides["${name}"].${key}.${field} must be an array`);
+          }
+        }
+      }
+    }
   }
 }
 

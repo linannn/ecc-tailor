@@ -81,3 +81,46 @@ test('validateConfig: rejects relative project path', () => {
   };
   assert.throws(() => validateConfig(bad), /absolute/i);
 });
+
+// ---------------------------------------------------------------------------
+// validateConfig: bundleOverrides validation
+// ---------------------------------------------------------------------------
+test('validateConfig: accepts valid bundleOverrides', () => {
+  const cfg = {
+    eccPath: null,
+    global: { bundles: ['global'], extras: {}, excludes: {} },
+    projects: [],
+    hooks: { profile: 'standard' },
+    bundleOverrides: {
+      global: {
+        exclude: { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'] },
+        add: { agents: ['architect'], skills: ['tdd-workflow'], mcp: [] },
+      },
+    },
+  };
+  assert.doesNotThrow(() => validateConfig(cfg));
+});
+
+test('validateConfig: rejects non-object bundleOverrides', () => {
+  const bad = {
+    eccPath: null,
+    global: { bundles: ['global'], extras: {}, excludes: {} },
+    projects: [],
+    hooks: { profile: 'standard' },
+    bundleOverrides: ['global'],
+  };
+  assert.throws(() => validateConfig(bad), /bundleOverrides.*object/i);
+});
+
+test('validateConfig: rejects non-array field in override', () => {
+  const bad = {
+    eccPath: null,
+    global: { bundles: ['global'], extras: {}, excludes: {} },
+    projects: [],
+    hooks: { profile: 'standard' },
+    bundleOverrides: {
+      x: { exclude: { agents: 'not-array' } },
+    },
+  };
+  assert.throws(() => validateConfig(bad), /array/i);
+});

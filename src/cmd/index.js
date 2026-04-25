@@ -6,3 +6,4 @@ export { inventoryCmd } from './inventory.js';
 export { forkCmd } from './fork.js';
 export { scanCmd } from './scan-cmd.js';
 export { upgradeCmd } from './upgrade.js';
+export { customizeCmd } from './customize.js';

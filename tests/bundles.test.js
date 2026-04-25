@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadBundles, resolveBundle, resolveBundles } from '../src/core/bundles.js';
+import { loadBundles, resolveBundle, resolveBundles, applyBundleOverride } from '../src/core/bundles.js';
 
 // ---------------------------------------------------------------------------
 // loadBundles: reads JSON file
@@ -70,4 +70,95 @@ test('resolveBundle: ephemeral flag is true for scan bundle', () => {
   const bundles = loadBundles();
   const result = resolveBundle(bundles, 'scan');
   assert.equal(result.ephemeral, true);
+});
+
+// ---------------------------------------------------------------------------
+// applyBundleOverride: no-op when override is absent
+// ---------------------------------------------------------------------------
+test('applyBundleOverride: returns unchanged when no override', () => {
+  const resolved = { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'], ephemeral: false, description: '' };
+
+  assert.deepEqual(applyBundleOverride(resolved, undefined), resolved);
+  assert.deepEqual(applyBundleOverride(resolved, null), resolved);
+});
+
+// ---------------------------------------------------------------------------
+// applyBundleOverride: exclude removes agents and skills
+// ---------------------------------------------------------------------------
+test('applyBundleOverride: excludes agents and skills', () => {
+  const resolved = { agents: ['planner', 'architect'], skills: ['coding-standards', 'tdd-workflow'], mcp: [], ephemeral: false, description: '' };
+
+  const result = applyBundleOverride(resolved, {
+    exclude: { agents: ['planner'], skills: ['tdd-workflow'] },
+  });
+
+  assert.ok(!result.agents.includes('planner'), 'planner should be excluded');
+  assert.ok(result.agents.includes('architect'), 'architect should remain');
+  assert.ok(!result.skills.includes('tdd-workflow'), 'tdd-workflow should be excluded');
+  assert.ok(result.skills.includes('coding-standards'), 'coding-standards should remain');
+});
+
+// ---------------------------------------------------------------------------
+// applyBundleOverride: add appends agents and skills
+// ---------------------------------------------------------------------------
+test('applyBundleOverride: adds agents and skills', () => {
+  const resolved = { agents: ['planner'], skills: ['coding-standards'], mcp: [], ephemeral: false, description: '' };
+
+  const result = applyBundleOverride(resolved, {
+    add: { agents: ['architect'], skills: ['tdd-workflow'] },
+  });
+
+  assert.ok(result.agents.includes('planner'), 'original planner should remain');
+  assert.ok(result.agents.includes('architect'), 'architect should be added');
+  assert.ok(result.skills.includes('coding-standards'), 'original coding-standards should remain');
+  assert.ok(result.skills.includes('tdd-workflow'), 'tdd-workflow should be added');
+});
+
+// ---------------------------------------------------------------------------
+// applyBundleOverride: exclude + add applied together (exclude first, then add)
+// ---------------------------------------------------------------------------
+test('applyBundleOverride: exclude + add combined', () => {
+  const resolved = { agents: ['planner', 'architect'], skills: ['coding-standards'], mcp: [], ephemeral: false, description: '' };
+
+  const result = applyBundleOverride(resolved, {
+    exclude: { agents: ['planner'] },
+    add: { agents: ['code-reviewer'], skills: ['tdd-workflow'] },
+  });
+
+  assert.ok(!result.agents.includes('planner'), 'planner should be excluded');
+  assert.ok(result.agents.includes('architect'), 'architect should remain');
+  assert.ok(result.agents.includes('code-reviewer'), 'code-reviewer should be added');
+  assert.ok(result.skills.includes('coding-standards'), 'original coding-standards should remain');
+  assert.ok(result.skills.includes('tdd-workflow'), 'tdd-workflow should be added');
+});
+
+// ---------------------------------------------------------------------------
+// applyBundleOverride: MCP exclude and add
+// ---------------------------------------------------------------------------
+test('applyBundleOverride: handles MCP overrides', () => {
+  const resolved = { agents: [], skills: [], mcp: ['context7', 'memory'], ephemeral: false, description: '' };
+
+  const result = applyBundleOverride(resolved, {
+    exclude: { mcp: ['context7'] },
+    add: { mcp: ['exa-web-search'] },
+  });
+
+  assert.ok(!result.mcp.includes('context7'), 'context7 should be excluded');
+  assert.ok(result.mcp.includes('memory'), 'memory should remain');
+  assert.ok(result.mcp.includes('exa-web-search'), 'exa-web-search should be added');
+});
+
+// ---------------------------------------------------------------------------
+// resolveBundles: per-bundle override is applied
+// ---------------------------------------------------------------------------
+test('resolveBundles: applies per-bundle overrides', () => {
+  const bundles = loadBundles();
+  const overrides = {
+    'java-proj': { exclude: { skills: ['springboot-patterns'] } },
+  };
+
+  const result = resolveBundles(bundles, ['java-proj'], overrides);
+
+  assert.ok(!result.skills.includes('springboot-patterns'), 'springboot-patterns should be excluded by override');
+  assert.ok(result.skills.includes('java-coding-standards'), 'java-coding-standards should still be present');
 });

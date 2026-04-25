@@ -2,7 +2,7 @@ export { loadConfig, validateConfig, DEFAULT_CONFIG } from './config.js';
 export { loadState, saveState, EMPTY_STATE } from './state.js';
 export { paths } from './paths.js';
 export { default as log } from './logger.js';
-export { loadBundles, resolveBundle, resolveBundles } from './bundles.js';
+export { loadBundles, resolveBundle, resolveBundles, applyBundleOverride } from './bundles.js';
 export { resolveEccRoot, getEccRef, fetchEcc, pullEcc } from './ecc-repo.js';
 export { scanEcc } from './fs-scan.js';
 export { resolveDesired, resolveMcp } from './resolve.js';

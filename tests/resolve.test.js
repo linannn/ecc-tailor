@@ -386,3 +386,94 @@ test('resolveDesired: without eccRoot, no auto-detection occurs', () => {
     tmp.cleanup();
   }
 });
+
+// ---------------------------------------------------------------------------
+// resolveDesired: bundleOverrides excludes skill from global bundle
+// ---------------------------------------------------------------------------
+test('resolveDesired: bundleOverrides excludes skill from global bundle', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig();
+    config.bundleOverrides = { global: { exclude: { skills: ['coding-standards'] } } };
+
+    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
+
+    const csLink = links.find(
+      l => l.dst === join(tmp.home, '.claude', 'skills', 'coding-standards'),
+    );
+    assert.equal(csLink, undefined, 'coding-standards should be excluded by bundleOverrides');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// resolveDesired: bundleOverrides adds skill to global bundle
+// ---------------------------------------------------------------------------
+test('resolveDesired: bundleOverrides adds skill to global bundle', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig();
+    config.bundleOverrides = { global: { add: { skills: ['agent-sort'] } } };
+
+    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
+
+    const agentSortLink = links.find(
+      l => l.dst === join(tmp.home, '.claude', 'skills', 'agent-sort'),
+    );
+    assert.ok(agentSortLink, 'agent-sort should be added by bundleOverrides');
+    assert.equal(agentSortLink.kind, 'skill-dir');
+    assert.equal(agentSortLink.ownedBy, 'global');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// resolveDesired: bundleOverrides excludes agent from global bundle
+// ---------------------------------------------------------------------------
+test('resolveDesired: bundleOverrides excludes agent from global bundle', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig();
+    config.bundleOverrides = { global: { exclude: { agents: ['planner'] } } };
+
+    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
+
+    const plannerLink = links.find(
+      l => l.dst === join(tmp.home, '.claude', 'agents', 'planner.md'),
+    );
+    assert.equal(plannerLink, undefined, 'planner should be excluded by bundleOverrides');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// resolveMcp: bundleOverrides excludes MCP from bundle
+// ---------------------------------------------------------------------------
+test('resolveMcp: bundleOverrides excludes MCP from bundle', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig();
+    config.bundleOverrides = { global: { exclude: { mcp: ['context7'] } } };
+
+    const result = resolveMcp(config, BUNDLES, inv.mcpServers);
+
+    assert.ok(!result.some(s => s.name === 'context7'), 'context7 should be excluded by bundleOverrides');
+  } finally {
+    tmp.cleanup();
+  }
+});

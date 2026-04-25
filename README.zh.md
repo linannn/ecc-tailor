@@ -125,6 +125,17 @@ ecc-tailor remove skill <name> --from global             # 移除
 ecc-tailor remove mcp <name> --from global               # 移除 MCP server
 ```
 
+### Bundle 定制
+
+```bash
+ecc-tailor customize java-proj                           # 查看当前 override + 解析结果
+ecc-tailor customize java-proj exclude skills jpa-patterns  # 从 bundle 中排除
+ecc-tailor customize java-proj add skills hexagonal-architecture  # 往 bundle 中加
+ecc-tailor customize java-proj reset                     # 清空所有 override
+```
+
+Override 存储在配置文件的 `bundleOverrides` 中，不修改上游 `bundles.json`，ECC 更新安全。
+
 ### 浏览 ECC 资源
 
 ```bash
@@ -228,6 +239,12 @@ ecc-tailor deps                                  # 生成 docs/DEPENDENCIES.{md,
       "extras": { "skills": ["hexagonal-architecture"] }
     }
   ],
+  "bundleOverrides": {
+    "java-proj": {
+      "exclude": { "skills": ["jpa-patterns"] },
+      "add": { "skills": ["hexagonal-architecture"] }
+    }
+  },
   "hooks": {
     "install": true,
     "profile": "standard",
@@ -249,6 +266,9 @@ ecc-tailor deps                                  # 生成 docs/DEPENDENCIES.{md,
 | `global.excludes.commands` | 抑制自动检测到的 command 依赖 |
 | `global.excludes.mcp` | 排除特定 MCP server |
 | `projects[].bundles` | 数组，一个项目可吃多个 bundle |
+| `bundleOverrides` | 按 bundle 定制（排除/添加 agent、skill、mcp） |
+| `bundleOverrides.*.exclude` | 从 bundle 解析结果中移除的项 |
+| `bundleOverrides.*.add` | bundle 解析后追加的项 |
 | `hooks.profile` | `minimal` / `standard` / `strict` |
 | `hooks.claudeMemCompat` | 自动禁用 8 条和 claude-mem 功能重叠的 hook |
 | `hooks.disabled` | 额外手动禁用的 hook ID |
@@ -267,7 +287,7 @@ rm -rf ~/.local/share/ecc-tailor     # 删除 ECC clone + wrapper
 ## 开发
 
 ```bash
-npm test                             # 单元 + 集成测试（116 个）
+npm test                             # 单元 + 集成测试（127 个）
 ECC_PATH=/path/to/ecc npm test       # + 真实 ECC 验证（10 个 E2E 测试）
 ```
 
