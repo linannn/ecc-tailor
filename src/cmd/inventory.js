@@ -155,6 +155,21 @@ function printSection(
 export async function inventoryCmd(args) {
   const { type, filter, state, detail } = parseArgs(args);
 
+  const VALID_TYPES = ['skill', 'agent', 'rule', 'command', 'context', 'mcp', 'bundle'];
+  const VALID_STATES = ['selected', 'unselected', 'ignored'];
+
+  if (type && !VALID_TYPES.includes(type)) {
+    log.err(`Invalid --type "${type}". Must be one of: ${VALID_TYPES.join(', ')}`);
+    process.exitCode = 2;
+    return;
+  }
+
+  if (state && !VALID_STATES.includes(state)) {
+    log.err(`Invalid --state "${state}". Must be one of: ${VALID_STATES.join(', ')}`);
+    process.exitCode = 2;
+    return;
+  }
+
   // Load config — uses XDG env vars set in the spawned process
   const cfg = loadConfig();
 
@@ -183,6 +198,16 @@ export async function inventoryCmd(args) {
     const rule    = inv.rules.find(r => r.name === detail);
     const command = inv.commands.find(c => c.name === detail);
     const context = (inv.contexts ?? []).find(c => c.name === detail);
+    const mcp = (inv.mcpServers ?? []).find(s => s.name === detail);
+
+    if (mcp) {
+      log.h1(`MCP Server: ${mcp.name}`);
+      if (mcp.description) log.info(`  ${mcp.description}`);
+      log.info('');
+      log.h1('Config:');
+      log.info(JSON.stringify(mcp.config, null, 2));
+      return;
+    }
 
     let filePath;
     if (skill) {

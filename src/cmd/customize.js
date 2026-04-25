@@ -3,8 +3,17 @@ import { loadConfig } from '../core/config.js';
 import { loadBundles, resolveBundle, applyBundleOverride } from '../core/bundles.js';
 import { writeJsonAtomic } from '../util/json.js';
 import { paths } from '../core/paths.js';
+import { resolveEccRoot } from '../core/ecc-repo.js';
+import { scanEcc } from '../core/fs-scan.js';
 
 const VALID_TYPES = ['agents', 'skills', 'mcp'];
+const TYPE_HINT = 'agents (agent), skills (skill), mcp';
+const INVENTORY_KEY = { agents: 'agents', skills: 'skills', mcp: 'mcpServers' };
+
+function normalizeType(raw) {
+  const map = { agent: 'agents', skill: 'skills' };
+  return map[raw] ?? raw;
+}
 
 function printUsage() {
   log.h1('ecc-tailor customize');
@@ -15,7 +24,7 @@ function printUsage() {
   log.info('  ecc-tailor customize <bundle> exclude <type> <name>[,name]');
   log.info('  ecc-tailor customize <bundle> reset');
   log.info('');
-  log.info(`<type> is one of: ${VALID_TYPES.join(', ')}`);
+  log.info(`<type> is one of: ${TYPE_HINT}`);
 }
 
 function ensureOverride(cfg, bundleName) {
@@ -73,11 +82,12 @@ function cmdShow(bundleName) {
   log.info(`  mcp    : ${final.mcp.join(', ')    || '(none)'}`);
 }
 
-function cmdAdd(bundleName, args) {
-  const [type, nameArg] = args;
+async function cmdAdd(bundleName, args) {
+  const [rawType, nameArg] = args;
+  const type = normalizeType(rawType);
 
   if (!type || !VALID_TYPES.includes(type)) {
-    log.err(`Invalid type "${type}". Must be one of: ${VALID_TYPES.join(', ')}`);
+    log.err(`Invalid type "${rawType}". Must be one of: ${TYPE_HINT}`);
     process.exit(2);
   }
 
@@ -99,7 +109,23 @@ function cmdAdd(bundleName, args) {
   }
 
   const cfg = loadConfig();
-  const ov  = ensureOverride(cfg, bundleName);
+
+  try {
+    const eccRoot = resolveEccRoot(cfg, { clone: false });
+    const inventory = scanEcc(eccRoot);
+    const inventoryKey = INVENTORY_KEY[type];
+    const known = new Set(inventory[inventoryKey].map(e => e.name));
+    for (const name of names) {
+      if (!known.has(name)) {
+        log.err(`"${name}" not found in ECC inventory (${type})`);
+        process.exit(2);
+      }
+    }
+  } catch {
+    log.warn('ECC not cloned — skipping name validation');
+  }
+
+  const ov = ensureOverride(cfg, bundleName);
 
   for (const name of names) {
     if (!ov.add[type].includes(name)) {
@@ -112,10 +138,11 @@ function cmdAdd(bundleName, args) {
 }
 
 function cmdExclude(bundleName, args) {
-  const [type, nameArg] = args;
+  const [rawType, nameArg] = args;
+  const type = normalizeType(rawType);
 
   if (!type || !VALID_TYPES.includes(type)) {
-    log.err(`Invalid type "${type}". Must be one of: ${VALID_TYPES.join(', ')}`);
+    log.err(`Invalid type "${rawType}". Must be one of: ${TYPE_HINT}`);
     process.exit(2);
   }
 
@@ -195,7 +222,7 @@ export async function customizeCmd(args) {
 
   switch (subCmd) {
     case 'add':
-      cmdAdd(bundleName, rest);
+      await cmdAdd(bundleName, rest);
       break;
     case 'exclude':
       cmdExclude(bundleName, rest);

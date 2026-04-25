@@ -118,12 +118,12 @@ test('customize exclude: writes exclusion to config', () => {
 test('customize add: writes addition to config', () => {
   const { env, envVars, readCfg } = setup();
   try {
-    const result = runCli(['customize', 'core', 'add', 'skills', 'api-design'], envVars);
+    const result = runCli(['customize', 'core', 'add', 'skills', 'repo-scan'], envVars);
     assert.equal(result.status, 0, `exit 0, got ${result.status}: ${result.stderr}`);
 
     const cfg = readCfg();
     assert.ok(
-      cfg.bundleOverrides?.core?.add?.skills?.includes('api-design'),
+      cfg.bundleOverrides?.core?.add?.skills?.includes('repo-scan'),
       'config should contain the addition',
     );
   } finally {
@@ -137,11 +137,11 @@ test('customize add: writes addition to config', () => {
 test('customize add: idempotent — no duplicates on repeated add', () => {
   const { env, envVars, readCfg } = setup();
   try {
-    runCli(['customize', 'core', 'add', 'skills', 'api-design'], envVars);
-    runCli(['customize', 'core', 'add', 'skills', 'api-design'], envVars);
+    runCli(['customize', 'core', 'add', 'skills', 'repo-scan'], envVars);
+    runCli(['customize', 'core', 'add', 'skills', 'repo-scan'], envVars);
 
     const cfg = readCfg();
-    const added = cfg.bundleOverrides.core.add.skills.filter(s => s === 'api-design');
+    const added = cfg.bundleOverrides.core.add.skills.filter(s => s === 'repo-scan');
     assert.equal(added.length, 1, 'should not duplicate on repeated add');
   } finally {
     env.cleanup();

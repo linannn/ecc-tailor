@@ -9,6 +9,12 @@ import { applyCmd } from '../apply/apply-cmd.js';
 import { removeLayerCmd } from './remove-layer.js';
 
 const VALID_TYPES = ['skill', 'agent', 'bundle', 'rule', 'command', 'context', 'mcp'];
+const GLOBAL_ONLY_TYPES = ['rule', 'command', 'context'];
+
+function printAddUsage() {
+  log.info('Usage: ecc-tailor add <type> <name>[,name] [--to global]');
+  log.info(`<type> is one of: ${VALID_TYPES.join(', ')}`);
+}
 
 /**
  * Parse add/remove CLI args.
@@ -112,7 +118,13 @@ function ensureProject(cfg, projectPath) {
 export async function addCmd(args) {
   const { type, names, scope, noApply } = parseArgs(args, 'to');
 
-  if (!type || !VALID_TYPES.includes(type)) {
+  if (!type) {
+    printAddUsage();
+    process.exitCode = 2;
+    return;
+  }
+
+  if (!VALID_TYPES.includes(type)) {
     log.err(`Invalid type "${type}". Must be one of: ${VALID_TYPES.join(', ')}`);
     process.exitCode = 2;
     return;
@@ -129,6 +141,12 @@ export async function addCmd(args) {
     parsedScope = parseScope(scope);
   } catch (err) {
     log.err(err.message);
+    process.exitCode = 2;
+    return;
+  }
+
+  if (GLOBAL_ONLY_TYPES.includes(type) && parsedScope.kind === 'project') {
+    log.err(`"${type}" can only be added globally — use: ecc-tailor add ${type} ${names.join(',')} --to global`);
     process.exitCode = 2;
     return;
   }
@@ -239,6 +257,12 @@ export async function removeIncrementalCmd(args) {
     parsedScope = parseScope(scope);
   } catch (err) {
     log.err(err.message);
+    process.exitCode = 2;
+    return;
+  }
+
+  if (GLOBAL_ONLY_TYPES.includes(type) && parsedScope.kind === 'project') {
+    log.err(`"${type}" can only be removed globally — use: ecc-tailor remove ${type} ${names.join(',')} --from global`);
     process.exitCode = 2;
     return;
   }

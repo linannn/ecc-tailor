@@ -1,6 +1,8 @@
 import { unlink } from 'node:fs/promises';
 import log from '../core/logger.js';
 import { loadState, saveState } from '../core/state.js';
+import { loadConfig } from '../core/config.js';
+import { writeJsonAtomic } from '../util/json.js';
 import { removeEccTailorHooks } from '../hooks/index.js';
 import { paths } from '../core/paths.js';
 
@@ -111,6 +113,18 @@ export async function removeLayerCmd(args) {
   }
 
   saveState(state);
+
+  if (mode === 'project') {
+    const cfg = loadConfig();
+    const updated = { ...cfg, projects: cfg.projects.filter(p => p.path !== projectPath) };
+    writeJsonAtomic(paths.configFile(), updated);
+    log.ok('cleaned project entry from config');
+  } else if (mode === 'all') {
+    const cfg = loadConfig();
+    const updated = { ...cfg, projects: [] };
+    writeJsonAtomic(paths.configFile(), updated);
+    log.ok('cleared all project entries from config');
+  }
 
   const kind = mode === 'project' ? `project:${projectPath}` : mode;
   log.ok(`removed ${removed} symlinks (layer: ${kind})`);

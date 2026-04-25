@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 import('../src/index.js').then(m => m.main(process.argv.slice(2))).catch(err => {
-  console.error(err);
+  console.error(err.message || err);
   process.exit(1);
 });

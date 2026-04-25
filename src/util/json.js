@@ -11,11 +11,17 @@ import { randomBytes } from 'node:crypto';
  * @returns {object|null}
  */
 export function readJson(file) {
+  let raw;
   try {
-    return JSON.parse(readFileSync(file, 'utf8'));
+    raw = readFileSync(file, 'utf8');
   } catch (err) {
     if (err.code === 'ENOENT') return null;
     throw err;
+  }
+  try {
+    return JSON.parse(raw);
+  } catch (err) {
+    throw new Error(`Failed to parse ${file}: ${err.message}`);
   }
 }
 
