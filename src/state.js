@@ -17,6 +17,10 @@ export const EMPTY_STATE = {
     addedEntries: {},
     markerId: 'ecc-tailor',
   },
+  mcp: {
+    installed: false,
+    servers: [],
+  },
 };
 
 /**

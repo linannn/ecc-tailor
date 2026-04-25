@@ -5,11 +5,12 @@ export const DEFAULT_CONFIG = {
   eccPath: null,
   global: {
     bundles: ['global'],
-    extras: { agents: [], skills: [], rulesLanguages: [], commands: [], contexts: [] },
-    excludes: { agents: [], skills: [] },
+    extras: { agents: [], skills: [], rulesLanguages: [], commands: [], contexts: [], mcp: [] },
+    excludes: { agents: [], skills: [], mcp: [] },
   },
   projects: [],
   hooks: { install: true, profile: 'standard', claudeMemCompat: true, disabled: [] },
+  mcp: { install: true },
 };
 
 const VALID_PROFILES = ['minimal', 'standard', 'strict'];

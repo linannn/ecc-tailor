@@ -59,6 +59,36 @@ export async function doctorCmd() {
     }
   }
 
+  // 6. Check MCP state vs ~/.claude.json
+  const mcpState = state.mcp ?? {};
+  if (mcpState.installed && (mcpState.servers ?? []).length > 0) {
+    const claudeJsonPath = paths.claudeJson();
+    let claudeJson;
+    try {
+      const raw = readFileSync(claudeJsonPath, 'utf8');
+      claudeJson = JSON.parse(raw);
+    } catch (err) {
+      if (err.code !== 'ENOENT') {
+        log.err(`~/.claude.json unreadable or invalid JSON: ${err.message}`);
+        problems++;
+      } else {
+        log.err('~/.claude.json not found but MCP servers are installed in state');
+        problems++;
+      }
+      claudeJson = null;
+    }
+
+    if (claudeJson) {
+      const installedMcp = claudeJson.mcpServers ?? {};
+      for (const serverName of mcpState.servers) {
+        if (!installedMcp[serverName]) {
+          log.err(`MCP server "${serverName}" missing from ~/.claude.json`);
+          problems++;
+        }
+      }
+    }
+  }
+
   // Report outcome
   if (problems === 0) {
     log.ok('all checks passed');

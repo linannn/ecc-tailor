@@ -13,7 +13,8 @@
       "tdd-workflow", "verification-loop",
       "strategic-compact",
       "git-workflow", "gateguard", "architecture-decision-records"
-    ]
+    ],
+    "mcp": ["context7"]
   },
   "java-proj": {
     "description": "Java + Spring Boot project",
@@ -47,7 +48,8 @@
   "ts-frontend-proj": {
     "description": "TypeScript/JS frontend",
     "agents": ["typescript-reviewer", "build-error-resolver", "e2e-runner"],
-    "skills": ["frontend-patterns", "frontend-design", "e2e-testing", "nextjs-turbopack"]
+    "skills": ["frontend-patterns", "frontend-design", "e2e-testing", "nextjs-turbopack"],
+    "mcp": ["magic", "playwright"]
   },
   "ts-nestjs-proj": {
     "description": "NestJS project",
@@ -108,7 +110,8 @@
     "skills": [
       "laravel-patterns", "laravel-tdd", "laravel-verification",
       "laravel-security", "laravel-plugin-discovery"
-    ]
+    ],
+    "mcp": ["laraplugins"]
   },
   "perl-proj": {
     "description": "Perl project",
@@ -128,12 +131,14 @@
   "database": {
     "description": "Database design and operations",
     "agents": ["database-reviewer"],
-    "skills": ["database-migrations", "postgres-patterns", "clickhouse-io"]
+    "skills": ["database-migrations", "postgres-patterns", "clickhouse-io"],
+    "mcp": ["supabase", "clickhouse"]
   },
   "devops": {
     "description": "Deployment and infrastructure",
     "agents": [],
-    "skills": ["docker-patterns", "deployment-patterns", "benchmark"]
+    "skills": ["docker-patterns", "deployment-patterns", "benchmark"],
+    "mcp": ["vercel", "railway", "cloudflare-docs", "cloudflare-workers-builds", "cloudflare-workers-bindings", "cloudflare-observability"]
   },
   "healthcare": {
     "description": "Healthcare / medical",
@@ -174,12 +179,14 @@
       "enterprise-agent-ops", "dmux-workflows",
       "santa-method", "council", "team-builder",
       "ralphinho-rfc-pipeline", "safety-guard"
-    ]
+    ],
+    "mcp": ["memory", "omega-memory", "sequential-thinking", "devfleet", "evalview"]
   },
   "research": {
     "description": "Research and analysis",
     "agents": [],
-    "skills": ["deep-research", "exa-search", "market-research", "research-ops"]
+    "skills": ["deep-research", "exa-search", "market-research", "research-ops"],
+    "mcp": ["exa-web-search", "firecrawl"]
   },
   "content": {
     "description": "Content creation and social media",
@@ -189,7 +196,8 @@
       "frontend-slides", "manim-video", "video-editing",
       "remotion-video-creation", "fal-ai-media", "videodb",
       "ui-demo", "investor-materials", "investor-outreach"
-    ]
+    ],
+    "mcp": ["fal-ai"]
   },
   "ops": {
     "description": "Business operations automation",
@@ -199,7 +207,8 @@
       "unified-notifications-ops", "knowledge-ops", "project-flow-ops",
       "jira-integration", "github-ops", "terminal-ops",
       "automation-audit-ops", "finance-billing-ops", "customer-billing-ops"
-    ]
+    ],
+    "mcp": ["jira", "github", "confluence"]
   },
   "crypto": {
     "description": "Web3 / DeFi security",
@@ -218,6 +227,7 @@
       "workspace-surface-audit", "ecc-tools-cost-audit",
       "rules-distill", "agent-eval", "skill-comply",
       "codebase-onboarding", "configure-ecc", "context-budget"
-    ]
+    ],
+    "mcp": ["token-optimizer"]
   }
 }

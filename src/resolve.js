@@ -176,6 +176,49 @@ function dedupe(arr) {
   return [...new Set(arr)];
 }
 
+/**
+ * Resolve desired MCP servers based on config and bundles.
+ * MCP is global-only (goes to ~/.claude.json), but project bundles
+ * contribute their MCP servers to the global set.
+ *
+ * @param {object} config
+ * @param {object} bundles
+ * @param {Array<{ name: string, config: object, description: string }>} mcpCatalog
+ * @returns {Array<{ name: string, config: object }>}
+ */
+export function resolveMcp(config, bundles, mcpCatalog) {
+  const catalogMap = new Map(mcpCatalog.map(s => [s.name, s.config]));
+
+  const globalCfg = config.global ?? {};
+  const globalBundleNames = globalCfg.bundles ?? [];
+  const globalExtras = (globalCfg.extras ?? {}).mcp ?? [];
+  const globalExcludes = new Set((globalCfg.excludes ?? {}).mcp ?? []);
+
+  const globalResolved = resolveBundles(bundles, globalBundleNames);
+  let names = dedupe([...globalResolved.mcp, ...globalExtras]);
+
+  for (const proj of (config.projects ?? [])) {
+    const projBundleNames = proj.bundles ?? [];
+    const projExtras = (proj.extras ?? {}).mcp ?? [];
+    const projExcludes = new Set((proj.excludes ?? {}).mcp ?? []);
+
+    const projResolved = resolveBundles(bundles, projBundleNames);
+    let projNames = dedupe([...projResolved.mcp, ...projExtras]);
+    projNames = projNames.filter(n => !projExcludes.has(n));
+
+    names = dedupe([...names, ...projNames]);
+  }
+
+  names = names.filter(n => !globalExcludes.has(n));
+
+  return names.map(name => {
+    if (!catalogMap.has(name)) {
+      throw new Error(`MCP server "${name}" not found in ECC catalog`);
+    }
+    return { name, config: catalogMap.get(name) };
+  });
+}
+
 /** Dedup an array of link objects by dst, keeping first occurrence. */
 function dedupByDst(entries) {
   const seen = new Set();

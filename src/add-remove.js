@@ -8,7 +8,7 @@ import { scanEcc } from './fs-scan.js';
 import { applyCmd } from './apply-cmd.js';
 import { removeLayerCmd } from './remove-layer.js';
 
-const VALID_TYPES = ['skill', 'agent', 'bundle', 'rule', 'command', 'context'];
+const VALID_TYPES = ['skill', 'agent', 'bundle', 'rule', 'command', 'context', 'mcp'];
 
 /**
  * Parse add/remove CLI args.
@@ -76,6 +76,7 @@ function extrasKey(type) {
   if (type === 'rule')    return 'rulesLanguages';
   if (type === 'command') return 'commands';
   if (type === 'context') return 'contexts';
+  if (type === 'mcp')     return 'mcp';
   return null; // bundle uses bundles[]
 }
 
@@ -100,6 +101,7 @@ function ensureProject(cfg, projectPath) {
   if (!Array.isArray(entry.extras.rulesLanguages)) entry.extras.rulesLanguages = [];
   if (!Array.isArray(entry.extras.commands))        entry.extras.commands = [];
   if (!Array.isArray(entry.extras.contexts))        entry.extras.contexts = [];
+  if (!Array.isArray(entry.extras.mcp))            entry.extras.mcp = [];
   if (!Array.isArray(entry.bundles))               entry.bundles = [];
   return entry;
 }
@@ -142,7 +144,7 @@ export async function addCmd(args) {
       }
     }
   } else {
-    // skill / agent / rule — scan ECC
+    // skill / agent / rule / mcp — scan ECC
     const cfg = loadConfig();
     let eccRoot;
     try {
@@ -154,7 +156,7 @@ export async function addCmd(args) {
     }
 
     const inv = scanEcc(eccRoot);
-    const typeToInvKey = { skill: 'skills', agent: 'agents', rule: 'rules', command: 'commands', context: 'contexts' };
+    const typeToInvKey = { skill: 'skills', agent: 'agents', rule: 'rules', command: 'commands', context: 'contexts', mcp: 'mcpServers' };
     const listKey = typeToInvKey[type];
 
     for (const name of names) {

@@ -26,4 +26,5 @@ export const paths = {
   claudeDir:    () => join(home(), '.claude'),
   claudeCommand: (name) => join(paths.claudeDir(), 'commands', `${name}.md`),
   claudeSettings: () => join(paths.claudeDir(), 'settings.json'),
+  claudeJson:   () => join(home(), '.claude.json'),
 };

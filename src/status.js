@@ -59,4 +59,15 @@ export function statusCmd() {
   log.info(`  installed:       ${hooks.installed ? 'yes' : 'no'}`);
   log.info(`  profile:         ${config.hooks?.profile ?? '(default)'}`);
   log.info(`  claudeMemCompat: ${config.hooks?.claudeMemCompat ? 'yes' : 'no'}`);
+
+  log.info('');
+
+  // MCP info
+  const mcp = state.mcp ?? {};
+  log.h1('mcp:');
+  log.info(`  installed: ${mcp.installed ? 'yes' : 'no'}`);
+  log.info(`  servers:   ${(mcp.servers ?? []).length}`);
+  if ((mcp.servers ?? []).length > 0) {
+    log.dim(`  ${mcp.servers.join(', ')}`);
+  }
 }

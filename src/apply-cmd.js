@@ -6,11 +6,12 @@ import { loadState, saveState } from './state.js';
 import { loadBundles } from './bundles.js';
 import { resolveEccRoot, getEccRef } from './ecc-repo.js';
 import { scanEcc } from './fs-scan.js';
-import { resolveDesired } from './resolve.js';
+import { resolveDesired, resolveMcp } from './resolve.js';
 import { planApply, executeApply } from './apply.js';
 import { paths } from './paths.js';
 import { writeHookWrapper, effectiveDisabled } from './hooks-wrapper.js';
 import { rewriteEccHooksJson, mergeHooksIntoSettings } from './hooks-merge.js';
+import { mergeMcpServers } from './mcp-merge.js';
 import { checkForUpdates } from './upgrade-notify.js';
 import log from './logger.js';
 
@@ -105,6 +106,39 @@ export async function applyCmd(args) {
 
     // 10g. Log
     log.ok(`hooks merged into ${settingsFile} (backup: ${backupPath})`);
+  }
+
+  // 10.5. MCP integration
+  if (config.mcp?.install !== false) {
+    const mcpCatalog = inv.mcpServers ?? [];
+    const selectedMcp = resolveMcp(config, bundles, mcpCatalog);
+
+    if (selectedMcp.length > 0) {
+      const claudeJsonPath = paths.claudeJson();
+      const mcpResult = mergeMcpServers(selectedMcp, { claudeJsonPath });
+
+      state.mcp = {
+        installed: true,
+        servers: selectedMcp.map(s => s.name),
+      };
+
+      if (mcpResult.added.length > 0) {
+        log.ok(`MCP: added ${mcpResult.added.join(', ')}`);
+      }
+      if (mcpResult.removed.length > 0) {
+        log.dim(`MCP: removed ${mcpResult.removed.join(', ')}`);
+      }
+
+      for (const { server, envVars } of mcpResult.placeholders) {
+        log.warn(`MCP "${server}" needs configuration:`);
+        for (const [key, val] of envVars) {
+          log.dim(`  ${key}=${val}`);
+        }
+      }
+      if (mcpResult.placeholders.length > 0) {
+        log.info('Edit ~/.claude.json to set these values.');
+      }
+    }
   }
 
   // 11. Install slash command → ~/.claude/commands/ecc-tailor.md

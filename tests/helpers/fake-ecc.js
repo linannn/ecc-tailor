@@ -73,6 +73,34 @@ export function makeFakeEcc(root) {
     'utf8',
   );
 
+  // mcp-configs/mcp-servers.json
+  const mcpConfigDir = join(root, 'mcp-configs');
+  mkdirSync(mcpConfigDir, { recursive: true });
+  writeFileSync(
+    join(mcpConfigDir, 'mcp-servers.json'),
+    JSON.stringify({
+      mcpServers: {
+        'context7': {
+          command: 'npx',
+          args: ['-y', '@upstash/context7-mcp@latest'],
+          description: 'Live documentation lookup',
+        },
+        'exa-web-search': {
+          command: 'npx',
+          args: ['-y', 'exa-mcp-server'],
+          env: { EXA_API_KEY: 'YOUR_EXA_API_KEY_HERE' },
+          description: 'Web search via Exa API',
+        },
+        'memory': {
+          command: 'npx',
+          args: ['-y', '@modelcontextprotocol/server-memory'],
+          description: 'Persistent memory across sessions',
+        },
+      },
+    }, null, 2) + '\n',
+    'utf8',
+  );
+
   // Init git repo with one commit
   git(['init'], { cwd: root });
   git(['config', 'user.email', 'test@example.com'], { cwd: root });

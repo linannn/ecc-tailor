@@ -51,10 +51,12 @@ function safeDirents(dirPath) {
  *
  * @param {string} eccRoot  Absolute path to the ECC checkout.
  * @returns {{
- *   agents:   { name: string, path: string, description: string }[],
- *   skills:   { name: string, path: string, description: string }[],
- *   rules:    { name: string, path: string, description: string }[],
- *   commands: { name: string, path: string, description: string }[],
+ *   agents:     { name: string, path: string, description: string }[],
+ *   skills:     { name: string, path: string, description: string }[],
+ *   rules:      { name: string, path: string, description: string }[],
+ *   commands:   { name: string, path: string, description: string }[],
+ *   contexts:   { name: string, path: string, description: string }[],
+ *   mcpServers: { name: string, config: object, description: string }[],
  * }}
  */
 export function scanEcc(eccRoot) {
@@ -115,5 +117,19 @@ export function scanEcc(eccRoot) {
       description: '',
     }));
 
-  return { agents, skills, rules, commands, contexts };
+  // mcp-configs/mcp-servers.json
+  let mcpServers = [];
+  const mcpPath = join(eccRoot, 'mcp-configs', 'mcp-servers.json');
+  try {
+    const raw = JSON.parse(readFileSync(mcpPath, 'utf8'));
+    mcpServers = Object.entries(raw.mcpServers ?? {}).map(([name, cfg]) => ({
+      name,
+      config: cfg,
+      description: cfg.description ?? '',
+    }));
+  } catch (err) {
+    if (err.code !== 'ENOENT') throw err;
+  }
+
+  return { agents, skills, rules, commands, contexts, mcpServers };
 }

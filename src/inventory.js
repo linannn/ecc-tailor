@@ -7,7 +7,7 @@ import { loadState } from './state.js';
 import { loadBundles } from './bundles.js';
 import { resolveEccRoot } from './ecc-repo.js';
 import { scanEcc } from './fs-scan.js';
-import { resolveDesired } from './resolve.js';
+import { resolveDesired, resolveMcp } from './resolve.js';
 
 const isTTY = process.stdout.isTTY;
 
@@ -223,6 +223,14 @@ export async function inventoryCmd(args) {
       .map(e => e.eccSrc.replace(/^agents\//, '').replace(/\.md$/, '')),
   );
 
+  let selectedMcp = new Set();
+  try {
+    const resolvedMcp = resolveMcp(cfg, bundles, inv.mcpServers ?? []);
+    selectedMcp = new Set(resolvedMcp.map(s => s.name));
+  } catch {
+    // catalog may be empty in degraded state
+  }
+
   // Load ignored lists from state
   const stateData = loadState();
   const ignoredSkills = new Set(stateData.ignored?.skills ?? []);
@@ -280,5 +288,32 @@ export async function inventoryCmd(args) {
       selectedSkills, selectedAgents, ignoredSkills, ignoredAgents,
       filterRe, state,
     );
+  }
+
+  if (showAll || type === 'mcp') {
+    const mcpItems = (inv.mcpServers ?? []).map(s => ({
+      name: s.name,
+      description: s.description,
+    }));
+
+    const filtered = mcpItems.filter(item => {
+      if (filterRe && !filterRe.test(item.name) && !filterRe.test(item.description)) {
+        return false;
+      }
+      if (state) {
+        const itemState = selectedMcp.has(item.name) ? 'selected' : 'unselected';
+        if (itemState !== state) return false;
+      }
+      return true;
+    });
+
+    log.h1(`MCP SERVERS (${filtered.length})`);
+    for (const item of filtered) {
+      const checkbox = selectedMcp.has(item.name) ? renderCheckbox('selected') : renderCheckbox('unselected');
+      const name = item.name.padEnd(32);
+      const desc = (item.description || '').slice(0, 70);
+      log.info(`${checkbox} ${name} ${desc}`);
+    }
+    if (filtered.length > 0) log.info('');
   }
 }

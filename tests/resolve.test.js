@@ -4,12 +4,13 @@ import { join } from 'node:path';
 import { makeTmpEnv } from './helpers/tmp-env.js';
 import { makeFakeEcc } from './helpers/fake-ecc.js';
 import { scanEcc } from '../src/fs-scan.js';
-import { resolveDesired } from '../src/resolve.js';
+import { resolveDesired, resolveMcp } from '../src/resolve.js';
 
 // Inline bundle definitions used across tests (no dependency on bundles.json)
 const BUNDLES = {
-  global:      { agents: ['planner'], skills: ['coding-standards'] },
+  global:      { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'] },
   'java-proj': { agents: [],          skills: ['coding-standards'] },
+  'research':  { agents: [],          skills: [], mcp: ['exa-web-search'] },
 };
 
 // Minimal config helper
@@ -177,6 +178,122 @@ test('resolveDesired: extras add beyond bundle — add agent-sort skill, verify 
       l => l.dst === join(tmp.home, '.claude', 'skills', 'coding-standards'),
     );
     assert.ok(csLink, 'coding-standards skill should still be present');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// resolveMcp: global bundle contributes MCP servers
+// ---------------------------------------------------------------------------
+test('resolveMcp: global bundle contributes MCP servers', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig();
+    const result = resolveMcp(config, BUNDLES, inv.mcpServers);
+
+    assert.ok(result.some(s => s.name === 'context7'), 'context7 should be in result from global bundle');
+    assert.ok(result.every(s => s.config !== undefined), 'every server should have config');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// resolveMcp: project bundle contributes MCP servers to global set
+// ---------------------------------------------------------------------------
+test('resolveMcp: project bundle contributes MCP servers to global set', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig({
+      projects: [
+        {
+          path: join(tmp.root, 'my-project'),
+          bundles: ['research'],
+          extras: { agents: [], skills: [], mcp: [] },
+          excludes: { agents: [], skills: [], mcp: [] },
+        },
+      ],
+    });
+
+    const result = resolveMcp(config, BUNDLES, inv.mcpServers);
+
+    assert.ok(result.some(s => s.name === 'context7'), 'context7 from global should be present');
+    assert.ok(result.some(s => s.name === 'exa-web-search'), 'exa-web-search from project bundle should be present');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// resolveMcp: global extras.mcp adds servers
+// ---------------------------------------------------------------------------
+test('resolveMcp: global extras.mcp adds servers beyond bundles', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig({
+      globalOverrides: {
+        extras: { agents: [], skills: [], rulesLanguages: [], mcp: ['memory'] },
+      },
+    });
+
+    const result = resolveMcp(config, BUNDLES, inv.mcpServers);
+
+    assert.ok(result.some(s => s.name === 'memory'), 'memory from extras should be present');
+    assert.ok(result.some(s => s.name === 'context7'), 'context7 from bundle should still be present');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// resolveMcp: global excludes.mcp removes servers
+// ---------------------------------------------------------------------------
+test('resolveMcp: global excludes.mcp removes servers', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig({
+      globalOverrides: {
+        excludes: { agents: [], skills: [], mcp: ['context7'] },
+      },
+    });
+
+    const result = resolveMcp(config, BUNDLES, inv.mcpServers);
+
+    assert.ok(!result.some(s => s.name === 'context7'), 'context7 should be excluded');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// resolveMcp: throws on unknown server name
+// ---------------------------------------------------------------------------
+test('resolveMcp: throws on unknown MCP server name', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const config = makeConfig({
+      globalOverrides: {
+        extras: { agents: [], skills: [], rulesLanguages: [], mcp: ['nonexistent-server'] },
+      },
+    });
+
+    assert.throws(
+      () => resolveMcp(config, BUNDLES, []),
+      /not found in ECC catalog/,
+    );
   } finally {
     tmp.cleanup();
   }
