@@ -156,7 +156,8 @@ ecc-tailor remove mcp <name> --from global               # 全局移除 MCP serv
 ```bash
 ecc-tailor inventory --type skill                        # 全部 skill，标记选中状态
 ecc-tailor inventory --type skill --state unselected     # 只看没选的
-ecc-tailor inventory --detail <name>                     # 查看某个 skill 的完整内容
+ecc-tailor inventory --type bundle                       # 全部 bundle，标记选中状态
+ecc-tailor inventory --detail <name>                     # 查看 bundle 内容或 skill/agent 详情
 ```
 
 ## 进阶用法

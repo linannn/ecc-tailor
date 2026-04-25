@@ -107,3 +107,49 @@ test('inventory --detail coding-standards: prints SKILL.md content', () => {
     env.cleanup();
   }
 });
+
+// ---------------------------------------------------------------------------
+// Test 4: inventory --type bundle lists bundles with selection state
+// ---------------------------------------------------------------------------
+test('inventory --type bundle: lists bundles with selected marker for core', () => {
+  const env = makeTmpEnv();
+  try {
+    const ecc = makeFakeEcc(join(env.root, 'fake-ecc'));
+    writeConfig(env.xdgConfig, ecc);
+
+    const result = runCli(['inventory', '--type', 'bundle'], env.env());
+
+    assert.equal(result.status, 0, `CLI exited with ${result.status}: ${result.stderr}`);
+
+    const combined = result.stdout + result.stderr;
+    assert.match(combined, /BUNDLES/, 'output should have BUNDLES header');
+    assert.match(combined, /core/, 'output should list core bundle');
+    assert.match(combined, /java-proj/, 'output should list java-proj bundle');
+  } finally {
+    env.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Test 5: inventory --detail <bundle-name> shows resolved bundle contents
+// ---------------------------------------------------------------------------
+test('inventory --detail java-proj: shows bundle contents', () => {
+  const env = makeTmpEnv();
+  try {
+    const ecc = makeFakeEcc(join(env.root, 'fake-ecc'));
+    writeConfig(env.xdgConfig, ecc);
+
+    const result = runCli(['inventory', '--detail', 'java-proj'], env.env());
+
+    assert.equal(result.status, 0, `CLI exited with ${result.status}: ${result.stderr}`);
+
+    const combined = result.stdout + result.stderr;
+    assert.match(combined, /Bundle: java-proj/, 'output should show bundle name');
+    assert.match(combined, /extends: core/, 'output should show extends');
+    assert.match(combined, /Contents:/, 'output should show Contents section');
+    assert.match(combined, /springboot-patterns/, 'output should list java skills');
+    assert.match(combined, /java-reviewer/, 'output should list java agents');
+  } finally {
+    env.cleanup();
+  }
+});

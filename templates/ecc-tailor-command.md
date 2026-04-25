@@ -27,7 +27,9 @@ You are an interface to the `ecc-tailor` CLI. Translate natural language into CL
 | Show what's installed | `ecc-tailor status` |
 | List all ECC skills | `ecc-tailor inventory --type skill` |
 | Show unselected skills | `ecc-tailor inventory --type skill --state unselected` |
-| Show skill details | `ecc-tailor inventory --detail <name>` |
+| List all bundles | `ecc-tailor inventory --type bundle` |
+| Show bundle contents | `ecc-tailor inventory --detail <bundle-name>` |
+| Show skill/agent details | `ecc-tailor inventory --detail <name>` |
 | Scan this project | `ecc-tailor scan attach $(pwd)` |
 | Finish scan | `ecc-tailor scan detach $(pwd)` |
 | Check health | `ecc-tailor doctor` |

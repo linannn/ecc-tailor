@@ -156,7 +156,8 @@ ecc-tailor remove mcp <name> --from global               # Remove MCP server glo
 ```bash
 ecc-tailor inventory --type skill                        # All skills, with selection status
 ecc-tailor inventory --type skill --state unselected     # Only unselected
-ecc-tailor inventory --detail <name>                     # View full content of a skill
+ecc-tailor inventory --type bundle                       # All bundles, with selection status
+ecc-tailor inventory --detail <name>                     # View bundle contents or skill/agent detail
 ```
 
 ## Advanced Usage
