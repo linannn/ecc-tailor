@@ -314,15 +314,7 @@ rm -rf ~/.local/share/ecc-tailor     # 删除 ECC clone + wrapper
 
 ## 补充 Skill
 
-ECC 不包含头脑风暴 / 设计先行类 skill。如果需要在写代码前做结构化构思和 spec 输出，推荐单独安装 [superpowers/brainstorming](https://github.com/obra/superpowers/tree/main/skills/brainstorming)：
-
-```bash
-cd ~/.claude/skills
-git clone --depth 1 --filter=blob:none --sparse https://github.com/obra/superpowers.git
-cd superpowers && git sparse-checkout set skills/brainstorming
-```
-
-它会强制卡住实现——设计未批准前不允许写代码——spec 输出到 `docs/superpowers/specs/`。ecc-tailor 不会动手动安装的 skill。
+ECC 不包含头脑风暴 / 设计先行类 skill。如需在写代码前做结构化构思，可参考 [superpowers/brainstorming](https://github.com/obra/superpowers/tree/main/skills/brainstorming)。ecc-tailor 不会动手动安装的 skill。
 
 ## 开发
 

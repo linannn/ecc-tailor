@@ -314,15 +314,7 @@ rm -rf ~/.local/share/ecc-tailor     # Remove ECC clone + wrappers
 
 ## Complementary Skills
 
-ECC doesn't include a brainstorming / design-before-code skill. If you need structured ideation and spec writing before implementation, consider installing [superpowers/brainstorming](https://github.com/obra/superpowers/tree/main/skills/brainstorming) separately:
-
-```bash
-cd ~/.claude/skills
-git clone --depth 1 --filter=blob:none --sparse https://github.com/obra/superpowers.git
-cd superpowers && git sparse-checkout set skills/brainstorming
-```
-
-It enforces a hard gate — no code until the design is approved — and outputs specs to `docs/superpowers/specs/`. ecc-tailor won't touch manually installed skills.
+ECC doesn't include a brainstorming / design-before-code skill. For structured ideation before implementation, see [superpowers/brainstorming](https://github.com/obra/superpowers/tree/main/skills/brainstorming). ecc-tailor won't touch manually installed skills.
 
 ## Development
 
