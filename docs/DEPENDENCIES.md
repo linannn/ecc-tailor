@@ -1,51 +1,51 @@
 # Dependency Map
 
-Auto-generated reference showing which agents/skills depend on which commands and MCP servers.
+Auto-generated. Shows the full dependency chain: resource → who needs it → which bundle.
 
 ## Command Dependencies
 
-Commands auto-detected from `/command-name` references in agent/skill content.
+Auto-detected from `/command-name` references in agent/skill content during `resolve`.
 
-| Command | Referenced By |
-|---|---|
-| `/build-fix` | skill:prompt-optimizer |
-| `/claw` | skill:autonomous-loops |
-| `/code-review` | skill:prompt-optimizer |
-| `/context-budget` | skill:context-budget |
-| `/docs` | skill:design-system |
-| `/e2e` | skill:prompt-optimizer |
-| `/eval` | skill:eval-harness |
-| `/evolve` | skill:continuous-learning-v2 |
-| `/go-review` | skill:prompt-optimizer |
-| `/harness-audit` | agent:harness-optimizer, skill:continuous-agent-loop |
-| `/hookify` | agent:conversation-analyzer, skill:hookify-rules |
-| `/hookify-configure` | skill:hookify-rules |
-| `/hookify-help` | skill:hookify-rules |
-| `/hookify-list` | skill:hookify-rules |
-| `/instinct-export` | skill:continuous-learning-v2 |
-| `/instinct-import` | skill:continuous-learning-v2 |
-| `/instinct-status` | skill:continuous-learning-v2 |
-| `/learn` | skill:continuous-learning |
-| `/plan` | skill:prompt-optimizer |
-| `/projects` | skill:continuous-learning-v2, skill:laravel-security |
-| `/promote` | skill:continuous-learning-v2 |
-| `/prompt-optimize` | skill:prompt-optimizer |
-| `/quality-gate` | skill:continuous-agent-loop |
-| `/refactor-clean` | skill:prompt-optimizer |
-| `/resume-session` | skill:prompt-optimizer |
-| `/rules-distill` | skill:rules-distill |
-| `/save-session` | skill:council, skill:prompt-optimizer |
-| `/tdd` | skill:prompt-optimizer |
-| `/test-coverage` | skill:prompt-optimizer |
-| `/update-codemaps` | agent:doc-updater, skill:prompt-optimizer |
-| `/update-docs` | agent:doc-updater, skill:prompt-optimizer |
-| `/verify` | skill:autonomous-loops, skill:prompt-optimizer, skill:verification-loop |
+| Command | Required By | Bundle |
+|---|---|---|
+| `/build-fix` | skill:prompt-optimizer | — |
+| `/claw` | skill:autonomous-loops | agent-dev |
+| `/code-review` | skill:prompt-optimizer | — |
+| `/context-budget` | skill:context-budget | — |
+| `/docs` | skill:design-system | — |
+| `/e2e` | skill:prompt-optimizer | — |
+| `/eval` | skill:eval-harness | agent-dev |
+| `/evolve` | skill:continuous-learning-v2 | — |
+| `/go-review` | skill:prompt-optimizer | — |
+| `/harness-audit` | agent:harness-optimizer, skill:continuous-agent-loop | agent-dev |
+| `/hookify` | agent:conversation-analyzer, skill:hookify-rules | ops |
+| `/hookify-configure` | skill:hookify-rules | — |
+| `/hookify-help` | skill:hookify-rules | — |
+| `/hookify-list` | skill:hookify-rules | — |
+| `/instinct-export` | skill:continuous-learning-v2 | — |
+| `/instinct-import` | skill:continuous-learning-v2 | — |
+| `/instinct-status` | skill:continuous-learning-v2 | — |
+| `/learn` | skill:continuous-learning | — |
+| `/plan` | skill:prompt-optimizer | — |
+| `/projects` | skill:continuous-learning-v2, skill:laravel-security | laravel-proj |
+| `/promote` | skill:continuous-learning-v2 | — |
+| `/prompt-optimize` | skill:prompt-optimizer | — |
+| `/quality-gate` | skill:continuous-agent-loop | agent-dev |
+| `/refactor-clean` | skill:prompt-optimizer | — |
+| `/resume-session` | skill:prompt-optimizer | — |
+| `/rules-distill` | skill:rules-distill | — |
+| `/save-session` | skill:council, skill:prompt-optimizer | agent-dev |
+| `/tdd` | skill:prompt-optimizer | — |
+| `/test-coverage` | skill:prompt-optimizer | — |
+| `/update-codemaps` | agent:doc-updater, skill:prompt-optimizer | global |
+| `/update-docs` | agent:doc-updater, skill:prompt-optimizer | global |
+| `/verify` | skill:autonomous-loops, skill:prompt-optimizer, skill:verification-loop | agent-dev, global |
 
-## MCP Server → Bundle Mapping
+## MCP Server Dependencies
 
-MCP servers assigned to bundles in `manifests/bundles.json`.
+MCP servers configured in bundle definitions (`manifests/bundles.json`).
 
-| MCP Server | Bundles |
+| MCP Server | Bundle |
 |---|---|
 | `clickhouse` | database |
 | `cloudflare-docs` | devops |
@@ -82,7 +82,7 @@ Available via `extras.mcp` but not in any bundle:
 
 ## Unreferenced Commands
 
-47 commands not referenced by any agent or skill:
+47 commands not referenced by any agent or skill (add via `extras.commands`):
 
 - `/agent-sort`
 - `/aside`
