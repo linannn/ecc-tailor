@@ -1,10 +1,10 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadConfig } from './config.js';
-import { resolveEccRoot } from './ecc-repo.js';
+import { loadConfig } from '../core/config.js';
+import { resolveEccRoot } from '../core/ecc-repo.js';
 import { generateDepsDoc, generateDepsDocZh } from './deps-doc.js';
-import log from './logger.js';
+import log from '../core/logger.js';
 
 export async function depsCmd(_args) {
   const config = loadConfig();
@@ -18,7 +18,7 @@ export async function depsCmd(_args) {
     return;
   }
 
-  const docsDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'docs');
+  const docsDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'docs');
   mkdirSync(docsDir, { recursive: true });
 
   const enPath = join(docsDir, 'DEPENDENCIES.md');

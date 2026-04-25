@@ -7,7 +7,7 @@ import {
   CLAUDE_MEM_COMPAT_HOOKS,
   effectiveDisabled,
   writeHookWrapper,
-} from '../src/hooks-wrapper.js';
+} from '../src/hooks/hooks-wrapper.js';
 
 // ---------------------------------------------------------------------------
 // effectiveDisabled: claudeMemCompat true → 8 compat ids + user list merged

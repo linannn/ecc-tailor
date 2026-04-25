@@ -1,5 +1,7 @@
 # Dependency Map
 
+[English](DEPENDENCIES.md) | [中文](DEPENDENCIES.zh.md)
+
 Auto-generated. Shows the full dependency chain: resource → who needs it → which bundle.
 
 ## Command Dependencies

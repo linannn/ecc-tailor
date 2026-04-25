@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { loadBundles, resolveBundle, resolveBundles } from '../src/bundles.js';
+import { loadBundles, resolveBundle, resolveBundles } from '../src/core/bundles.js';
 
 const ECC = process.env.ECC_PATH;
 

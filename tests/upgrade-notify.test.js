@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { shouldFetch } from '../src/upgrade-notify.js';
+import { shouldFetch } from '../src/core/upgrade-notify.js';
 
 // ---------------------------------------------------------------------------
 // shouldFetch: null → always fetch

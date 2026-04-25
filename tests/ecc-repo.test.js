@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { makeTmpEnv } from './helpers/tmp-env.js';
 import { makeFakeEcc } from './helpers/fake-ecc.js';
-import { resolveEccRoot } from '../src/ecc-repo.js';
+import { resolveEccRoot } from '../src/core/ecc-repo.js';
 
 // ---------------------------------------------------------------------------
 // resolveEccRoot: honors config.eccPath override

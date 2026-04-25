@@ -1,6 +1,6 @@
-import { loadConfig } from './config.js';
-import { loadState } from './state.js';
-import log from './logger.js';
+import { loadConfig } from '../core/config.js';
+import { loadState } from '../core/state.js';
+import log from '../core/logger.js';
 
 /**
  * Display the current tailor status: ECC ref, last apply time, symlink counts

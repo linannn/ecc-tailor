@@ -1,11 +1,11 @@
 import { mkdirSync, symlinkSync, unlinkSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
-import { loadConfig } from './config.js';
-import { loadState, saveState } from './state.js';
-import { loadBundles, resolveBundle } from './bundles.js';
-import { resolveEccRoot } from './ecc-repo.js';
-import { scanEcc } from './fs-scan.js';
-import log from './logger.js';
+import { loadConfig } from '../core/config.js';
+import { loadState, saveState } from '../core/state.js';
+import { loadBundles, resolveBundle } from '../core/bundles.js';
+import { resolveEccRoot } from '../core/ecc-repo.js';
+import { scanEcc } from '../core/fs-scan.js';
+import log from '../core/logger.js';
 
 /**
  * Implement `ecc-tailor scan attach <path>` and `ecc-tailor scan detach <path>`.

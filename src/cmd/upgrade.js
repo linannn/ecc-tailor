@@ -1,13 +1,13 @@
 import { createInterface } from 'node:readline';
-import log from './logger.js';
-import { loadConfig } from './config.js';
-import { loadState, saveState } from './state.js';
-import { resolveEccRoot, getEccRef, pullEcc } from './ecc-repo.js';
-import { git } from './util/git.js';
-import { writeJsonAtomic } from './util/json.js';
-import { paths } from './paths.js';
-import { scanEcc } from './fs-scan.js';
-import { applyCmd } from './apply-cmd.js';
+import log from '../core/logger.js';
+import { loadConfig } from '../core/config.js';
+import { loadState, saveState } from '../core/state.js';
+import { resolveEccRoot, getEccRef, pullEcc } from '../core/ecc-repo.js';
+import { git } from '../util/git.js';
+import { writeJsonAtomic } from '../util/json.js';
+import { paths } from '../core/paths.js';
+import { scanEcc } from '../core/fs-scan.js';
+import { applyCmd } from '../apply/apply-cmd.js';
 
 /**
  * Pure function: filter out items already in the ignored lists.

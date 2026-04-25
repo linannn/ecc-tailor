@@ -1,6 +1,6 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { readJson, writeJsonAtomic } from './util/json.js';
+import { readJson, writeJsonAtomic } from '../util/json.js';
 import { paths } from './paths.js';
 
 export const EMPTY_STATE = {

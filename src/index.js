@@ -1,14 +1,14 @@
-import log from './logger.js';
-import { applyCmd } from './apply-cmd.js';
-import { addCmd, removeIncrementalCmd } from './add-remove.js';
-import { inventoryCmd } from './inventory.js';
-import { forkCmd } from './fork.js';
-import { statusCmd } from './status.js';
-import { doctorCmd } from './doctor.js';
-import { scanCmd } from './scan-cmd.js';
-import { upgradeCmd } from './upgrade.js';
-import { hooksCmd } from './hooks-cmd.js';
-import { depsCmd } from './deps-cmd.js';
+import log from './core/logger.js';
+import { applyCmd } from './apply/apply-cmd.js';
+import { addCmd, removeIncrementalCmd } from './cmd/add-remove.js';
+import { inventoryCmd } from './cmd/inventory.js';
+import { forkCmd } from './cmd/fork.js';
+import { statusCmd } from './cmd/status.js';
+import { doctorCmd } from './cmd/doctor.js';
+import { scanCmd } from './cmd/scan-cmd.js';
+import { upgradeCmd } from './cmd/upgrade.js';
+import { hooksCmd } from './hooks/index.js';
+import { depsCmd } from './deps/index.js';
 
 function printHelp() {
   log.h1('ecc-tailor');

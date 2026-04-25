@@ -1,5 +1,5 @@
 import { paths } from './paths.js';
-import { readJson } from './util/json.js';
+import { readJson } from '../util/json.js';
 
 export const DEFAULT_CONFIG = {
   eccPath: null,

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
 
-const BUNDLES_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'manifests', 'bundles.json');
+const BUNDLES_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'manifests', 'bundles.json');
 
 /**
  * Read and parse manifests/bundles.json.

@@ -1,9 +1,9 @@
-import { loadConfig } from './config.js';
-import { paths } from './paths.js';
-import { writeJsonAtomic } from './util/json.js';
+import { loadConfig } from '../core/config.js';
+import { paths } from '../core/paths.js';
+import { writeJsonAtomic } from '../util/json.js';
 import { writeHookWrapper, effectiveDisabled } from './hooks-wrapper.js';
-import { resolveEccRoot } from './ecc-repo.js';
-import log from './logger.js';
+import { resolveEccRoot } from '../core/ecc-repo.js';
+import log from '../core/logger.js';
 
 const VALID_PROFILES = ['minimal', 'standard', 'strict'];
 

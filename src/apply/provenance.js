@@ -1,4 +1,4 @@
-import { resolveBundle } from './bundles.js';
+import { resolveBundle } from '../core/bundles.js';
 
 /**
  * Build provenance report: for each installed item, track what brought it in.

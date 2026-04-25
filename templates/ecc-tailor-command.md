@@ -21,7 +21,9 @@ You are an interface to the `ecc-tailor` CLI. Translate natural language into CL
 | Add skill to this project | `ecc-tailor add skill <name> --to project:$(pwd)` |
 | Add skill globally | `ecc-tailor add skill <name> --to global` |
 | Add bundle to this project | `ecc-tailor add bundle <name> --to project:$(pwd)` |
+| Add MCP server | `ecc-tailor add mcp <name> --to global` |
 | Remove skill | `ecc-tailor remove skill <name> --from project:$(pwd)` |
+| Remove MCP server | `ecc-tailor remove mcp <name> --from global` |
 | Show what's installed | `ecc-tailor status` |
 | List all ECC skills | `ecc-tailor inventory --type skill` |
 | Show unselected skills | `ecc-tailor inventory --type skill --state unselected` |
@@ -32,6 +34,7 @@ You are an interface to the `ecc-tailor` CLI. Translate natural language into CL
 | Upgrade ECC | `ecc-tailor upgrade` |
 | Hook status | `ecc-tailor hooks status` |
 | Customize file | `ecc-tailor fork <path>` |
+| Generate dependency docs | `ecc-tailor deps` |
 
 ## Workflow
 

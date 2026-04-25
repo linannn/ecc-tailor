@@ -1,9 +1,9 @@
 import { stat, unlink, copyFile, cp } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
-import { loadState, saveState } from './state.js';
-import { loadConfig } from './config.js';
-import { resolveEccRoot } from './ecc-repo.js';
-import log from './logger.js';
+import { loadState, saveState } from '../core/state.js';
+import { loadConfig } from '../core/config.js';
+import { resolveEccRoot } from '../core/ecc-repo.js';
+import log from '../core/logger.js';
 
 /**
  * Convert a managed symlink into a real local file or directory.

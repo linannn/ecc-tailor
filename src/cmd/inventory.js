@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
-import log from './logger.js';
-import { loadConfig } from './config.js';
-import { loadState } from './state.js';
-import { loadBundles } from './bundles.js';
-import { resolveEccRoot } from './ecc-repo.js';
-import { scanEcc } from './fs-scan.js';
-import { resolveDesired, resolveMcp } from './resolve.js';
+import log from '../core/logger.js';
+import { loadConfig } from '../core/config.js';
+import { loadState } from '../core/state.js';
+import { loadBundles } from '../core/bundles.js';
+import { resolveEccRoot } from '../core/ecc-repo.js';
+import { scanEcc } from '../core/fs-scan.js';
+import { resolveDesired, resolveMcp } from '../core/resolve.js';
 
 const isTTY = process.stdout.isTTY;
 

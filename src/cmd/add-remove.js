@@ -1,11 +1,11 @@
-import log from './logger.js';
-import { loadConfig } from './config.js';
-import { writeJsonAtomic } from './util/json.js';
-import { paths } from './paths.js';
-import { loadBundles } from './bundles.js';
-import { resolveEccRoot } from './ecc-repo.js';
-import { scanEcc } from './fs-scan.js';
-import { applyCmd } from './apply-cmd.js';
+import log from '../core/logger.js';
+import { loadConfig } from '../core/config.js';
+import { writeJsonAtomic } from '../util/json.js';
+import { paths } from '../core/paths.js';
+import { loadBundles } from '../core/bundles.js';
+import { resolveEccRoot } from '../core/ecc-repo.js';
+import { scanEcc } from '../core/fs-scan.js';
+import { applyCmd } from '../apply/apply-cmd.js';
 import { removeLayerCmd } from './remove-layer.js';
 
 const VALID_TYPES = ['skill', 'agent', 'bundle', 'rule', 'command', 'context', 'mcp'];

@@ -1,4 +1,4 @@
-import { git } from './util/git.js';
+import { git } from '../util/git.js';
 import log from './logger.js';
 
 const MS_24H = 24 * 60 * 60 * 1000;

@@ -1,10 +1,10 @@
 import { readlink, access } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
-import { loadConfig } from './config.js';
-import { loadState } from './state.js';
-import { resolveEccRoot } from './ecc-repo.js';
-import { paths } from './paths.js';
-import log from './logger.js';
+import { loadConfig } from '../core/config.js';
+import { loadState } from '../core/state.js';
+import { resolveEccRoot } from '../core/ecc-repo.js';
+import { paths } from '../core/paths.js';
+import log from '../core/logger.js';
 
 /**
  * Run health checks and report any problems.

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { writeFileSync } from 'node:fs';
 import { makeTmpEnv } from './helpers/tmp-env.js';
 import { makeFakeEcc } from './helpers/fake-ecc.js';
-import { scanEcc } from '../src/fs-scan.js';
+import { scanEcc } from '../src/core/fs-scan.js';
 
 // ---------------------------------------------------------------------------
 // scanEcc: lists agents/skills/rules

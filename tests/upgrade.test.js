@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildUpgradePlan } from '../src/upgrade.js';
+import { buildUpgradePlan } from '../src/cmd/upgrade.js';
 
 // ---------------------------------------------------------------------------
 // buildUpgradePlan: filters out ignored items

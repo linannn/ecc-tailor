@@ -1,8 +1,8 @@
 import { unlink } from 'node:fs/promises';
-import log from './logger.js';
-import { loadState, saveState } from './state.js';
-import { removeEccTailorHooks } from './hooks-merge.js';
-import { paths } from './paths.js';
+import log from '../core/logger.js';
+import { loadState, saveState } from '../core/state.js';
+import { removeEccTailorHooks } from '../hooks/index.js';
+import { paths } from '../core/paths.js';
 
 /**
  * Parse layer-remove flags from args.

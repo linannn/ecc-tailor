@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { makeTmpEnv } from './helpers/tmp-env.js';
 import { makeFakeEcc } from './helpers/fake-ecc.js';
-import { scanCommandDeps } from '../src/deps-scan.js';
+import { scanCommandDeps } from '../src/core/deps-scan.js';
 
 test('scanCommandDeps: finds /docs in planner agent', () => {
   const tmp = makeTmpEnv();

@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync, mkdirSync, chmodSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { paths } from './paths.js';
+import { paths } from '../core/paths.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -41,7 +41,7 @@ export function effectiveDisabled({ claudeMemCompat, disabled = [] }) {
  * @returns {string} The path to the written wrapper script.
  */
 export function writeHookWrapper({ eccRoot, profile, disabled }, opts = {}) {
-  const tmplPath = join(__dirname, '..', 'templates', 'run-hook.sh.tmpl');
+  const tmplPath = join(__dirname, '..', '..', 'templates', 'run-hook.sh.tmpl');
   const tmpl = readFileSync(tmplPath, 'utf8');
 
   const content = tmpl

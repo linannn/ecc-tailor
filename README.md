@@ -13,6 +13,8 @@ ECC's built-in installer is too coarse — `--with lang:java` pulls in 38 skills
 - **Config as code** — one JSON file declares everything, `apply` makes it happen
 - **Symlink mode** — zero-copy, `git pull` on ECC takes effect immediately
 - **Hook integration** — fine-grained control over ECC's 26 hooks via profile/disabled
+- **MCP server management** — bundle-associated MCP servers auto-merged into `~/.claude.json`
+- **Auto-dependency detection** — scans agents/skills for `/command` and `mcp__server__` references, auto-includes them
 - **Upgrade detection** — passive notification of new capabilities + interactive 3-way decisions
 
 ## Install
@@ -100,6 +102,8 @@ Without a config file, ecc-tailor uses these defaults: global bundle, standard h
 
 Full per-bundle listing with type, name, and description: **[docs/BUNDLES.md](docs/BUNDLES.md)**
 
+Full dependency chain (commands and MCP servers required by each agent/skill): **[docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)**
+
 ## Commands
 
 ### Core
@@ -116,7 +120,9 @@ ecc-tailor doctor                    # Health check (broken links, config validi
 ecc-tailor add skill <name> --to global                  # Add skill globally
 ecc-tailor add skill <name> --to project:$(pwd)          # Add skill to current project
 ecc-tailor add bundle <name> --to project:$(pwd)         # Add bundle to current project
+ecc-tailor add mcp <name> --to global                    # Add MCP server
 ecc-tailor remove skill <name> --from global             # Remove
+ecc-tailor remove mcp <name> --from global               # Remove MCP server
 ```
 
 ### Browse ECC Resources
@@ -164,6 +170,14 @@ ecc-tailor hooks enable <hook-id>                # Enable
 ecc-tailor hooks claude-mem-compat off           # Disable claude-mem compat (enables 8 auto-disabled hooks)
 ```
 
+### Dependency Documentation
+
+```bash
+ecc-tailor deps                                  # Generate docs/DEPENDENCIES.{md,zh.md}
+```
+
+Scans all agents and skills for `/command` references and `mcp__server__` tool calls, then generates a dependency map: resource → who needs it → which bundle.
+
 ## Slash Command
 
 `apply` automatically installs an `/ecc-tailor` slash command to `~/.claude/commands/`. Use natural language inside Claude Code:
@@ -179,6 +193,8 @@ ecc-tailor hooks claude-mem-compat off           # Disable claude-mem compat (en
 - **Symlink** — agents linked per-file, skills and rules linked per-directory, pointing to ECC clone
 - **State** — `~/.local/state/ecc-tailor/state.json` tracks all symlinks, forks, and ephemeral scans
 - **Hooks** — generates a wrapper script that sets `ECC_HOOK_PROFILE` + `ECC_DISABLED_HOOKS` env vars; ECC's own `run-with-flags.js` handles the rest
+- **MCP** — bundle-defined MCP servers merged into `~/.claude.json` with `[ecc-tailor]` ownership markers; placeholder API keys detected and reported
+- **Provenance** — `apply` prints a dependency report showing which commands/MCP servers were installed and what brought them in
 - **Conflicts** — if the target path exists and isn't managed by ecc-tailor, abort with error (never overwrite)
 - **Idempotent** — running `apply` twice produces the same result
 
@@ -194,11 +210,15 @@ ecc-tailor hooks claude-mem-compat off           # Disable claude-mem compat (en
     "extras": {
       "agents": [],
       "skills": ["hexagonal-architecture"],
+      "commands": [],
+      "mcp": [],
       "rulesLanguages": ["common", "java", "python", "typescript", "web"]
     },
     "excludes": {
       "agents": [],
-      "skills": []
+      "skills": [],
+      "commands": [],
+      "mcp": []
     }
   },
   "projects": [
@@ -213,6 +233,9 @@ ecc-tailor hooks claude-mem-compat off           # Disable claude-mem compat (en
     "profile": "standard",
     "claudeMemCompat": true,
     "disabled": []
+  },
+  "mcp": {
+    "install": true
   }
 }
 ```
@@ -221,12 +244,15 @@ ecc-tailor hooks claude-mem-compat off           # Disable claude-mem compat (en
 |---|---|
 | `eccPath` | Path to ECC clone (null = auto-managed) |
 | `global.bundles` | Bundles to install globally |
-| `global.extras.*` | Extra agents/skills/rules beyond bundles |
+| `global.extras.*` | Extra agents/skills/commands/mcp/rules beyond bundles |
 | `global.excludes.*` | Exclude specific items from bundles |
+| `global.excludes.commands` | Suppress auto-detected command dependencies |
+| `global.excludes.mcp` | Exclude specific MCP servers |
 | `projects[].bundles` | Array — a project can use multiple bundles |
 | `hooks.profile` | `minimal` / `standard` / `strict` |
 | `hooks.claudeMemCompat` | Auto-disable 8 hooks that overlap with claude-mem plugin |
 | `hooks.disabled` | Additional manually disabled hook IDs |
+| `mcp.install` | Enable/disable MCP server management (default: true) |
 
 ## Uninstall
 
@@ -241,7 +267,7 @@ rm -rf ~/.local/share/ecc-tailor     # Remove ECC clone + wrappers
 ## Development
 
 ```bash
-npm test                             # Unit + integration tests (86)
+npm test                             # Unit + integration tests (116)
 ECC_PATH=/path/to/ecc npm test       # + real ECC verification (10 E2E tests)
 ```
 

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { makeTmpEnv } from './helpers/tmp-env.js';
-import { loadState, saveState, EMPTY_STATE } from '../src/state.js';
+import { loadState, saveState, EMPTY_STATE } from '../src/core/state.js';
 
 // ---------------------------------------------------------------------------
 // loadState: missing file returns EMPTY_STATE defaults

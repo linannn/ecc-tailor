@@ -1,6 +1,6 @@
 import { copyFileSync } from 'node:fs';
-import { writeJsonAtomic } from './util/json.js';
-import { readJson } from './util/json.js';
+import { writeJsonAtomic } from '../util/json.js';
+import { readJson } from '../util/json.js';
 
 /**
  * Marker prefix added to every description managed by ecc-tailor.

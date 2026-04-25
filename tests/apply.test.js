@@ -5,10 +5,10 @@ import { join } from 'node:path';
 
 import { makeTmpEnv }  from './helpers/tmp-env.js';
 import { makeFakeEcc } from './helpers/fake-ecc.js';
-import { scanEcc }     from '../src/fs-scan.js';
-import { resolveDesired } from '../src/resolve.js';
-import { EMPTY_STATE }    from '../src/state.js';
-import { planApply, executeApply } from '../src/apply.js';
+import { scanEcc }     from '../src/core/fs-scan.js';
+import { resolveDesired } from '../src/core/resolve.js';
+import { EMPTY_STATE }    from '../src/core/state.js';
+import { planApply, executeApply } from '../src/apply/apply.js';
 
 // ---------------------------------------------------------------------------
 // Shared bundle + config helpers (mirrors resolve.test.js style)

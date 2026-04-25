@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildProvenance } from '../src/provenance.js';
+import { buildProvenance } from '../src/apply/provenance.js';
 
 const BUNDLES = {
   global:     { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'] },

@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
-import { git, headSha } from './util/git.js';
+import { git, headSha } from '../util/git.js';
 
 const ECC_REMOTE = 'https://github.com/affaan-m/everything-claude-code.git';
 

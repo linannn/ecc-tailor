@@ -1,20 +1,22 @@
 import { readFile, copyFile, mkdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadConfig } from './config.js';
-import { loadState, saveState } from './state.js';
-import { loadBundles } from './bundles.js';
-import { resolveEccRoot, getEccRef } from './ecc-repo.js';
-import { scanEcc } from './fs-scan.js';
-import { resolveDesired, resolveMcp } from './resolve.js';
+import { loadConfig } from '../core/config.js';
+import { loadState, saveState } from '../core/state.js';
+import { loadBundles } from '../core/bundles.js';
+import { resolveEccRoot, getEccRef } from '../core/ecc-repo.js';
+import { scanEcc } from '../core/fs-scan.js';
+import { resolveDesired, resolveMcp } from '../core/resolve.js';
 import { planApply, executeApply } from './apply.js';
-import { paths } from './paths.js';
-import { writeHookWrapper, effectiveDisabled } from './hooks-wrapper.js';
-import { rewriteEccHooksJson, mergeHooksIntoSettings } from './hooks-merge.js';
-import { mergeMcpServers } from './mcp-merge.js';
-import { checkForUpdates } from './upgrade-notify.js';
+import { paths } from '../core/paths.js';
+import {
+  writeHookWrapper, effectiveDisabled,
+  rewriteEccHooksJson, mergeHooksIntoSettings,
+} from '../hooks/index.js';
+import { mergeMcpServers } from '../mcp/index.js';
+import { checkForUpdates } from '../core/upgrade-notify.js';
 import { buildProvenance } from './provenance.js';
-import log from './logger.js';
+import log from '../core/logger.js';
 
 /**
  * End-to-end apply flow.
@@ -169,6 +171,7 @@ export async function applyCmd(args) {
   // 11. Install slash command → ~/.claude/commands/ecc-tailor.md
   const templateSrc = join(
     dirname(fileURLToPath(import.meta.url)),
+    '..',
     '..',
     'templates',
     'ecc-tailor-command.md',

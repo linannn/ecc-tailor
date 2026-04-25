@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { makeTmpEnv } from './helpers/tmp-env.js';
 import { makeFakeEcc } from './helpers/fake-ecc.js';
-import { scanEcc } from '../src/fs-scan.js';
-import { resolveDesired, resolveMcp } from '../src/resolve.js';
+import { scanEcc } from '../src/core/fs-scan.js';
+import { resolveDesired, resolveMcp } from '../src/core/resolve.js';
 
 // Inline bundle definitions used across tests (no dependency on bundles.json)
 const BUNDLES = {

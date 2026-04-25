@@ -9,7 +9,7 @@ import {
   rewriteEccHooksJson,
   mergeHooksIntoSettings,
   removeEccTailorHooks,
-} from '../src/hooks-merge.js';
+} from '../src/hooks/hooks-merge.js';
 
 // ---------------------------------------------------------------------------
 // rewriteEccHooksJson: rewrites command + adds marker prefix

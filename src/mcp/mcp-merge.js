@@ -1,5 +1,5 @@
 import { copyFileSync } from 'node:fs';
-import { readJson, writeJsonAtomic } from './util/json.js';
+import { readJson, writeJsonAtomic } from '../util/json.js';
 
 export const MCP_MARKER = '[ecc-tailor]';
 

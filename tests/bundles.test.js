@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadBundles, resolveBundle, resolveBundles } from '../src/bundles.js';
+import { loadBundles, resolveBundle, resolveBundles } from '../src/core/bundles.js';
 
 // ---------------------------------------------------------------------------
 // loadBundles: reads JSON file

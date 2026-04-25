@@ -4,7 +4,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { makeTmpEnv } from './helpers/tmp-env.js';
-import { MCP_MARKER, mergeMcpServers, removeEccTailorMcpServers } from '../src/mcp-merge.js';
+import { MCP_MARKER, mergeMcpServers, removeEccTailorMcpServers } from '../src/mcp/mcp-merge.js';
 
 const SAMPLE_SERVER = {
   name: 'context7',

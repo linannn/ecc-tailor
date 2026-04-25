@@ -1,6 +1,6 @@
-import { loadBundles, resolveBundle } from './bundles.js';
-import { scanEcc } from './fs-scan.js';
-import { scanCommandDeps, scanMcpDeps } from './deps-scan.js';
+import { loadBundles, resolveBundle } from '../core/bundles.js';
+import { scanEcc } from '../core/fs-scan.js';
+import { scanCommandDeps, scanMcpDeps } from '../core/deps-scan.js';
 
 const STRINGS = {
   en: {

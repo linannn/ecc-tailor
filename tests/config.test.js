@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { makeTmpEnv } from './helpers/tmp-env.js';
-import { loadConfig, validateConfig } from '../src/config.js';
+import { loadConfig, validateConfig } from '../src/core/config.js';
 
 // ---------------------------------------------------------------------------
 // loadConfig: missing file returns defaults
