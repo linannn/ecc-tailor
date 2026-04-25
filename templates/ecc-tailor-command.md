@@ -33,6 +33,10 @@ You are an interface to the `ecc-tailor` CLI. Translate natural language into CL
 | Check health | `ecc-tailor doctor` |
 | Upgrade ECC | `ecc-tailor upgrade` |
 | Hook status | `ecc-tailor hooks status` |
+| Set hook profile | `ecc-tailor hooks set-profile <minimal\|standard\|strict>` |
+| Disable a hook | `ecc-tailor hooks disable <hook-id>` |
+| Enable a hook | `ecc-tailor hooks enable <hook-id>` |
+| Toggle claude-mem compat | `ecc-tailor hooks claude-mem-compat <on\|off>` |
 | Customize file | `ecc-tailor fork <path>` |
 | Generate dependency docs | `ecc-tailor deps` |
 | Customize bundle | `ecc-tailor customize <bundle>` |

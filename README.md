@@ -12,9 +12,8 @@ ECC's built-in installer is too coarse — `--with lang:java` pulls in 38 skills
 - **Two-level install** — stack-agnostic goes to global `~/.claude/`, stack-specific goes to project `<proj>/.claude/`
 - **Config as code** — one JSON file declares everything, `apply` makes it happen
 - **Symlink mode** — zero-copy, `git pull` on ECC takes effect immediately
-- **Hook integration** — fine-grained control over ECC's 26 hooks via profile/disabled
-- **MCP server management** — bundle-associated MCP servers auto-merged into `~/.claude.json`
-- **Auto-dependency detection** — scans agents/skills for `/command` and `mcp__server__` references, auto-includes them
+- **Hook & MCP integration** — fine-grained control over ECC's 26 hooks + auto-merged MCP servers
+- **Auto-dependency detection** — scans `/command` and `mcp__server__` references, auto-includes them
 - **Upgrade detection** — passive notification of new capabilities + interactive 3-way decisions
 
 ## Install
@@ -22,10 +21,8 @@ ECC's built-in installer is too coarse — `--with lang:java` pulls in 38 skills
 ```bash
 git clone https://github.com/linannn/ecc-tailor.git
 cd ecc-tailor
-npm link              # registers `ecc-tailor` as a global CLI command
+npm link
 ```
-
-`npm link` creates a symlink from your system PATH to `bin/ecc-tailor` in this repo, so you can run `ecc-tailor` from anywhere in the terminal.
 
 Requires Node >= 18. Zero npm dependencies.
 
@@ -41,23 +38,46 @@ ecc-tailor add bundle java-proj --to project:$(pwd)
 ecc-tailor apply
 ```
 
-On first run, ECC is automatically cloned to `~/.local/share/ecc-tailor/ecc/`. To use an existing local clone, create `~/.config/ecc-tailor/config.json`:
+On first run, ECC is automatically cloned to `~/.local/share/ecc-tailor/ecc/`. To use an existing local clone:
 
 ```json
+// ~/.config/ecc-tailor/config.json
 { "eccPath": "/path/to/everything-claude-code" }
 ```
 
-Without a config file, ecc-tailor uses these defaults: `core` bundle (software development essentials), standard hook profile, claude-mem compatibility on. See [Config Reference](#config-reference) for full customization.
+Defaults without config: `core` bundle, standard hook profile, claude-mem auto-detection on first apply. See [Config Reference](#config-reference) for full customization.
+
+## Slash Command
+
+`apply` automatically installs an `/ecc-tailor` slash command to `~/.claude/commands/`. Use natural language directly in Claude Code — no need to memorize CLI syntax:
+
+```
+/ecc-tailor add hexagonal-architecture to this project
+/ecc-tailor scan this project for recommendations
+/ecc-tailor show status
+/ecc-tailor what skills am I not using?
+```
+
+The slash command covers all CLI features. Claude translates your intent into the right command, runs it, and summarizes the result.
+
+## Core Concepts
+
+**Bundle** — A curated set of agents, skills, rules, and MCP servers for a tech stack or domain. Bundles compose: a fullstack project might use `ts-backend-proj` + `ts-frontend-proj` + `database`. All language bundles automatically include `core` (planner, architect, tdd, etc.).
+
+**Two-level install** — Stack-agnostic bundles (like `core`) go to `~/.claude/` (available everywhere). Stack-specific bundles go to `<project>/.claude/` (only active in that project).
+
+**Symlink mode** — Agents, skills, and rules are symlinked to the ECC clone, not copied. `git pull` on ECC updates everything instantly. Use `ecc-tailor fork <path>` to detach a file when you want to customize it.
 
 ## Bundles
 
-33 bundles covering 48 agents and 148 skills. A project can combine multiple bundles:
+33 bundles covering 48 agents and 148 skills. A project can combine multiple:
 
 ```json
 { "path": "/path/to/fullstack-app", "bundles": ["ts-backend-proj", "ts-frontend-proj", "database"] }
 ```
 
-### Language / Framework
+<details>
+<summary><b>Language / Framework</b></summary>
 
 | Bundle | Agents | Skills | Use case |
 |---|---|---|---|
@@ -80,7 +100,10 @@ Without a config file, ecc-tailor uses these defaults: `core` bundle (software d
 | `laravel-proj` | 0 | 5 | Laravel / PHP |
 | `perl-proj` | 0 | 3 | Perl projects |
 
-### Domain / Purpose
+</details>
+
+<details>
+<summary><b>Domain / Purpose</b></summary>
 
 | Bundle | Agents | Skills | Use case |
 |---|---|---|---|
@@ -100,11 +123,9 @@ Without a config file, ecc-tailor uses these defaults: `core` bundle (software d
 | `crypto` | 0 | 4 | Web3 / DeFi security |
 | `scan` | 0 | 11 | Temporary evaluation tools (attach/detach) |
 
-All language/framework bundles extend `core` — installing any language bundle automatically includes core capabilities.
+</details>
 
-Full per-bundle listing with type, name, and description: **[docs/BUNDLES.md](docs/BUNDLES.md)**
-
-Full dependency chain (commands and MCP servers required by each agent/skill): **[docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)**
+Full per-bundle listing: **[docs/BUNDLES.md](docs/BUNDLES.md)** · Full dependency chain: **[docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)**
 
 ## Commands
 
@@ -116,7 +137,7 @@ ecc-tailor status                    # Show what's installed
 ecc-tailor doctor                    # Health check (broken links, config validity)
 ```
 
-### Incremental Changes
+### Add / Remove
 
 ```bash
 ecc-tailor add skill <name> --to global                  # Add skill globally
@@ -126,6 +147,16 @@ ecc-tailor add mcp <name> --to global                    # Add MCP server
 ecc-tailor remove skill <name> --from global             # Remove
 ecc-tailor remove mcp <name> --from global               # Remove MCP server
 ```
+
+### Browse ECC
+
+```bash
+ecc-tailor inventory --type skill                        # All skills, with selection status
+ecc-tailor inventory --type skill --state unselected     # Only unselected
+ecc-tailor inventory --detail <name>                     # View full content of a skill
+```
+
+## Advanced Usage
 
 ### Bundle Customization
 
@@ -137,14 +168,6 @@ ecc-tailor customize java-proj reset                     # Clear all overrides
 ```
 
 Overrides are stored in `bundleOverrides` in config — the upstream `bundles.json` stays untouched, so ECC updates are safe.
-
-### Browse ECC Resources
-
-```bash
-ecc-tailor inventory --type skill                        # All skills, with selection status
-ecc-tailor inventory --type skill --state unselected     # Only unselected
-ecc-tailor inventory --detail <name>                     # View full content of a skill
-```
 
 ### Scan a New Project
 
@@ -191,16 +214,6 @@ ecc-tailor deps                                  # Generate docs/DEPENDENCIES.{m
 
 Scans all agents and skills for `/command` references and `mcp__server__` tool calls, then generates a dependency map: resource → who needs it → which bundle.
 
-## Slash Command
-
-`apply` automatically installs an `/ecc-tailor` slash command to `~/.claude/commands/`. Use natural language inside Claude Code:
-
-```
-/ecc-tailor add hexagonal-architecture to this project
-/ecc-tailor scan this project for recommendations
-/ecc-tailor show status
-```
-
 ## How It Works
 
 - **Symlink** — agents linked per-file, skills and rules linked per-directory, pointing to ECC clone
@@ -214,7 +227,10 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
 
 ## Config Reference
 
-`~/.config/ecc-tailor/config.json`:
+`~/.config/ecc-tailor/config.json` — most fields are optional with sensible defaults:
+
+<details>
+<summary>Full config example</summary>
 
 ```json
 {
@@ -261,19 +277,17 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
 }
 ```
 
+</details>
+
 | Field | Description |
 |---|---|
 | `eccPath` | Path to ECC clone (null = auto-managed) |
 | `rulesLanguage` | Base rules language: `en` (common) or `zh` (default: en) |
 | `global.bundles` | Bundles to install globally (default: `["core"]`) |
-| `global.extras.*` | Extra agents/skills/commands/mcp; `rulesLanguages` for additional rules beyond what bundles provide |
+| `global.extras.*` | Extra agents/skills/commands/mcp beyond bundles; `rulesLanguages` for additional rule sets |
 | `global.excludes.*` | Exclude specific items from bundles |
-| `global.excludes.commands` | Suppress auto-detected command dependencies |
-| `global.excludes.mcp` | Exclude specific MCP servers |
 | `projects[].bundles` | Array — a project can use multiple bundles |
 | `bundleOverrides` | Per-bundle customization (exclude/add agents, skills, mcp) |
-| `bundleOverrides.*.exclude` | Items to remove from bundle resolution |
-| `bundleOverrides.*.add` | Items to add after bundle resolution |
 | `hooks.profile` | `minimal` / `standard` / `strict` |
 | `hooks.claudeMemCompat` | `null` (auto-detect on first apply) / `true` / `false` — disable 8 hooks that overlap with claude-mem |
 | `hooks.disabled` | Additional manually disabled hook IDs |
