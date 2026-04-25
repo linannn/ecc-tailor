@@ -1,5 +1,6 @@
 import { join } from 'node:path';
 import { resolveBundles } from './bundles.js';
+import { scanCommandDeps } from './deps-scan.js';
 
 /**
  * Compute the full list of symlinks that should exist based on config,
@@ -8,16 +9,18 @@ import { resolveBundles } from './bundles.js';
  * @param {object} config   - Loaded config (from config.js)
  * @param {object} bundles  - Raw bundle definitions (from bundles.js loadBundles())
  * @param {object} inv      - ECC inventory (from fs-scan.js scanEcc())
- * @param {{ home: string }} opts
+ * @param {{ home: string, eccRoot?: string }} opts
  * @returns {Array<{
  *   dst: string,
  *   eccSrc: string,
- *   kind: 'agent' | 'skill-dir' | 'rules-dir',
+ *   kind: 'agent' | 'skill-dir' | 'rules-dir' | 'command' | 'context',
  *   ownedBy: 'global' | string,
  *   ephemeral: boolean,
+ *   autoDep?: boolean,
+ *   requiredBy?: string[],
  * }>}
  */
-export function resolveDesired(config, bundles, inv, { home }) {
+export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
   const result = [];
 
   // Build lookup sets for fast validation
@@ -163,6 +166,35 @@ export function resolveDesired(config, bundles, inv, { home }) {
         kind: 'skill-dir',
         ownedBy,
         ephemeral: projEphemeral,
+      });
+    }
+  }
+
+  // Auto-detect command dependencies from selected agents/skills
+  if (eccRoot) {
+    const allAgents = new Set();
+    const allSkills = new Set();
+    for (const entry of result) {
+      if (entry.kind === 'agent') allAgents.add(entry.eccSrc.replace(/^agents\//, '').replace(/\.md$/, ''));
+      if (entry.kind === 'skill-dir') allSkills.add(entry.eccSrc.replace(/^skills\//, ''));
+    }
+
+    const manualCommands = new Set(globalExtras.commands ?? []);
+    const excludeCommands = new Set(globalExcludes.commands ?? []);
+
+    const commandDeps = scanCommandDeps([...allAgents], [...allSkills], eccRoot, commandNames);
+
+    for (const [cmdName, sources] of commandDeps) {
+      if (excludeCommands.has(cmdName)) continue;
+      if (manualCommands.has(cmdName)) continue;
+      result.push({
+        dst: join(home, '.claude', 'commands', `${cmdName}.md`),
+        eccSrc: `commands/${cmdName}.md`,
+        kind: 'command',
+        ownedBy: 'global',
+        ephemeral: false,
+        autoDep: true,
+        requiredBy: [...sources],
       });
     }
   }

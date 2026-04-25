@@ -13,6 +13,7 @@ import { writeHookWrapper, effectiveDisabled } from './hooks-wrapper.js';
 import { rewriteEccHooksJson, mergeHooksIntoSettings } from './hooks-merge.js';
 import { mergeMcpServers } from './mcp-merge.js';
 import { checkForUpdates } from './upgrade-notify.js';
+import { buildProvenance } from './provenance.js';
 import log from './logger.js';
 
 /**
@@ -36,7 +37,7 @@ export async function applyCmd(args) {
 
   // 4. Resolve desired symlinks
   const home    = process.env.HOME;
-  const desired = resolveDesired(config, bundles, inv, { home });
+  const desired = resolveDesired(config, bundles, inv, { home, eccRoot });
 
   // 5. Plan
   const plan = await planApply(desired, state, { ecc: eccRoot });
@@ -109,9 +110,10 @@ export async function applyCmd(args) {
   }
 
   // 10.5. MCP integration
+  let selectedMcp = [];
   if (config.mcp?.install !== false) {
     const mcpCatalog = inv.mcpServers ?? [];
-    const selectedMcp = resolveMcp(config, bundles, mcpCatalog);
+    selectedMcp = resolveMcp(config, bundles, mcpCatalog);
 
     if (selectedMcp.length > 0) {
       const claudeJsonPath = paths.claudeJson();
@@ -137,6 +139,29 @@ export async function applyCmd(args) {
       }
       if (mcpResult.placeholders.length > 0) {
         log.info('Edit ~/.claude.json to set these values.');
+      }
+    }
+  }
+
+  // 10.6. Print dependency provenance
+  const provenance = buildProvenance(config, bundles, desired, selectedMcp);
+
+  if (provenance.commands.length > 0 || provenance.mcp.length > 0) {
+    log.info('');
+    log.h1('Dependencies:');
+
+    if (provenance.commands.length > 0) {
+      log.info('  Commands:');
+      for (const cmd of provenance.commands) {
+        const tag = cmd.auto ? '(auto)' : '(manual)';
+        log.dim(`    /${cmd.name}  ← ${cmd.sources.join(', ')} ${tag}`);
+      }
+    }
+
+    if (provenance.mcp.length > 0) {
+      log.info('  MCP servers:');
+      for (const mcp of provenance.mcp) {
+        log.dim(`    ${mcp.name}  ← ${mcp.sources.join(', ')}`);
       }
     }
   }

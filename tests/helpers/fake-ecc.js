@@ -9,12 +9,19 @@ import { git } from '../../src/util/git.js';
  * @returns {string}
  */
 export function makeFakeEcc(root) {
-  // agents/planner.md
+  // agents/planner.md — references /docs
   const agentsDir = join(root, 'agents');
   mkdirSync(agentsDir, { recursive: true });
   writeFileSync(
     join(agentsDir, 'planner.md'),
-    '---\nname: planner\ndescription: fake planner agent\n---\n',
+    '---\nname: planner\ndescription: fake planner agent\n---\n\nUse `/docs` to look things up.\n',
+    'utf8',
+  );
+
+  // agents/doc-updater.md — references /update-docs and /update-codemaps
+  writeFileSync(
+    join(agentsDir, 'doc-updater.md'),
+    '---\nname: doc-updater\ndescription: fake doc updater agent\n---\n\nRun `/update-docs` then `/update-codemaps` when done.\n',
     'utf8',
   );
 
@@ -48,6 +55,13 @@ export function makeFakeEcc(root) {
   mkdirSync(contextsDir, { recursive: true });
   for (const ctx of ['dev', 'research', 'review']) {
     writeFileSync(join(contextsDir, `${ctx}.md`), `# ${ctx} context\n`, 'utf8');
+  }
+
+  // commands/*.md
+  const commandsDir = join(root, 'commands');
+  mkdirSync(commandsDir, { recursive: true });
+  for (const cmd of ['update-docs', 'eval', 'docs', 'update-codemaps']) {
+    writeFileSync(join(commandsDir, `${cmd}.md`), `# /${cmd}\n`, 'utf8');
   }
 
   // rules/common/style.md

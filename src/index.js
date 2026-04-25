@@ -8,6 +8,7 @@ import { doctorCmd } from './doctor.js';
 import { scanCmd } from './scan-cmd.js';
 import { upgradeCmd } from './upgrade.js';
 import { hooksCmd } from './hooks-cmd.js';
+import { depsCmd } from './deps-cmd.js';
 
 function printHelp() {
   log.h1('ecc-tailor');
@@ -21,6 +22,7 @@ function printHelp() {
   log.info('  doctor    Run health checks on the installation');
   log.info('  scan      Attach/detach ephemeral evaluation bundle');
   log.info('  hooks     Manage hook profile and disabled list');
+  log.info('  deps      Generate docs/DEPENDENCIES.md from ECC content');
   log.info('  help      Show this help message');
   log.info('');
   log.info('Options:');
@@ -77,6 +79,9 @@ export async function main(argv) {
       break;
     case 'hooks':
       await hooksCmd(rest);
+      break;
+    case 'deps':
+      await depsCmd(rest);
       break;
     default:
       log.err(`Unknown command: ${cmd}`);

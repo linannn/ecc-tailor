@@ -51,7 +51,7 @@ test('resolveDesired: global + one project — global gets 1 agent + 1 skill + 1
       ],
     });
 
-    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home });
+    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
 
     // Global: 1 agent (planner)
     const plannerLink = links.find(
@@ -107,7 +107,7 @@ test('resolveDesired: excludes filter — exclude planner agent, verify not in o
       },
     });
 
-    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home });
+    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
 
     const plannerLink = links.find(
       l => l.dst === join(tmp.home, '.claude', 'agents', 'planner.md'),
@@ -140,7 +140,7 @@ test('resolveDesired: throws on missing asset — bundle references nonexistent-
     const config = makeConfig();
 
     assert.throws(
-      () => resolveDesired(config, badBundles, inv, { home: tmp.home }),
+      () => resolveDesired(config, badBundles, inv, { home: tmp.home, eccRoot }),
       /not found in ECC/,
     );
   } finally {
@@ -163,7 +163,7 @@ test('resolveDesired: extras add beyond bundle — add agent-sort skill, verify 
       },
     });
 
-    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home });
+    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
 
     const agentSortLink = links.find(
       l => l.dst === join(tmp.home, '.claude', 'skills', 'agent-sort'),
@@ -294,6 +294,94 @@ test('resolveMcp: throws on unknown MCP server name', () => {
       () => resolveMcp(config, BUNDLES, []),
       /not found in ECC catalog/,
     );
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// resolveDesired: auto command dependency scanning
+// ---------------------------------------------------------------------------
+test('resolveDesired: auto-detects /docs command from planner agent', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig();
+
+    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
+
+    const docsLink = links.find(
+      l => l.dst === join(tmp.home, '.claude', 'commands', 'docs.md'),
+    );
+    assert.ok(docsLink, '/docs command should be auto-detected from planner agent');
+    assert.equal(docsLink.autoDep, true);
+    assert.ok(docsLink.requiredBy.includes('agent:planner'));
+    assert.equal(docsLink.kind, 'command');
+    assert.equal(docsLink.ownedBy, 'global');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+test('resolveDesired: excludes.commands suppresses auto-detected command', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig({
+      globalOverrides: {
+        excludes: { agents: [], skills: [], mcp: [], commands: ['docs'] },
+      },
+    });
+
+    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
+
+    const docsLink = links.find(
+      l => l.eccSrc === 'commands/docs.md',
+    );
+    assert.equal(docsLink, undefined, '/docs should be excluded by excludes.commands');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+test('resolveDesired: manual extras.commands not duplicated by auto-detection', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig({
+      globalOverrides: {
+        extras: { agents: [], skills: [], rulesLanguages: [], commands: ['docs'] },
+      },
+    });
+
+    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
+
+    const docsLinks = links.filter(l => l.eccSrc === 'commands/docs.md');
+    assert.equal(docsLinks.length, 1, '/docs should appear exactly once (manual wins)');
+    assert.equal(docsLinks[0].autoDep, undefined, 'should be manual entry without autoDep');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+test('resolveDesired: without eccRoot, no auto-detection occurs', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig();
+
+    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home });
+
+    const commandLinks = links.filter(l => l.kind === 'command');
+    assert.equal(commandLinks.length, 0, 'no commands when eccRoot not provided');
   } finally {
     tmp.cleanup();
   }

@@ -209,7 +209,7 @@ export async function inventoryCmd(args) {
   // Normal mode: resolve desired set and load state
   const home = process.env.HOME || homedir();
   const bundles = loadBundles();
-  const desired = resolveDesired(cfg, bundles, inv, { home });
+  const desired = resolveDesired(cfg, bundles, inv, { home, eccRoot });
 
   // Build selected sets from desired symlinks
   const selectedSkills = new Set(

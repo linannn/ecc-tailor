@@ -6,7 +6,7 @@ export const DEFAULT_CONFIG = {
   global: {
     bundles: ['global'],
     extras: { agents: [], skills: [], rulesLanguages: [], commands: [], contexts: [], mcp: [] },
-    excludes: { agents: [], skills: [], mcp: [] },
+    excludes: { agents: [], skills: [], mcp: [], commands: [] },
   },
   projects: [],
   hooks: { install: true, profile: 'standard', claudeMemCompat: true, disabled: [] },
