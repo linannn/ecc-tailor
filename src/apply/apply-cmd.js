@@ -83,7 +83,6 @@ async function resolveClaudeMemCompat(config, { dryRun }) {
     }
   }
 
-  config.hooks.claudeMemCompat = choice;
   return choice;
 }
 
@@ -97,7 +96,7 @@ export async function applyCmd(args) {
 
   // 1. Load config, state
   const config = loadConfig();
-  const state  = loadState();
+  let state    = loadState();
 
   // 2. Resolve ECC root (clone if needed)
   const eccRoot = resolveEccRoot(config, { clone: true });
@@ -145,14 +144,16 @@ export async function applyCmd(args) {
   }
 
   // 9. Execute (incremental state flush for crash safety)
-  await executeApply(plan, state, { ecc: eccRoot, onProgress: saveState });
+  state = await executeApply(plan, state, { ecc: eccRoot, onProgress: saveState });
 
   // 10. Hook integration (only when hooks.install is enabled)
+  let resolvedClaudeMemCompat = config.hooks?.claudeMemCompat ?? null;
   if (config.hooks?.install) {
     const { disabled = [], profile = 'standard' } = config.hooks;
 
     // 10a. Resolve claudeMemCompat (may prompt on first run)
     const claudeMemCompat = await resolveClaudeMemCompat(config, { dryRun });
+    resolvedClaudeMemCompat = claudeMemCompat;
 
     // 10b. Compute effective disabled list
     const effectiveDisabledList = effectiveDisabled({ claudeMemCompat, disabled });
@@ -175,11 +176,14 @@ export async function applyCmd(args) {
     const { backupPath, addedCounts } = await mergeHooksIntoSettings(rewritten, { settingsFile, eccRoot });
 
     // 10f. Update state
-    state.hooks = {
-      installed: true,
-      settingsBackup: backupPath,
-      addedEntries: addedCounts,
-      markerId: 'ecc-tailor',
+    state = {
+      ...state,
+      hooks: {
+        installed: true,
+        settingsBackup: backupPath,
+        addedEntries: addedCounts,
+        markerId: 'ecc-tailor',
+      },
     };
 
     // 10g. Log
@@ -202,9 +206,12 @@ export async function applyCmd(args) {
       const claudeJsonPath = paths.claudeJson();
       const mcpResult = mergeMcpServers(selectedMcp, { claudeJsonPath });
 
-      state.mcp = {
-        installed: true,
-        servers: selectedMcp.map(s => s.name),
+      state = {
+        ...state,
+        mcp: {
+          installed: true,
+          servers: selectedMcp.map(s => s.name),
+        },
       };
 
       if (mcpResult.added.length > 0) {
@@ -262,15 +269,18 @@ export async function applyCmd(args) {
   await copyFile(templateSrc, commandDst);
 
   // 12. Update state metadata
-  state.eccRef    = getEccRef(eccRoot);
-  state.lastApply = new Date().toISOString();
+  state = { ...state, eccRef: getEccRef(eccRoot), lastApply: new Date().toISOString() };
 
   // 13. Save state + persist config (claudeMemCompat may have changed from null)
   saveState(state);
-  if (!dryRun) writeJsonAtomic(paths.configFile(), config);
+  const updatedConfig = {
+    ...config,
+    hooks: { ...config.hooks, claudeMemCompat: resolvedClaudeMemCompat },
+  };
+  if (!dryRun) writeJsonAtomic(paths.configFile(), updatedConfig);
 
   // 13b. Passive upgrade notification (best-effort, non-blocking)
-  try { await checkForUpdates(eccRoot, state); saveState(state); } catch { /* best-effort */ }
+  try { state = await checkForUpdates(eccRoot, state); saveState(state); } catch { /* best-effort */ }
 
   // 14. Print outcome
   if (addCount === 0 && removeCount === 0 && !config.hooks?.install) {

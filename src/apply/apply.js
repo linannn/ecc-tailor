@@ -79,13 +79,15 @@ export async function planApply(desired, state, { ecc }) {
  * mid-apply, state.json already records every symlink created so far.
  *
  * @param {{ toAdd: Array<object>, toRemove: Array<object> }} plan
- * @param {object} state  - state object (mutated in place)
+ * @param {object} state  - state object (not mutated)
  * @param {{ ecc: string, onProgress?: (state: object) => void }} opts
- * @returns {Promise<void>}
+ * @returns {Promise<object>} new state object with updated symlinks
  */
 export async function executeApply(plan, state, { ecc, onProgress }) {
   const { toAdd = [], toRemove = [] } = plan;
   const flush = onProgress ?? (() => {});
+
+  let symlinks = { ...state.symlinks };
 
   // 1. Remove stale symlinks
   for (const { dst } of toRemove) {
@@ -94,8 +96,9 @@ export async function executeApply(plan, state, { ecc, onProgress }) {
     } catch (err) {
       if (err.code !== 'ENOENT') throw err;
     }
-    delete state.symlinks[dst];
-    flush(state);
+    const { [dst]: _, ...rest } = symlinks;
+    symlinks = rest;
+    flush({ ...state, symlinks });
   }
 
   // 2. Add new symlinks
@@ -112,7 +115,9 @@ export async function executeApply(plan, state, { ecc, onProgress }) {
 
     await symlink(absEccSrc, dst);
 
-    state.symlinks[dst] = { eccSrc, kind, ownedBy, ephemeral };
-    flush(state);
+    symlinks = { ...symlinks, [dst]: { eccSrc, kind, ownedBy, ephemeral } };
+    flush({ ...state, symlinks });
   }
+
+  return { ...state, symlinks };
 }

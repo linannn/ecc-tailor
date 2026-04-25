@@ -28,21 +28,28 @@ function printUsage() {
 }
 
 function ensureOverride(cfg, bundleName) {
-  if (!cfg.bundleOverrides) cfg.bundleOverrides = {};
-  if (!cfg.bundleOverrides[bundleName]) {
-    cfg.bundleOverrides[bundleName] = {
-      exclude: { agents: [], skills: [], mcp: [] },
-      add:     { agents: [], skills: [], mcp: [] },
-    };
-  }
-  const ov = cfg.bundleOverrides[bundleName];
-  if (!ov.exclude) ov.exclude = { agents: [], skills: [], mcp: [] };
-  if (!ov.add)     ov.add     = { agents: [], skills: [], mcp: [] };
-  for (const t of VALID_TYPES) {
-    if (!Array.isArray(ov.exclude[t])) ov.exclude[t] = [];
-    if (!Array.isArray(ov.add[t]))     ov.add[t]     = [];
-  }
-  return ov;
+  const overrides = cfg.bundleOverrides ?? {};
+  const existing = overrides[bundleName] ?? {};
+
+  const ov = {
+    exclude: {
+      agents: Array.isArray(existing.exclude?.agents) ? [...existing.exclude.agents] : [],
+      skills: Array.isArray(existing.exclude?.skills) ? [...existing.exclude.skills] : [],
+      mcp:    Array.isArray(existing.exclude?.mcp)    ? [...existing.exclude.mcp]    : [],
+    },
+    add: {
+      agents: Array.isArray(existing.add?.agents) ? [...existing.add.agents] : [],
+      skills: Array.isArray(existing.add?.skills) ? [...existing.add.skills] : [],
+      mcp:    Array.isArray(existing.add?.mcp)    ? [...existing.add.mcp]    : [],
+    },
+  };
+
+  const newCfg = {
+    ...cfg,
+    bundleOverrides: { ...overrides, [bundleName]: ov },
+  };
+
+  return { cfg: newCfg, ov };
 }
 
 function cmdShow(bundleName) {
@@ -125,15 +132,19 @@ async function cmdAdd(bundleName, args) {
     log.warn('ECC not cloned — skipping name validation');
   }
 
-  const ov = ensureOverride(cfg, bundleName);
+  const { cfg: updatedCfg, ov } = ensureOverride(cfg, bundleName);
 
-  for (const name of names) {
-    if (!ov.add[type].includes(name)) {
-      ov.add[type].push(name);
-    }
-  }
+  const newAdd = {
+    ...ov.add,
+    [type]: [...new Set([...ov.add[type], ...names])],
+  };
+  const newOv = { ...ov, add: newAdd };
+  const finalCfg = {
+    ...updatedCfg,
+    bundleOverrides: { ...updatedCfg.bundleOverrides, [bundleName]: newOv },
+  };
 
-  writeJsonAtomic(paths.configFile(), cfg);
+  writeJsonAtomic(paths.configFile(), finalCfg);
   log.ok(`Added ${names.join(', ')} to ${bundleName}.add.${type}`);
 }
 
@@ -171,15 +182,19 @@ function cmdExclude(bundleName, args) {
   }
 
   const cfg = loadConfig();
-  const ov  = ensureOverride(cfg, bundleName);
+  const { cfg: updatedCfg, ov } = ensureOverride(cfg, bundleName);
 
-  for (const name of names) {
-    if (!ov.exclude[type].includes(name)) {
-      ov.exclude[type].push(name);
-    }
-  }
+  const newExclude = {
+    ...ov.exclude,
+    [type]: [...new Set([...ov.exclude[type], ...names])],
+  };
+  const newOv = { ...ov, exclude: newExclude };
+  const finalCfg = {
+    ...updatedCfg,
+    bundleOverrides: { ...updatedCfg.bundleOverrides, [bundleName]: newOv },
+  };
 
-  writeJsonAtomic(paths.configFile(), cfg);
+  writeJsonAtomic(paths.configFile(), finalCfg);
   log.ok(`Excluded ${names.join(', ')} from ${bundleName}.${type}`);
 }
 
@@ -191,12 +206,12 @@ function cmdReset(bundleName) {
     return;
   }
 
-  delete cfg.bundleOverrides[bundleName];
-  if (Object.keys(cfg.bundleOverrides).length === 0) {
-    delete cfg.bundleOverrides;
-  }
+  const { [bundleName]: _, ...restOverrides } = cfg.bundleOverrides;
+  const updated = Object.keys(restOverrides).length === 0
+    ? (({ bundleOverrides: __, ...rest }) => rest)(cfg)
+    : { ...cfg, bundleOverrides: restOverrides };
 
-  writeJsonAtomic(paths.configFile(), cfg);
+  writeJsonAtomic(paths.configFile(), updated);
   log.ok(`Reset overrides for bundle "${bundleName}"`);
 }
 

@@ -46,14 +46,21 @@ export async function forkCmd(args) {
     await copyFile(srcPath, target);
   }
 
-  // Update state: move from symlinks → forks
-  state.forks[target] = {
-    forkedAt: new Date().toISOString(),
-    originalEccSrc: entry.eccSrc,
+  // Update state: move from symlinks → forks (immutable)
+  const { [target]: _removed, ...restSymlinks } = state.symlinks ?? {};
+  const updated = {
+    ...state,
+    forks: {
+      ...(state.forks ?? {}),
+      [target]: {
+        forkedAt: new Date().toISOString(),
+        originalEccSrc: entry.eccSrc,
+      },
+    },
+    symlinks: restSymlinks,
   };
-  delete state.symlinks[target];
 
-  saveState(state);
+  saveState(updated);
 
   log.ok(`forked: ${target}`);
   log.dim(`  source: ${srcPath}`);

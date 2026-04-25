@@ -31,7 +31,7 @@ async function scanAttach(rawPath) {
   const target = resolve(rawPath ?? '.');
 
   // 1. Load state; check for duplicate attach
-  const state = loadState();
+  let state = loadState();
   if (state.ephemeralScans[target]) {
     throw new Error(`already attached: scan is already active for ${target}`);
   }
@@ -48,6 +48,8 @@ async function scanAttach(rawPath) {
 
   // 4. For each skill: create symlink at <target>/.claude/skills/<name> → <eccRoot>/skills/<name>
   const skillsDstDir = join(target, '.claude', 'skills');
+
+  let newSymlinks = { ...state.symlinks };
 
   for (const name of skillNames) {
     // Verify the skill exists in the ECC inventory
@@ -71,19 +73,29 @@ async function scanAttach(rawPath) {
 
     symlinkSync(src, dst);
 
-    // Record in state.symlinks
-    state.symlinks[dst] = {
-      eccSrc: `skills/${name}`,
-      kind: 'skill-dir',
-      ownedBy: `scan:${target}`,
-      ephemeral: true,
+    // Accumulate into new symlinks map
+    newSymlinks = {
+      ...newSymlinks,
+      [dst]: {
+        eccSrc: `skills/${name}`,
+        kind: 'skill-dir',
+        ownedBy: `scan:${target}`,
+        ephemeral: true,
+      },
     };
   }
 
-  // 5. Record ephemeral scan entry
-  state.ephemeralScans[target] = {
-    bundle: 'scan',
-    attachedAt: new Date().toISOString(),
+  // 5. Build new state with updated symlinks and ephemeral scan entry
+  state = {
+    ...state,
+    symlinks: newSymlinks,
+    ephemeralScans: {
+      ...(state.ephemeralScans ?? {}),
+      [target]: {
+        bundle: 'scan',
+        attachedAt: new Date().toISOString(),
+      },
+    },
   };
 
   // 6. Save state
@@ -98,7 +110,7 @@ async function scanDetach(rawPath) {
   const target = resolve(rawPath ?? '.');
 
   // 1. Load state; verify active scan
-  const state = loadState();
+  let state = loadState();
   if (!state.ephemeralScans[target]) {
     throw new Error(`no active scan: scan is not attached to ${target}`);
   }
@@ -109,18 +121,21 @@ async function scanDetach(rawPath) {
     dst => state.symlinks[dst].ownedBy === prefix,
   );
 
-  // 3. Unlink each; remove from state.symlinks
+  // 3. Unlink each; build new symlinks map without removed keys
+  let newSymlinks = { ...state.symlinks };
   for (const dst of toRemove) {
     try {
       unlinkSync(dst);
     } catch (err) {
       if (err.code !== 'ENOENT') throw err;
     }
-    delete state.symlinks[dst];
+    const { [dst]: _, ...rest } = newSymlinks;
+    newSymlinks = rest;
   }
 
-  // 4. Remove ephemeral scan entry
-  delete state.ephemeralScans[target];
+  // 4. Build new state without the ephemeral scan entry
+  const { [target]: _scan, ...restScans } = state.ephemeralScans ?? {};
+  state = { ...state, symlinks: newSymlinks, ephemeralScans: restScans };
 
   // 5. Save state
   saveState(state);

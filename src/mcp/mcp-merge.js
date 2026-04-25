@@ -65,8 +65,8 @@ export function mergeMcpServers(selectedServers, { claudeJsonPath }) {
   const selectedNames = new Set(selectedServers.map(s => s.name));
   const actualRemoved = removed.filter(n => !selectedNames.has(n));
 
-  claudeJson.mcpServers = merged;
-  writeJsonAtomic(claudeJsonPath, claudeJson);
+  const updated = { ...claudeJson, mcpServers: merged };
+  writeJsonAtomic(claudeJsonPath, updated);
 
   return { backupPath, added, removed: actualRemoved, placeholders };
 }
@@ -92,13 +92,15 @@ export function removeEccTailorMcpServers({ claudeJsonPath }) {
     }
   }
 
+  let toWrite;
   if (Object.keys(kept).length === 0) {
-    delete claudeJson.mcpServers;
+    const { mcpServers: _, ...withoutMcp } = claudeJson;
+    toWrite = withoutMcp;
   } else {
-    claudeJson.mcpServers = kept;
+    toWrite = { ...claudeJson, mcpServers: kept };
   }
 
-  writeJsonAtomic(claudeJsonPath, claudeJson);
+  writeJsonAtomic(claudeJsonPath, toWrite);
 
   return { removed };
 }

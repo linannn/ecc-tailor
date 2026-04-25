@@ -57,7 +57,8 @@ export async function removeLayerCmd(args) {
     return;
   }
 
-  const state = loadState();
+  let state = loadState();
+  let newSymlinks = { ...state.symlinks };
   let removed = 0;
 
   // Determine which symlink entries match the requested layer
@@ -87,18 +88,25 @@ export async function removeLayerCmd(args) {
       if (err.code !== 'ENOENT') throw err;
     }
 
-    delete state.symlinks[dst];
+    const { [dst]: _removed, ...rest } = newSymlinks;
+    newSymlinks = rest;
     removed++;
   }
+
+  // Build updated state with new symlinks map
+  state = { ...state, symlinks: newSymlinks };
 
   // For --global and --all: remove hooks and slash command
   if (mode === 'global' || mode === 'all') {
     const { removed: hooksRemoved } = await removeEccTailorHooks({ settingsFile: paths.claudeSettings() });
-    state.hooks = {
-      installed: false,
-      settingsBackup: null,
-      addedEntries: {},
-      markerId: 'ecc-tailor',
+    state = {
+      ...state,
+      hooks: {
+        installed: false,
+        settingsBackup: null,
+        addedEntries: {},
+        markerId: 'ecc-tailor',
+      },
     };
     if (hooksRemoved > 0) {
       log.ok(`removed ${hooksRemoved} hook entries + env.CLAUDE_PLUGIN_ROOT from settings.json`);
