@@ -23,7 +23,7 @@ const VALID_TYPES = ['skill', 'agent', 'bundle', 'rule', 'command', 'context', '
 function parseArgs(args, scopeFlag) {
   let type = null;
   let names = [];
-  let scope = 'global';
+  let scope = `project:${process.cwd()}`;
   let noApply = false;
 
   const flag = `--${scopeFlag}`;

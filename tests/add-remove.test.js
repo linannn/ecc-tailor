@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, realpathSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 
 import { makeTmpEnv }  from './helpers/tmp-env.js';
@@ -165,7 +165,44 @@ test('add bundle java-proj --to project:<path> --no-apply: new project entry cre
 });
 
 // ---------------------------------------------------------------------------
-// Test 5: remove skill api-design --from global --no-apply → removed from extras
+// Test 5: add skill without --to → defaults to project:$(pwd)
+// ---------------------------------------------------------------------------
+test('add skill without --to: defaults to project scope using cwd', async () => {
+  const { env, envVars, cleanup } = makeTmpEnvWithApiDesign();
+  try {
+    const projectPath = join(env.root, 'my-project');
+    mkdirSync(projectPath, { recursive: true });
+    // macOS: /var → /private/var symlink; process.cwd() returns realpath
+    const realProjectPath = realpathSync(projectPath);
+
+    const result = spawnSync(process.execPath, [BIN, 'add', 'skill', 'api-design', '--no-apply'], {
+      encoding: 'utf8',
+      cwd: projectPath,
+      env: { ...process.env, ...envVars },
+    });
+
+    assert.equal(result.status, 0, `Expected exit 0, got ${result.status}: ${result.stderr}`);
+
+    const configFile = join(env.xdgConfig, 'ecc-tailor', 'config.json');
+    const cfg = JSON.parse(await readFile(configFile, 'utf8'));
+
+    const entry = cfg.projects.find(p => p.path === realProjectPath);
+    assert.ok(entry, `expected projects to contain entry for ${realProjectPath}, got: ${JSON.stringify(cfg.projects)}`);
+    assert.ok(
+      entry.extras.skills.includes('api-design'),
+      `expected project extras.skills to include "api-design", got: ${JSON.stringify(entry.extras?.skills)}`,
+    );
+    assert.ok(
+      !cfg.global.extras.skills.includes('api-design'),
+      'should NOT be added to global extras',
+    );
+  } finally {
+    cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Test 6: remove skill api-design --from global --no-apply → removed from extras
 // ---------------------------------------------------------------------------
 test('remove skill api-design --from global --no-apply: skill removed from extras', async () => {
   const { env, envVars, cleanup } = makeTmpEnvWithApiDesign();

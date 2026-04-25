@@ -28,14 +28,15 @@ Requires Node >= 18. Zero npm dependencies.
 
 ## Quick Start
 
+> **Heads up:** `apply` creates symlinks in `~/.claude/` and merges hooks into `settings.json`. Back up your `~/.claude/` directory first if you have custom agents or skills there.
+
 ```bash
 # 1. Install global bundle + hooks (no config needed — sensible defaults)
 ecc-tailor apply
 
 # 2. Add stack-specific bundles to your project
 cd ~/code/my-java-project
-ecc-tailor add bundle java-proj --to project:$(pwd)
-ecc-tailor apply
+ecc-tailor add bundle java-proj
 ```
 
 On first run, ECC is automatically cloned to `~/.local/share/ecc-tailor/ecc/`. To use an existing local clone:
@@ -139,13 +140,15 @@ ecc-tailor doctor                    # Health check (broken links, config validi
 
 ### Add / Remove
 
+Default scope is the current project. Use `--to global` / `--from global` to target global install.
+
 ```bash
+ecc-tailor add skill <name>                              # Add skill to current project
+ecc-tailor add bundle <name>                             # Add bundle to current project
+ecc-tailor add mcp <name>                                # Add MCP server to current project
 ecc-tailor add skill <name> --to global                  # Add skill globally
-ecc-tailor add skill <name> --to project:$(pwd)          # Add skill to current project
-ecc-tailor add bundle <name> --to project:$(pwd)         # Add bundle to current project
-ecc-tailor add mcp <name> --to global                    # Add MCP server
-ecc-tailor remove skill <name> --from global             # Remove
-ecc-tailor remove mcp <name> --from global               # Remove MCP server
+ecc-tailor remove skill <name>                           # Remove from current project
+ecc-tailor remove mcp <name> --from global               # Remove MCP server globally
 ```
 
 ### Browse ECC
@@ -175,7 +178,7 @@ Overrides are stored in `bundleOverrides` in config — the upstream `bundles.js
 cd ~/code/new-project
 ecc-tailor scan attach .           # Temporarily install 11 evaluation skills
 # Run /agent-sort in Claude Code for recommendations
-ecc-tailor add bundle java-proj --to project:$(pwd)      # Install based on recommendations
+ecc-tailor add bundle java-proj                          # Install based on recommendations
 ecc-tailor scan detach .           # Clean up evaluation tools
 ```
 
@@ -306,7 +309,7 @@ rm -rf ~/.local/share/ecc-tailor     # Remove ECC clone + wrappers
 ## Development
 
 ```bash
-npm test                             # Unit + integration tests (155)
+npm test                             # Unit + integration tests (156)
 ECC_PATH=/path/to/ecc npm test       # + real ECC verification (10 E2E tests)
 ```
 
