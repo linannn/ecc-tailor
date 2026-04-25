@@ -43,41 +43,41 @@
 
 ## MCP Server 依赖
 
-在 bundle 定义（`manifests/bundles.json`）中配置的 MCP server。
+在 bundle 定义中配置的 MCP server。agent/skill 引用通过 `mcp__name__` 工具调用和配置块中的 `"name"` 检测。
 
-| MCP Server | Bundle |
-|---|---|
-| `clickhouse` | database |
-| `cloudflare-docs` | devops |
-| `cloudflare-observability` | devops |
-| `cloudflare-workers-bindings` | devops |
-| `cloudflare-workers-builds` | devops |
-| `confluence` | ops |
-| `context7` | global |
-| `devfleet` | agent-dev |
-| `evalview` | agent-dev |
-| `exa-web-search` | research |
-| `fal-ai` | content |
-| `firecrawl` | research |
-| `github` | ops |
-| `jira` | ops |
-| `laraplugins` | laravel-proj |
-| `magic` | ts-frontend-proj |
-| `memory` | agent-dev |
-| `omega-memory` | agent-dev |
-| `playwright` | ts-frontend-proj |
-| `railway` | devops |
-| `sequential-thinking` | agent-dev |
-| `supabase` | database |
-| `token-optimizer` | scan |
-| `vercel` | devops |
+| MCP Server | 引用方 | Bundle |
+|---|---|---|
+| `browserbase` | skill:browser-qa | — |
+| `clickhouse` | — | database |
+| `cloudflare-docs` | — | devops |
+| `cloudflare-observability` | — | devops |
+| `cloudflare-workers-bindings` | — | devops |
+| `cloudflare-workers-builds` | — | devops |
+| `confluence` | — | ops |
+| `context7` | agent:docs-lookup | global |
+| `devfleet` | — | agent-dev |
+| `evalview` | — | agent-dev |
+| `exa-web-search` | skill:exa-search | research |
+| `fal-ai` | skill:fal-ai-media | content |
+| `firecrawl` | — | research |
+| `github` | — | ops |
+| `jira` | skill:jira-integration | ops |
+| `laraplugins` | skill:laravel-plugin-discovery | laravel-proj |
+| `magic` | — | ts-frontend-proj |
+| `memory` | skill:autonomous-agent-harness, skill:knowledge-ops | agent-dev |
+| `omega-memory` | — | agent-dev |
+| `playwright` | agent:gan-evaluator, skill:gan-style-harness | ts-frontend-proj |
+| `railway` | — | devops |
+| `sequential-thinking` | — | agent-dev |
+| `supabase` | skill:data-scraper-agent | database |
+| `token-optimizer` | — | scan |
+| `vercel` | — | devops |
 
 ### 未分配的 MCP Server
 
 可通过 `extras.mcp` 手动添加，但不在任何 bundle 中：
 
 - `browser-use`
-- `browserbase`
 - `filesystem`
 
 ## 未被引用的 Command

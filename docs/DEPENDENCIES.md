@@ -43,41 +43,41 @@ Auto-detected from `/command-name` references in agent/skill content during `res
 
 ## MCP Server Dependencies
 
-MCP servers configured in bundle definitions (`manifests/bundles.json`).
+MCP servers configured in bundle definitions. Agent/skill references detected from `mcp__name__` tool calls and `"name"` in config blocks.
 
-| MCP Server | Bundle |
-|---|---|
-| `clickhouse` | database |
-| `cloudflare-docs` | devops |
-| `cloudflare-observability` | devops |
-| `cloudflare-workers-bindings` | devops |
-| `cloudflare-workers-builds` | devops |
-| `confluence` | ops |
-| `context7` | global |
-| `devfleet` | agent-dev |
-| `evalview` | agent-dev |
-| `exa-web-search` | research |
-| `fal-ai` | content |
-| `firecrawl` | research |
-| `github` | ops |
-| `jira` | ops |
-| `laraplugins` | laravel-proj |
-| `magic` | ts-frontend-proj |
-| `memory` | agent-dev |
-| `omega-memory` | agent-dev |
-| `playwright` | ts-frontend-proj |
-| `railway` | devops |
-| `sequential-thinking` | agent-dev |
-| `supabase` | database |
-| `token-optimizer` | scan |
-| `vercel` | devops |
+| MCP Server | Referenced By | Bundle |
+|---|---|---|
+| `browserbase` | skill:browser-qa | — |
+| `clickhouse` | — | database |
+| `cloudflare-docs` | — | devops |
+| `cloudflare-observability` | — | devops |
+| `cloudflare-workers-bindings` | — | devops |
+| `cloudflare-workers-builds` | — | devops |
+| `confluence` | — | ops |
+| `context7` | agent:docs-lookup | global |
+| `devfleet` | — | agent-dev |
+| `evalview` | — | agent-dev |
+| `exa-web-search` | skill:exa-search | research |
+| `fal-ai` | skill:fal-ai-media | content |
+| `firecrawl` | — | research |
+| `github` | — | ops |
+| `jira` | skill:jira-integration | ops |
+| `laraplugins` | skill:laravel-plugin-discovery | laravel-proj |
+| `magic` | — | ts-frontend-proj |
+| `memory` | skill:autonomous-agent-harness, skill:knowledge-ops | agent-dev |
+| `omega-memory` | — | agent-dev |
+| `playwright` | agent:gan-evaluator, skill:gan-style-harness | ts-frontend-proj |
+| `railway` | — | devops |
+| `sequential-thinking` | — | agent-dev |
+| `supabase` | skill:data-scraper-agent | database |
+| `token-optimizer` | — | scan |
+| `vercel` | — | devops |
 
 ### Unassigned MCP Servers
 
 Available via `extras.mcp` but not in any bundle:
 
 - `browser-use`
-- `browserbase`
 - `filesystem`
 
 ## Unreferenced Commands

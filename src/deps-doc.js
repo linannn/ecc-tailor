@@ -1,6 +1,6 @@
 import { loadBundles, resolveBundle } from './bundles.js';
 import { scanEcc } from './fs-scan.js';
-import { scanCommandDeps } from './deps-scan.js';
+import { scanCommandDeps, scanMcpDeps } from './deps-scan.js';
 
 const STRINGS = {
   en: {
@@ -13,9 +13,10 @@ const STRINGS = {
     cmdCol3: 'Bundle',
     cmdNone: 'No command dependencies detected.',
     mcpTitle: '## MCP Server Dependencies',
-    mcpDesc: 'MCP servers configured in bundle definitions (`manifests/bundles.json`).',
+    mcpDesc: 'MCP servers configured in bundle definitions. Agent/skill references detected from `mcp__name__` tool calls and `"name"` in config blocks.',
     mcpCol1: 'MCP Server',
-    mcpCol2: 'Bundle',
+    mcpCol2: 'Referenced By',
+    mcpCol3: 'Bundle',
     unassignedTitle: '### Unassigned MCP Servers',
     unassignedDesc: 'Available via `extras.mcp` but not in any bundle:',
     unrefTitle: '## Unreferenced Commands',
@@ -31,9 +32,10 @@ const STRINGS = {
     cmdCol3: 'Bundle',
     cmdNone: '未检测到 command 依赖。',
     mcpTitle: '## MCP Server 依赖',
-    mcpDesc: '在 bundle 定义（`manifests/bundles.json`）中配置的 MCP server。',
+    mcpDesc: '在 bundle 定义中配置的 MCP server。agent/skill 引用通过 `mcp__name__` 工具调用和配置块中的 `"name"` 检测。',
     mcpCol1: 'MCP Server',
-    mcpCol2: 'Bundle',
+    mcpCol2: '引用方',
+    mcpCol3: 'Bundle',
     unassignedTitle: '### 未分配的 MCP Server',
     unassignedDesc: '可通过 `extras.mcp` 手动添加，但不在任何 bundle 中：',
     unrefTitle: '## 未被引用的 Command',
@@ -79,26 +81,27 @@ function buildDepsData(eccRoot) {
   const bundles = loadBundles();
   const inv = scanEcc(eccRoot);
   const commandNames = new Set(inv.commands.map(c => c.name));
+  const mcpServerNames = new Set(inv.mcpServers.map(s => s.name));
 
   const allAgents = inv.agents.map(a => a.name);
   const allSkills = inv.skills.map(s => s.name);
   const cmdDeps = scanCommandDeps(allAgents, allSkills, eccRoot, commandNames);
+  const mcpDeps = scanMcpDeps(allAgents, allSkills, eccRoot, mcpServerNames);
 
   const { agentToBundles, skillToBundles } = buildItemToBundles(bundles);
 
-  // command → [{ source, bundles }]
+  // command rows: command → sources → bundles
   const cmdRows = [];
-  const sortedCmds = [...cmdDeps.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  for (const [cmd, sources] of sortedCmds) {
+  for (const [cmd, sources] of [...cmdDeps.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
     const srcList = [...sources].sort();
     const bundleSet = new Set();
     for (const src of srcList) {
       for (const b of sourceBundles(src, agentToBundles, skillToBundles)) bundleSet.add(b);
     }
-    cmdRows.push({ cmd, sources: srcList, bundles: [...bundleSet].sort() });
+    cmdRows.push({ name: cmd, sources: srcList, bundles: [...bundleSet].sort() });
   }
 
-  // MCP → bundles
+  // MCP bundle mapping (from bundles.json mcp arrays)
   const mcpToBundles = new Map();
   for (const [bundleName, def] of Object.entries(bundles)) {
     for (const mcpName of (def.mcp ?? [])) {
@@ -107,19 +110,34 @@ function buildDepsData(eccRoot) {
     }
   }
 
-  const allMcpNames = new Set(inv.mcpServers.map(s => s.name));
+  // MCP rows: mcp → sources (from scan) → bundles (from bundles.json)
+  const mcpRows = [];
+  const allAssigned = new Set(mcpToBundles.keys());
+  const allScanned = new Set(mcpDeps.keys());
+  const allMcpWithInfo = new Set([...allAssigned, ...allScanned]);
+
+  for (const name of [...allMcpWithInfo].sort()) {
+    const sources = mcpDeps.get(name);
+    const bundleList = mcpToBundles.get(name) ?? [];
+    mcpRows.push({
+      name,
+      sources: sources ? [...sources].sort() : [],
+      bundles: bundleList,
+    });
+  }
+
   const assignedMcp = new Set(mcpToBundles.keys());
-  const unassignedMcp = [...allMcpNames].filter(n => !assignedMcp.has(n)).sort();
+  const unassignedMcp = [...mcpServerNames].filter(n => !assignedMcp.has(n) && !allScanned.has(n)).sort();
 
   const referencedCmds = new Set(cmdDeps.keys());
   const unreferencedCmds = inv.commands.map(c => c.name).filter(n => !referencedCmds.has(n)).sort();
 
-  return { cmdRows, mcpToBundles, unassignedMcp, unreferencedCmds };
+  return { cmdRows, mcpRows, unassignedMcp, unreferencedCmds };
 }
 
 function renderDepsDoc(data, lang) {
   const s = STRINGS[lang];
-  const { cmdRows, mcpToBundles, unassignedMcp, unreferencedCmds } = data;
+  const { cmdRows, mcpRows, unassignedMcp, unreferencedCmds } = data;
   const lines = [];
 
   lines.push(s.title);
@@ -136,10 +154,10 @@ function renderDepsDoc(data, lang) {
   if (cmdRows.length > 0) {
     lines.push(`| ${s.cmdCol1} | ${s.cmdCol2} | ${s.cmdCol3} |`);
     lines.push('|---|---|---|');
-    for (const { cmd, sources, bundles } of cmdRows) {
+    for (const { name, sources, bundles } of cmdRows) {
       const srcStr = sources.join(', ');
       const bundleStr = bundles.length > 0 ? bundles.join(', ') : '—';
-      lines.push(`| \`/${cmd}\` | ${srcStr} | ${bundleStr} |`);
+      lines.push(`| \`/${name}\` | ${srcStr} | ${bundleStr} |`);
     }
   } else {
     lines.push(s.cmdNone);
@@ -147,18 +165,19 @@ function renderDepsDoc(data, lang) {
 
   lines.push('');
 
-  // MCP dependencies: mcp → bundle
+  // MCP dependencies: mcp → agent/skill → bundle
   lines.push(s.mcpTitle);
   lines.push('');
   lines.push(s.mcpDesc);
   lines.push('');
 
-  if (mcpToBundles.size > 0) {
-    lines.push(`| ${s.mcpCol1} | ${s.mcpCol2} |`);
-    lines.push('|---|---|');
-    const sorted = [...mcpToBundles.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-    for (const [mcp, bundleList] of sorted) {
-      lines.push(`| \`${mcp}\` | ${bundleList.join(', ')} |`);
+  if (mcpRows.length > 0) {
+    lines.push(`| ${s.mcpCol1} | ${s.mcpCol2} | ${s.mcpCol3} |`);
+    lines.push('|---|---|---|');
+    for (const { name, sources, bundles } of mcpRows) {
+      const srcStr = sources.length > 0 ? sources.join(', ') : '—';
+      const bundleStr = bundles.length > 0 ? bundles.join(', ') : '—';
+      lines.push(`| \`${name}\` | ${srcStr} | ${bundleStr} |`);
     }
   }
 
