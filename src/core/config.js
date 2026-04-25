@@ -5,7 +5,7 @@ export const DEFAULT_CONFIG = {
   eccPath: null,
   rulesLanguage: 'en',
   global: {
-    bundles: ['global'],
+    bundles: ['core'],
     extras: { agents: [], skills: [], rulesLanguages: [], commands: [], contexts: [], mcp: [] },
     excludes: { agents: [], skills: [], mcp: [], commands: [] },
   },
@@ -109,10 +109,26 @@ export function validateConfig(cfg) {
  * @param {{ home?: string }} [opts]
  * @returns {object}
  */
+function migrateLegacyBundleName(cfg) {
+  const rename = b => b === 'global' ? 'core' : b;
+  if (cfg.global?.bundles) {
+    cfg.global.bundles = cfg.global.bundles.map(rename);
+  }
+  for (const proj of (cfg.projects ?? [])) {
+    if (proj.bundles) proj.bundles = proj.bundles.map(rename);
+  }
+  if (cfg.bundleOverrides?.global) {
+    cfg.bundleOverrides.core = cfg.bundleOverrides.global;
+    delete cfg.bundleOverrides.global;
+  }
+  return cfg;
+}
+
 export function loadConfig({ home } = {}) {
   const file = home ? `${home}/config.json` : paths.configFile();
   const raw = readJson(file);
   const cfg = raw ? deepMerge(DEFAULT_CONFIG, raw) : deepMerge({}, DEFAULT_CONFIG);
+  migrateLegacyBundleName(cfg);
   validateConfig(cfg);
   return cfg;
 }

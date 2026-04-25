@@ -1,6 +1,6 @@
 {
-  "global": {
-    "description": "Stack-agnostic core → ~/.claude/",
+  "core": {
+    "description": "Stack-agnostic software development essentials",
     "agents": [
       "planner", "architect", "code-architect", "code-explorer",
       "code-reviewer", "code-simplifier", "comment-analyzer",
@@ -19,6 +19,7 @@
   },
   "java-proj": {
     "description": "Java + Spring Boot project",
+    "extends": "core",
     "agents": ["java-reviewer", "java-build-resolver"],
     "skills": [
       "springboot-patterns", "springboot-tdd", "springboot-verification",
@@ -29,6 +30,7 @@
   },
   "py-proj": {
     "description": "Python project",
+    "extends": "core",
     "agents": ["python-reviewer"],
     "skills": ["python-patterns", "python-testing"],
     "rules": ["python"]
@@ -46,12 +48,14 @@
   },
   "ts-backend-proj": {
     "description": "TypeScript/JS backend",
+    "extends": "core",
     "agents": ["typescript-reviewer", "build-error-resolver"],
     "skills": ["backend-patterns", "api-design", "bun-runtime"],
     "rules": ["typescript"]
   },
   "ts-frontend-proj": {
     "description": "TypeScript/JS frontend",
+    "extends": "core",
     "agents": ["typescript-reviewer", "build-error-resolver", "e2e-runner"],
     "skills": ["frontend-patterns", "frontend-design", "e2e-testing", "nextjs-turbopack", "design-system", "click-path-audit", "browser-qa"],
     "mcp": ["magic", "playwright"],
@@ -69,18 +73,21 @@
   },
   "go-proj": {
     "description": "Go project",
+    "extends": "core",
     "agents": ["go-reviewer", "go-build-resolver"],
     "skills": ["golang-patterns", "golang-testing", "api-design"],
     "rules": ["golang"]
   },
   "rust-proj": {
     "description": "Rust project",
+    "extends": "core",
     "agents": ["rust-reviewer", "rust-build-resolver"],
     "skills": ["rust-patterns", "rust-testing"],
     "rules": ["rust"]
   },
   "kotlin-proj": {
     "description": "Kotlin / Android / KMP",
+    "extends": "core",
     "agents": ["kotlin-reviewer", "kotlin-build-resolver"],
     "skills": [
       "kotlin-patterns", "kotlin-testing", "kotlin-coroutines-flows",
@@ -91,18 +98,21 @@
   },
   "cpp-proj": {
     "description": "C++ project",
+    "extends": "core",
     "agents": ["cpp-reviewer", "cpp-build-resolver"],
     "skills": ["cpp-coding-standards", "cpp-testing"],
     "rules": ["cpp"]
   },
   "csharp-proj": {
     "description": "C# / .NET project",
+    "extends": "core",
     "agents": ["csharp-reviewer"],
     "skills": ["dotnet-patterns", "csharp-testing"],
     "rules": ["csharp"]
   },
   "swift-proj": {
     "description": "Swift / iOS / macOS",
+    "extends": "core",
     "agents": [],
     "skills": [
       "swiftui-patterns", "swift-concurrency-6-2",
@@ -113,12 +123,14 @@
   },
   "dart-flutter-proj": {
     "description": "Dart / Flutter",
+    "extends": "core",
     "agents": ["dart-build-resolver", "flutter-reviewer"],
     "skills": ["dart-flutter-patterns", "flutter-dart-code-review"],
     "rules": ["dart"]
   },
   "laravel-proj": {
     "description": "Laravel / PHP",
+    "extends": "core",
     "agents": [],
     "skills": [
       "laravel-patterns", "laravel-tdd", "laravel-verification",
@@ -129,6 +141,7 @@
   },
   "perl-proj": {
     "description": "Perl project",
+    "extends": "core",
     "agents": [],
     "skills": ["perl-patterns", "perl-testing", "perl-security"],
     "rules": ["perl"]

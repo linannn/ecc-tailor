@@ -8,7 +8,7 @@ import { resolveDesired, resolveMcp } from '../src/core/resolve.js';
 
 // Inline bundle definitions used across tests (no dependency on bundles.json)
 const BUNDLES = {
-  global:      { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'], rules: [] },
+  core:        { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'], rules: [] },
   'java-proj': { agents: [],          skills: ['coding-standards'], rules: ['java'] },
   'research':  { agents: [],          skills: [], mcp: ['exa-web-search'], rules: [] },
 };
@@ -17,7 +17,7 @@ const BUNDLES = {
 function makeConfig({ globalOverrides = {}, projects = [] } = {}) {
   return {
     global: {
-      bundles: ['global'],
+      bundles: ['core'],
       extras:  { agents: [], skills: [], rulesLanguages: [] },
       excludes: { agents: [], skills: [] },
       ...globalOverrides,
@@ -29,7 +29,7 @@ function makeConfig({ globalOverrides = {}, projects = [] } = {}) {
 // ---------------------------------------------------------------------------
 // resolveDesired: global + one project
 // ---------------------------------------------------------------------------
-test('resolveDesired: global + one project — global gets 1 agent + 1 skill + 1 rule, project gets 1 skill', () => {
+test('resolveDesired: project skill deduped when already global', () => {
   const tmp = makeTmpEnv();
   try {
     const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
@@ -80,13 +80,12 @@ test('resolveDesired: global + one project — global gets 1 agent + 1 skill + 1
     assert.equal(ruleLink.kind, 'rules-dir');
     assert.equal(ruleLink.ownedBy, 'global');
 
-    // Project: 1 skill (coding-standards) under project path
+    // Project: coding-standards is deduped because it's already installed globally
+    // smart dedup: project skills already present in the global set are filtered out
     const projCsLink = links.find(
       l => l.dst === join(projPath, '.claude', 'skills', 'coding-standards'),
     );
-    assert.ok(projCsLink, 'project coding-standards skill link should exist');
-    assert.equal(projCsLink.ownedBy, `proj:${projPath}`);
-    assert.equal(projCsLink.kind, 'skill-dir');
+    assert.equal(projCsLink, undefined, 'project coding-standards should be deduped (already installed globally)');
   } finally {
     tmp.cleanup();
   }
@@ -134,7 +133,7 @@ test('resolveDesired: throws on missing asset — bundle references nonexistent-
     const inv = scanEcc(eccRoot);
 
     const badBundles = {
-      global: { agents: ['planner'], skills: ['nonexistent-skill'] },
+      core: { agents: ['planner'], skills: ['nonexistent-skill'] },
     };
 
     const config = makeConfig();
@@ -397,7 +396,7 @@ test('resolveDesired: bundleOverrides excludes skill from global bundle', () => 
     const inv = scanEcc(eccRoot);
 
     const config = makeConfig();
-    config.bundleOverrides = { global: { exclude: { skills: ['coding-standards'] } } };
+    config.bundleOverrides = { core: { exclude: { skills: ['coding-standards'] } } };
 
     const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
 
@@ -420,7 +419,7 @@ test('resolveDesired: bundleOverrides adds skill to global bundle', () => {
     const inv = scanEcc(eccRoot);
 
     const config = makeConfig();
-    config.bundleOverrides = { global: { add: { skills: ['agent-sort'] } } };
+    config.bundleOverrides = { core: { add: { skills: ['agent-sort'] } } };
 
     const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
 
@@ -445,7 +444,7 @@ test('resolveDesired: bundleOverrides excludes agent from global bundle', () => 
     const inv = scanEcc(eccRoot);
 
     const config = makeConfig();
-    config.bundleOverrides = { global: { exclude: { agents: ['planner'] } } };
+    config.bundleOverrides = { core: { exclude: { agents: ['planner'] } } };
 
     const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
 
@@ -468,7 +467,7 @@ test('resolveMcp: bundleOverrides excludes MCP from bundle', () => {
     const inv = scanEcc(eccRoot);
 
     const config = makeConfig();
-    config.bundleOverrides = { global: { exclude: { mcp: ['context7'] } } };
+    config.bundleOverrides = { core: { exclude: { mcp: ['context7'] } } };
 
     const result = resolveMcp(config, BUNDLES, inv.mcpServers);
 
@@ -534,7 +533,7 @@ test('resolveDesired: bundle rules auto-installed', () => {
 
     const config = makeConfig({
       globalOverrides: {
-        bundles: ['global', 'java-proj'],
+        bundles: ['core', 'java-proj'],
       },
     });
 
@@ -570,6 +569,60 @@ test('resolveDesired: extras.rulesLanguages merged with bundle rules', () => {
 
     const webRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/web');
     assert.ok(webRule, 'web rule from extras.rulesLanguages should be present');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// resolveDesired: project-only install gets full bundle when no global core
+// ---------------------------------------------------------------------------
+test('resolveDesired: project-only install gets full bundle when no global core', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const projPath = join(tmp.root, 'my-project');
+
+    // Inline bundles with core + java-proj that extends core
+    const bundles = {
+      core:        { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'], rules: [] },
+      'java-proj': { extends: 'core', agents: [], skills: ['coding-standards'], rules: ['java'] },
+    };
+
+    // Global has empty bundles — no core installed globally
+    const config = {
+      global: {
+        bundles: [],
+        extras:  { agents: [], skills: [], rulesLanguages: [] },
+        excludes: { agents: [], skills: [] },
+      },
+      projects: [
+        {
+          path: projPath,
+          bundles: ['java-proj'],
+          extras:  { agents: [], skills: [] },
+          excludes: { agents: [], skills: [] },
+        },
+      ],
+    };
+
+    const links = resolveDesired(config, bundles, inv, { home: tmp.home, eccRoot });
+
+    // Project should get core's agent (planner) because java-proj extends core
+    const projPlannerLink = links.find(
+      l => l.dst === join(projPath, '.claude', 'agents', 'planner.md'),
+    );
+    assert.ok(projPlannerLink, 'project should include core agent (planner) via extends');
+    assert.equal(projPlannerLink.ownedBy, `proj:${projPath}`);
+
+    // Project should get core's skill (coding-standards)
+    const projCsLink = links.find(
+      l => l.dst === join(projPath, '.claude', 'skills', 'coding-standards'),
+    );
+    assert.ok(projCsLink, 'project should include core skill (coding-standards) via extends');
+    assert.equal(projCsLink.ownedBy, `proj:${projPath}`);
   } finally {
     tmp.cleanup();
   }

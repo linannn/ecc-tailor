@@ -5,7 +5,7 @@
 Per-bundle listing of all agents and skills with descriptions.
 
 <details>
-<summary><b>global</b> — Stack-agnostic core</summary>
+<summary><b>core</b> — Software development essentials</summary>
 
 | Type | Name | Description |
 |---|---|---|
@@ -25,13 +25,14 @@ Per-bundle listing of all agents and skills with descriptions.
 | agent | docs-lookup | Library/framework docs via Context7 MCP |
 | agent | refactor-cleaner | Dead code cleanup and consolidation |
 | skill | coding-standards | Cross-project conventions: naming, readability, immutability |
-| skill | api-design | REST API patterns: resources, status codes, pagination, versioning |
 | skill | tdd-workflow | Write-tests-first methodology with 80%+ coverage |
 | skill | verification-loop | Comprehensive verification for Claude Code sessions |
 | skill | strategic-compact | Manual context compaction at logical intervals |
 | skill | git-workflow | Branching strategies, commit conventions, merge vs rebase |
 | skill | gateguard | Per-file fact-forcing gate, blocks edits until investigation (+2.25 quality) |
 | skill | architecture-decision-records | Capture architectural decisions as structured ADR documents |
+| skill | search-first | Search before writing: locate existing code before creating new |
+| skill | documentation-lookup | Look up library/framework docs before coding |
 
 </details>
 

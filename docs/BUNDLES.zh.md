@@ -5,7 +5,7 @@
 每个 bundle 包含的 agent 和 skill 完整列表。
 
 <details>
-<summary><b>global</b> — 栈无关基础</summary>
+<summary><b>core</b> — 软件开发通用能力</summary>
 
 | 类型 | 名称 | 说明 |
 |---|---|---|
@@ -25,13 +25,14 @@
 | agent | docs-lookup | 通过 Context7 MCP 查找库/框架文档 |
 | agent | refactor-cleaner | 死代码清理与整合 |
 | skill | coding-standards | 跨项目编码规范：命名、可读性、不变性 |
-| skill | api-design | REST API 模式：资源、状态码、分页、版本控制 |
 | skill | tdd-workflow | 先写测试方法论，80%+ 覆盖率 |
 | skill | verification-loop | Claude Code 会话综合验证 |
 | skill | strategic-compact | 在逻辑节点手动压缩上下文 |
 | skill | git-workflow | 分支策略、commit 规范、merge vs rebase |
 | skill | gateguard | 每文件事实验证门控，编辑前强制调查（+2.25 质量） |
 | skill | architecture-decision-records | 将架构决策记录为结构化 ADR 文档 |
+| skill | search-first | 先搜索后编写：新建前先找已有代码 |
+| skill | documentation-lookup | 编码前先查阅库/框架文档 |
 
 </details>
 

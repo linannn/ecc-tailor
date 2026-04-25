@@ -47,7 +47,7 @@ On first run, ECC is automatically cloned to `~/.local/share/ecc-tailor/ecc/`. T
 { "eccPath": "/path/to/everything-claude-code" }
 ```
 
-Without a config file, ecc-tailor uses these defaults: global bundle, standard hook profile, claude-mem compatibility on. See [Config Reference](#config-reference) for full customization.
+Without a config file, ecc-tailor uses these defaults: `core` bundle (software development essentials), standard hook profile, claude-mem compatibility on. See [Config Reference](#config-reference) for full customization.
 
 ## Bundles
 
@@ -61,7 +61,7 @@ Without a config file, ecc-tailor uses these defaults: global bundle, standard h
 
 | Bundle | Agents | Skills | Use case |
 |---|---|---|---|
-| `global` | 15 | 9 | Stack-agnostic basics (planner, architect, tdd, etc.) |
+| `core` | 15 | 9 | Software development essentials (planner, architect, tdd, etc.) |
 | `java-proj` | 2 | 7 | Spring Boot projects |
 | `py-proj` | 1 | 2 | Python projects |
 | `py-django-proj` | extends py-proj | +4 | Django projects |
@@ -99,6 +99,8 @@ Without a config file, ecc-tailor uses these defaults: global bundle, standard h
 | `ops` | 2 | 12 | Email, Jira, GitHub, Slack workflow automation |
 | `crypto` | 0 | 4 | Web3 / DeFi security |
 | `scan` | 0 | 11 | Temporary evaluation tools (attach/detach) |
+
+All language/framework bundles extend `core` — installing any language bundle automatically includes core capabilities.
 
 Full per-bundle listing with type, name, and description: **[docs/BUNDLES.md](docs/BUNDLES.md)**
 
@@ -219,7 +221,7 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
   "eccPath": null,
   "rulesLanguage": "en",
   "global": {
-    "bundles": ["global"],
+    "bundles": ["core"],
     "extras": {
       "agents": [],
       "skills": ["hexagonal-architecture"],
@@ -263,7 +265,7 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
 |---|---|
 | `eccPath` | Path to ECC clone (null = auto-managed) |
 | `rulesLanguage` | Base rules language: `en` (common) or `zh` (default: en) |
-| `global.bundles` | Bundles to install globally |
+| `global.bundles` | Bundles to install globally (default: `["core"]`) |
 | `global.extras.*` | Extra agents/skills/commands/mcp; `rulesLanguages` for additional rules beyond what bundles provide |
 | `global.excludes.*` | Exclude specific items from bundles |
 | `global.excludes.commands` | Suppress auto-detected command dependencies |
@@ -290,7 +292,7 @@ rm -rf ~/.local/share/ecc-tailor     # Remove ECC clone + wrappers
 ## Development
 
 ```bash
-npm test                             # Unit + integration tests (138)
+npm test                             # Unit + integration tests (141)
 ECC_PATH=/path/to/ecc npm test       # + real ECC verification (10 E2E tests)
 ```
 

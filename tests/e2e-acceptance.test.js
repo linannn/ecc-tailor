@@ -38,7 +38,7 @@ function writeE2EConfig(xdgConfig, eccPath) {
     JSON.stringify({
       eccPath,
       global: {
-        bundles: ['global'],
+        bundles: ['core'],
         extras: { agents: [], skills: [], rulesLanguages: ['common', 'java'] },
       },
       projects: [],

@@ -128,6 +128,17 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
     });
   }
 
+  // Collect globally-installed names for project-level dedup.
+  // When a project bundle extends core and core is already installed globally,
+  // skip duplicating core's items at project level.
+  const globalAgentSet = new Set();
+  const globalSkillSet = new Set();
+  for (const entry of result) {
+    if (entry.ownedBy !== 'global') continue;
+    if (entry.kind === 'agent') globalAgentSet.add(entry.eccSrc.replace(/^agents\//, '').replace(/\.md$/, ''));
+    if (entry.kind === 'skill-dir') globalSkillSet.add(entry.eccSrc.replace(/^skills\//, ''));
+  }
+
   // -------------------------------------------------------------------------
   // Project layers
   // -------------------------------------------------------------------------
@@ -146,8 +157,8 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
 
     const projExcludeAgents = new Set(projExcludes.agents ?? []);
     const projExcludeSkills = new Set(projExcludes.skills ?? []);
-    projAgents = projAgents.filter(n => !projExcludeAgents.has(n));
-    projSkills = projSkills.filter(n => !projExcludeSkills.has(n));
+    projAgents = projAgents.filter(n => !projExcludeAgents.has(n) && !globalAgentSet.has(n));
+    projSkills = projSkills.filter(n => !projExcludeSkills.has(n) && !globalSkillSet.has(n));
 
     for (const name of projAgents) {
       if (!agentNames.has(name)) {

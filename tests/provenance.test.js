@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { buildProvenance } from '../src/apply/provenance.js';
 
 const BUNDLES = {
-  global:     { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'] },
+  core:       { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'] },
   research:   { agents: [], skills: [], mcp: ['exa-web-search'] },
   dev:        { agents: [], skills: [], mcp: ['context7', 'memory'] },
 };
@@ -11,7 +11,7 @@ const BUNDLES = {
 function makeConfig(overrides = {}) {
   return {
     global: {
-      bundles: ['global'],
+      bundles: ['core'],
       extras: { agents: [], skills: [], commands: [], mcp: [] },
       excludes: { agents: [], skills: [], mcp: [], commands: [] },
       ...overrides.global,
@@ -88,7 +88,7 @@ test('buildProvenance: MCP from global bundle shows correct source', () => {
 
   assert.equal(report.mcp.length, 1);
   assert.equal(report.mcp[0].name, 'context7');
-  assert.ok(report.mcp[0].sources.includes('bundle:global'));
+  assert.ok(report.mcp[0].sources.includes('bundle:core'));
 });
 
 test('buildProvenance: MCP from project bundle shows correct source', () => {

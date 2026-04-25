@@ -7,14 +7,14 @@ import { loadBundles, resolveBundle, resolveBundles, applyBundleOverride } from 
 // ---------------------------------------------------------------------------
 test('loadBundles: reads JSON and contains expected bundles', () => {
   const bundles = loadBundles();
-  assert.ok('global' in bundles, 'global bundle should exist');
+  assert.ok('core' in bundles, 'core bundle should exist');
   assert.ok('java-proj' in bundles, 'java-proj bundle should exist');
 });
 
 // ---------------------------------------------------------------------------
 // resolveBundle: flat bundle (no extends)
 // ---------------------------------------------------------------------------
-test('resolveBundle: flat bundle resolves correctly', () => {
+test('resolveBundle: bundle with extends resolves correctly', () => {
   const bundles = loadBundles();
   const result = resolveBundle(bundles, 'java-proj');
   assert.ok(result.agents.includes('java-reviewer'), 'should include java-reviewer');

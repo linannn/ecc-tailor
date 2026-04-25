@@ -14,7 +14,7 @@ test('loadConfig: missing file returns defaults', () => {
     // Pass a directory that has no config.json inside it
     const cfg = loadConfig({ home: tmp.xdgConfig });
     assert.equal(cfg.eccPath, null);
-    assert.deepEqual(cfg.global.bundles, ['global']);
+    assert.deepEqual(cfg.global.bundles, ['core']);
     assert.equal(cfg.hooks.install, true);
     assert.equal(cfg.hooks.claudeMemCompat, true);
   } finally {
@@ -45,7 +45,7 @@ test('loadConfig: parses user file', () => {
     const cfg = loadConfig({ home: configDir });
 
     assert.equal(cfg.eccPath, '/opt/ecc');
-    assert.deepEqual(cfg.global.bundles, ['global']); // default preserved
+    assert.deepEqual(cfg.global.bundles, ['core']); // default preserved
     assert.deepEqual(cfg.global.extras.agents, ['my-agent']);
     assert.deepEqual(cfg.global.extras.rulesLanguages, ['en']);
     assert.equal(cfg.projects.length, 1);
@@ -141,4 +141,50 @@ test('validateConfig: accepts valid rulesLanguage zh', () => {
 test('validateConfig: rejects invalid rulesLanguage', () => {
   const cfg = { ...structuredClone(DEFAULT_CONFIG), rulesLanguage: 'fr' };
   assert.throws(() => validateConfig(cfg), /rulesLanguage/);
+});
+
+// ---------------------------------------------------------------------------
+// loadConfig: migrates legacy bundle name "global" → "core"
+// ---------------------------------------------------------------------------
+test('loadConfig: migrates legacy global bundle name to core', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const configDir = join(tmp.xdgConfig, 'ecc-tailor');
+    mkdirSync(configDir, { recursive: true });
+
+    const userConfig = {
+      global: { bundles: ['global'] },
+    };
+    writeFileSync(join(configDir, 'config.json'), JSON.stringify(userConfig), 'utf8');
+
+    const cfg = loadConfig({ home: configDir });
+    assert.deepEqual(cfg.global.bundles, ['core'], 'legacy "global" bundle name should be migrated to "core"');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// loadConfig: migrates legacy bundleOverrides.global key → core
+// ---------------------------------------------------------------------------
+test('loadConfig: migrates legacy bundleOverrides.global key to core', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const configDir = join(tmp.xdgConfig, 'ecc-tailor');
+    mkdirSync(configDir, { recursive: true });
+
+    const userConfig = {
+      bundleOverrides: {
+        global: { exclude: { agents: ['planner'] } },
+      },
+    };
+    writeFileSync(join(configDir, 'config.json'), JSON.stringify(userConfig), 'utf8');
+
+    const cfg = loadConfig({ home: configDir });
+    assert.ok('core' in cfg.bundleOverrides, 'bundleOverrides.global should be migrated to bundleOverrides.core');
+    assert.ok(!('global' in cfg.bundleOverrides), 'bundleOverrides.global key should be removed after migration');
+    assert.deepEqual(cfg.bundleOverrides.core.exclude.agents, ['planner']);
+  } finally {
+    tmp.cleanup();
+  }
 });

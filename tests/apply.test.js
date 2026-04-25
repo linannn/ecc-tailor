@@ -14,13 +14,13 @@ import { planApply, executeApply } from '../src/apply/apply.js';
 // Shared bundle + config helpers (mirrors resolve.test.js style)
 // ---------------------------------------------------------------------------
 const BUNDLES = {
-  global: { agents: ['planner'], skills: ['coding-standards'] },
+  core: { agents: ['planner'], skills: ['coding-standards'] },
 };
 
 function makeConfig(overrides = {}) {
   return {
     global: {
-      bundles: ['global'],
+      bundles: ['core'],
       extras:  { agents: [], skills: [], rulesLanguages: [] },
       excludes: { agents: [], skills: [] },
       ...overrides,

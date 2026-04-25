@@ -157,9 +157,9 @@ test('py-django-proj inherits py-proj', () => {
   assert.ok(result.skills.includes('django-verification'), 'should have django-verification');
 });
 
-test('resolveBundles: union of global + scan has no duplicates', () => {
+test('resolveBundles: union of core + scan has no duplicates', () => {
   const bundles = loadBundles();
-  const result = resolveBundles(bundles, ['global', 'scan']);
+  const result = resolveBundles(bundles, ['core', 'scan']);
 
   const agentSet = new Set(result.agents);
   assert.equal(agentSet.size, result.agents.length, 'agents should have no duplicates');
@@ -174,16 +174,16 @@ test('scan bundle is ephemeral', () => {
   assert.equal(result.ephemeral, true);
 });
 
-test('global bundle has 15 agents and 9 skills', () => {
+test('core bundle has 15 agents and 9 skills', () => {
   const bundles = loadBundles();
-  assert.equal(bundles.global.agents.length, 15);
-  assert.equal(bundles.global.skills.length, 9);
+  assert.equal(bundles.core.agents.length, 15);
+  assert.equal(bundles.core.skills.length, 9);
 });
 
 test('all 33 bundles are present', () => {
   const bundles = loadBundles();
   const expected = [
-    'global', 'java-proj', 'py-proj', 'py-django-proj', 'py-ml-proj',
+    'core', 'java-proj', 'py-proj', 'py-django-proj', 'py-ml-proj',
     'ts-backend-proj', 'ts-frontend-proj', 'ts-nestjs-proj', 'nuxt-proj',
     'go-proj', 'rust-proj', 'kotlin-proj', 'cpp-proj', 'csharp-proj',
     'swift-proj', 'dart-flutter-proj', 'laravel-proj', 'perl-proj',

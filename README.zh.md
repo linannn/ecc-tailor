@@ -47,7 +47,7 @@ ecc-tailor apply
 { "eccPath": "/path/to/everything-claude-code" }
 ```
 
-不写配置文件时使用默认值：global bundle、standard hook profile、claude-mem 兼容模式。完整配置项见[配置参考](#配置参考)。
+不写配置文件时使用默认值：`core` bundle（软件开发通用能力）、standard hook profile、claude-mem 兼容模式。完整配置项见[配置参考](#配置参考)。
 
 ## Bundle 列表
 
@@ -61,7 +61,7 @@ ecc-tailor apply
 
 | Bundle | Agents | Skills | 适用场景 |
 |---|---|---|---|
-| `global` | 15 | 9 | 栈无关基础（planner、architect、tdd 等） |
+| `core` | 15 | 9 | 软件开发通用能力（planner、architect、tdd 等） |
 | `java-proj` | 2 | 7 | Spring Boot 项目 |
 | `py-proj` | 1 | 2 | Python 项目 |
 | `py-django-proj` | 继承 py-proj | +4 | Django 项目 |
@@ -99,6 +99,8 @@ ecc-tailor apply
 | `ops` | 2 | 12 | 邮件、Jira、GitHub、Slack 工作流自动化 |
 | `crypto` | 0 | 4 | Web3 / DeFi 安全 |
 | `scan` | 0 | 11 | 临时评估工具（用完即删） |
+
+所有语言/框架 bundle 继承自 `core` —— 安装任何语言 bundle 时自动包含 core 的通用能力。
 
 每个 bundle 包含的 agent 和 skill 完整列表：**[docs/BUNDLES.zh.md](docs/BUNDLES.zh.md)**
 
@@ -219,7 +221,7 @@ ecc-tailor deps                                  # 生成 docs/DEPENDENCIES.{md,
   "eccPath": null,
   "rulesLanguage": "en",
   "global": {
-    "bundles": ["global"],
+    "bundles": ["core"],
     "extras": {
       "agents": [],
       "skills": ["hexagonal-architecture"],
@@ -263,7 +265,7 @@ ecc-tailor deps                                  # 生成 docs/DEPENDENCIES.{md,
 |---|---|
 | `eccPath` | ECC clone 路径（null = 自动管理） |
 | `rulesLanguage` | 基础规则语言：`en`（common）或 `zh`（默认 en） |
-| `global.bundles` | 全局安装的 bundle 列表 |
+| `global.bundles` | 全局安装的 bundle 列表（默认：`["core"]`） |
 | `global.extras.*` | bundle 之外额外加的 agent/skill/command/mcp；`rulesLanguages` 用于补充 bundle 之外的额外规则 |
 | `global.excludes.*` | 从 bundle 里排除的 |
 | `global.excludes.commands` | 抑制自动检测到的 command 依赖 |
@@ -290,7 +292,7 @@ rm -rf ~/.local/share/ecc-tailor     # 删除 ECC clone + wrapper
 ## 开发
 
 ```bash
-npm test                             # 单元 + 集成测试（138 个）
+npm test                             # 单元 + 集成测试（141 个）
 ECC_PATH=/path/to/ecc npm test       # + 真实 ECC 验证（10 个 E2E 测试）
 ```
 
