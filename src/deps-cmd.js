@@ -3,7 +3,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadConfig } from './config.js';
 import { resolveEccRoot } from './ecc-repo.js';
-import { generateDepsDoc } from './deps-doc.js';
+import { generateDepsDoc, generateDepsDocZh } from './deps-doc.js';
 import log from './logger.js';
 
 export async function depsCmd(_args) {
@@ -18,10 +18,15 @@ export async function depsCmd(_args) {
     return;
   }
 
-  const content = generateDepsDoc(eccRoot);
+  const docsDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'docs');
+  mkdirSync(docsDir, { recursive: true });
 
-  const outPath = join(dirname(fileURLToPath(import.meta.url)), '..', 'docs', 'DEPENDENCIES.md');
-  mkdirSync(dirname(outPath), { recursive: true });
-  writeFileSync(outPath, content, 'utf8');
-  log.ok(`Generated ${outPath}`);
+  const enPath = join(docsDir, 'DEPENDENCIES.md');
+  writeFileSync(enPath, generateDepsDoc(eccRoot), 'utf8');
+
+  const zhPath = join(docsDir, 'DEPENDENCIES.zh.md');
+  writeFileSync(zhPath, generateDepsDocZh(eccRoot), 'utf8');
+
+  log.ok(`Generated ${enPath}`);
+  log.ok(`Generated ${zhPath}`);
 }
