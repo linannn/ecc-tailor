@@ -20,7 +20,7 @@ ECC's built-in installer is too coarse — `--with lang:java` pulls in 38 skills
 ## Install
 
 ```bash
-git clone https://github.com/<you>/ecc-tailor.git
+git clone https://github.com/linannn/ecc-tailor.git
 cd ecc-tailor
 npm link              # registers `ecc-tailor` as a global CLI command
 ```
