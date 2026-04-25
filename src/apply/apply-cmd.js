@@ -181,6 +181,7 @@ export async function applyCmd(args) {
 
     // 10g. Log
     log.ok(`hooks merged into ${settingsFile} (backup: ${backupPath})`);
+    log.dim(`  env.CLAUDE_PLUGIN_ROOT = ${eccRoot}`);
     if (claudeMemCompat && effectiveDisabledList.length > 0) {
       log.dim(`  claude-mem compat: ${effectiveDisabledList.length} hooks disabled (overlap with claude-mem plugin)`);
     } else if (!claudeMemCompat) {

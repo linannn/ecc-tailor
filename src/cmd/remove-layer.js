@@ -99,7 +99,7 @@ export async function removeLayerCmd(args) {
       markerId: 'ecc-tailor',
     };
     if (hooksRemoved > 0) {
-      log.ok(`removed ${hooksRemoved} hook entries from settings.json`);
+      log.ok(`removed ${hooksRemoved} hook entries + env.CLAUDE_PLUGIN_ROOT from settings.json`);
     }
 
     try {
