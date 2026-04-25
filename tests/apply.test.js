@@ -171,6 +171,28 @@ test('executeApply: idempotent — second apply leaves nothing to add or remove'
 });
 
 // ---------------------------------------------------------------------------
+// executeApply: onProgress called once per symlink add/remove
+// ---------------------------------------------------------------------------
+test('executeApply: onProgress called for each symlink operation', async () => {
+  const env = makeTmpEnv();
+  try {
+    const ecc = makeFakeEcc(join(env.root, 'fake-ecc'));
+    const inv = scanEcc(ecc);
+    const config  = makeConfig();
+    const desired = resolveDesired(config, BUNDLES, inv, { home: env.home });
+    const state   = structuredClone(EMPTY_STATE);
+
+    const plan = await planApply(desired, state, { ecc });
+    let progressCalls = 0;
+    await executeApply(plan, state, { ecc, onProgress: () => { progressCalls++; } });
+
+    assert.equal(progressCalls, plan.toAdd.length, 'onProgress should be called once per added symlink');
+  } finally {
+    env.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
 // planApply: skips fork entries
 // ---------------------------------------------------------------------------
 test('planApply: forked entry is not in toAdd and not in conflicts', async () => {

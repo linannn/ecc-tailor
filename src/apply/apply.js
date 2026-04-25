@@ -74,13 +74,18 @@ export async function planApply(desired, state, { ecc }) {
 /**
  * Execute a plan produced by `planApply`.
  *
+ * Each symlink creation/removal is followed by an `onProgress` callback so the
+ * caller can flush state to disk incrementally — if the process is killed
+ * mid-apply, state.json already records every symlink created so far.
+ *
  * @param {{ toAdd: Array<object>, toRemove: Array<object> }} plan
  * @param {object} state  - state object (mutated in place)
- * @param {{ ecc: string }} opts
+ * @param {{ ecc: string, onProgress?: (state: object) => void }} opts
  * @returns {Promise<void>}
  */
-export async function executeApply(plan, state, { ecc }) {
+export async function executeApply(plan, state, { ecc, onProgress }) {
   const { toAdd = [], toRemove = [] } = plan;
+  const flush = onProgress ?? (() => {});
 
   // 1. Remove stale symlinks
   for (const { dst } of toRemove) {
@@ -90,26 +95,24 @@ export async function executeApply(plan, state, { ecc }) {
       if (err.code !== 'ENOENT') throw err;
     }
     delete state.symlinks[dst];
+    flush(state);
   }
 
   // 2. Add new symlinks
   for (const item of toAdd) {
     const { dst, eccSrc, kind, ownedBy, ephemeral, absEccSrc } = item;
 
-    // Ensure parent directory exists
     await mkdir(dirname(dst), { recursive: true });
 
-    // Remove any stale entry at dst (idempotency)
     try {
       await unlink(dst);
     } catch (err) {
       if (err.code !== 'ENOENT') throw err;
     }
 
-    // Create symlink: source must be absolute
     await symlink(absEccSrc, dst);
 
-    // Record in state
     state.symlinks[dst] = { eccSrc, kind, ownedBy, ephemeral };
+    flush(state);
   }
 }

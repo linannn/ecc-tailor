@@ -142,8 +142,8 @@ export async function applyCmd(args) {
     return;
   }
 
-  // 9. Execute
-  await executeApply(plan, state, { ecc: eccRoot });
+  // 9. Execute (incremental state flush for crash safety)
+  await executeApply(plan, state, { ecc: eccRoot, onProgress: saveState });
 
   // 10. Hook integration (only when hooks.install is enabled)
   if (config.hooks?.install) {
