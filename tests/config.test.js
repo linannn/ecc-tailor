@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { makeTmpEnv } from './helpers/tmp-env.js';
-import { loadConfig, validateConfig } from '../src/core/config.js';
+import { loadConfig, validateConfig, DEFAULT_CONFIG } from '../src/core/config.js';
 
 // ---------------------------------------------------------------------------
 // loadConfig: missing file returns defaults
@@ -123,4 +123,22 @@ test('validateConfig: rejects non-array field in override', () => {
     },
   };
   assert.throws(() => validateConfig(bad), /array/i);
+});
+
+// ---------------------------------------------------------------------------
+// validateConfig: rulesLanguage validation
+// ---------------------------------------------------------------------------
+test('validateConfig: accepts valid rulesLanguage en', () => {
+  const cfg = { ...structuredClone(DEFAULT_CONFIG), rulesLanguage: 'en' };
+  assert.doesNotThrow(() => validateConfig(cfg));
+});
+
+test('validateConfig: accepts valid rulesLanguage zh', () => {
+  const cfg = { ...structuredClone(DEFAULT_CONFIG), rulesLanguage: 'zh' };
+  assert.doesNotThrow(() => validateConfig(cfg));
+});
+
+test('validateConfig: rejects invalid rulesLanguage', () => {
+  const cfg = { ...structuredClone(DEFAULT_CONFIG), rulesLanguage: 'fr' };
+  assert.throws(() => validateConfig(cfg), /rulesLanguage/);
 });

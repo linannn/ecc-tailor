@@ -149,6 +149,53 @@ test('applyBundleOverride: handles MCP overrides', () => {
 });
 
 // ---------------------------------------------------------------------------
+// resolveBundle: includes rules field
+// ---------------------------------------------------------------------------
+test('resolveBundle: includes rules field', () => {
+  const bundles = loadBundles();
+  const result = resolveBundle(bundles, 'java-proj');
+  assert.ok(Array.isArray(result.rules), 'rules should be an array');
+  assert.ok(result.rules.includes('java'), 'should include java rule');
+});
+
+// ---------------------------------------------------------------------------
+// resolveBundles: unions rules from multiple bundles
+// ---------------------------------------------------------------------------
+test('resolveBundles: unions rules from multiple bundles', () => {
+  const bundles = loadBundles();
+  const result = resolveBundles(bundles, ['java-proj', 'ts-backend-proj']);
+  assert.ok(result.rules.includes('java'), 'should include java rule');
+  assert.ok(result.rules.includes('typescript'), 'should include typescript rule');
+  const ruleSet = new Set(result.rules);
+  assert.equal(ruleSet.size, result.rules.length, 'rules should have no duplicates');
+});
+
+// ---------------------------------------------------------------------------
+// resolveBundle: extends inherits parent rules
+// ---------------------------------------------------------------------------
+test('resolveBundle: extends inherits parent rules', () => {
+  const bundles = loadBundles();
+  const result = resolveBundle(bundles, 'ts-nestjs-proj');
+  assert.ok(result.rules.includes('typescript'), 'should inherit typescript rule from ts-backend-proj parent');
+});
+
+// ---------------------------------------------------------------------------
+// applyBundleOverride: handles rules overrides
+// ---------------------------------------------------------------------------
+test('applyBundleOverride: handles rules overrides', () => {
+  const resolved = { agents: [], skills: [], mcp: [], rules: ['java', 'kotlin'], ephemeral: false, description: '' };
+
+  const result = applyBundleOverride(resolved, {
+    exclude: { rules: ['kotlin'] },
+    add: { rules: ['python'] },
+  });
+
+  assert.ok(!result.rules.includes('kotlin'), 'kotlin should be excluded');
+  assert.ok(result.rules.includes('java'), 'java should remain');
+  assert.ok(result.rules.includes('python'), 'python should be added');
+});
+
+// ---------------------------------------------------------------------------
 // resolveBundles: per-bundle override is applied
 // ---------------------------------------------------------------------------
 test('resolveBundles: applies per-bundle overrides', () => {

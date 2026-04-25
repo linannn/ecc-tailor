@@ -81,8 +81,13 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
     });
   }
 
-  // Rules layer (global only)
-  for (const lang of (globalExtras.rulesLanguages ?? [])) {
+  // Rules layer (global only): base rule (common/zh) + bundle rules + extras
+  const baseRule = (config.rulesLanguage ?? 'en') === 'zh' ? 'zh' : 'common';
+  const bundleRules = resolved.rules ?? [];
+  const extraRules = globalExtras.rulesLanguages ?? [];
+  const allRules = dedupe([baseRule, ...bundleRules, ...extraRules]);
+
+  for (const lang of allRules) {
     if (!ruleNames.has(lang)) {
       throw new Error(`rule "${lang}" not found in ECC`);
     }

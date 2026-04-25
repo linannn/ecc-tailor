@@ -204,6 +204,7 @@ ecc-tailor deps                                  # 生成 docs/DEPENDENCIES.{md,
 - **Symlink** — agent 按文件链接，skill 和 rule 按目录链接，指向 ECC clone
 - **State** — `~/.local/state/ecc-tailor/state.json` 记录所有 symlink、fork、临时扫描
 - **Hook** — 生成 wrapper 脚本设置 `ECC_HOOK_PROFILE` + `ECC_DISABLED_HOOKS` 环境变量，ECC 自己的 `run-with-flags.js` 负责判断
+- **Rules** — ECC 规则按 bundle 自动安装（`java-proj` → `rules/java/`）；基础规则（`common` 或 `zh`）始终包含；语言特定规则通过 `paths:` 懒加载（仅在编辑对应文件类型时进入 context）
 - **MCP** — bundle 定义的 MCP server 合并到 `~/.claude.json`，`[ecc-tailor]` 标记归属；检测未填的 API key 占位符并提示
 - **溯源** — `apply` 打印依赖报告：哪些 command/MCP server 被安装、是什么带进来的
 - **冲突** — 目标路径已存在且不是 ecc-tailor 管理的 → 终止并报错，绝不覆盖
@@ -216,6 +217,7 @@ ecc-tailor deps                                  # 生成 docs/DEPENDENCIES.{md,
 ```json
 {
   "eccPath": null,
+  "rulesLanguage": "en",
   "global": {
     "bundles": ["global"],
     "extras": {
@@ -260,8 +262,9 @@ ecc-tailor deps                                  # 生成 docs/DEPENDENCIES.{md,
 | 字段 | 说明 |
 |---|---|
 | `eccPath` | ECC clone 路径（null = 自动管理） |
+| `rulesLanguage` | 基础规则语言：`en`（common）或 `zh`（默认 en） |
 | `global.bundles` | 全局安装的 bundle 列表 |
-| `global.extras.*` | bundle 之外额外加的 agent/skill/command/mcp/rule |
+| `global.extras.*` | bundle 之外额外加的 agent/skill/command/mcp；`rulesLanguages` 用于补充 bundle 之外的额外规则 |
 | `global.excludes.*` | 从 bundle 里排除的 |
 | `global.excludes.commands` | 抑制自动检测到的 command 依赖 |
 | `global.excludes.mcp` | 排除特定 MCP server |
@@ -287,7 +290,7 @@ rm -rf ~/.local/share/ecc-tailor     # 删除 ECC clone + wrapper
 ## 开发
 
 ```bash
-npm test                             # 单元 + 集成测试（127 个）
+npm test                             # 单元 + 集成测试（138 个）
 ECC_PATH=/path/to/ecc npm test       # + 真实 ECC 验证（10 个 E2E 测试）
 ```
 

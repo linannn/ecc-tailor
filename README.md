@@ -204,6 +204,7 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
 - **Symlink** — agents linked per-file, skills and rules linked per-directory, pointing to ECC clone
 - **State** — `~/.local/state/ecc-tailor/state.json` tracks all symlinks, forks, and ephemeral scans
 - **Hooks** — generates a wrapper script that sets `ECC_HOOK_PROFILE` + `ECC_DISABLED_HOOKS` env vars; ECC's own `run-with-flags.js` handles the rest
+- **Rules** — ECC rules auto-installed per bundle (`java-proj` → `rules/java/`); base rules (`common` or `zh`) always included; language-specific rules use `paths:` frontmatter for lazy loading (only enters context when touching matching file types)
 - **MCP** — bundle-defined MCP servers merged into `~/.claude.json` with `[ecc-tailor]` ownership markers; placeholder API keys detected and reported
 - **Provenance** — `apply` prints a dependency report showing which commands/MCP servers were installed and what brought them in
 - **Conflicts** — if the target path exists and isn't managed by ecc-tailor, abort with error (never overwrite)
@@ -216,6 +217,7 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
 ```json
 {
   "eccPath": null,
+  "rulesLanguage": "en",
   "global": {
     "bundles": ["global"],
     "extras": {
@@ -260,8 +262,9 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
 | Field | Description |
 |---|---|
 | `eccPath` | Path to ECC clone (null = auto-managed) |
+| `rulesLanguage` | Base rules language: `en` (common) or `zh` (default: en) |
 | `global.bundles` | Bundles to install globally |
-| `global.extras.*` | Extra agents/skills/commands/mcp/rules beyond bundles |
+| `global.extras.*` | Extra agents/skills/commands/mcp; `rulesLanguages` for additional rules beyond what bundles provide |
 | `global.excludes.*` | Exclude specific items from bundles |
 | `global.excludes.commands` | Suppress auto-detected command dependencies |
 | `global.excludes.mcp` | Exclude specific MCP servers |
@@ -287,7 +290,7 @@ rm -rf ~/.local/share/ecc-tailor     # Remove ECC clone + wrappers
 ## Development
 
 ```bash
-npm test                             # Unit + integration tests (127)
+npm test                             # Unit + integration tests (138)
 ECC_PATH=/path/to/ecc npm test       # + real ECC verification (10 E2E tests)
 ```
 

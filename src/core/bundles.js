@@ -37,26 +37,31 @@ export function resolveBundle(bundles, name, seen = new Set()) {
   let parentAgents = [];
   let parentSkills = [];
   let parentMcp = [];
+  let parentRules = [];
 
   if (def.extends) {
     const parent = resolveBundle(bundles, def.extends, new Set(seen));
     parentAgents = parent.agents;
     parentSkills = parent.skills;
     parentMcp = parent.mcp;
+    parentRules = parent.rules;
   }
 
   const childAgents = def.agents ?? [];
   const childSkills = def.skills ?? [];
   const childMcp = def.mcp ?? [];
+  const childRules = def.rules ?? [];
 
   const agents = dedupe([...parentAgents, ...childAgents]);
   const skills = dedupe([...parentSkills, ...childSkills]);
   const mcp = dedupe([...parentMcp, ...childMcp]);
+  const rules = dedupe([...parentRules, ...childRules]);
 
   return {
     agents,
     skills,
     mcp,
+    rules,
     ephemeral: def.ephemeral === true,
     description: def.description ?? '',
   };
@@ -76,6 +81,7 @@ export function applyBundleOverride(resolved, override) {
   const exAgents = new Set(ex.agents ?? []);
   const exSkills = new Set(ex.skills ?? []);
   const exMcp    = new Set(ex.mcp ?? []);
+  const exRules  = new Set(ex.rules ?? []);
 
   const ad = override.add ?? {};
 
@@ -84,6 +90,7 @@ export function applyBundleOverride(resolved, override) {
     agents: dedupe([...resolved.agents.filter(a => !exAgents.has(a)), ...(ad.agents ?? [])]),
     skills: dedupe([...resolved.skills.filter(s => !exSkills.has(s)), ...(ad.skills ?? [])]),
     mcp:    dedupe([...resolved.mcp.filter(m => !exMcp.has(m)),       ...(ad.mcp ?? [])]),
+    rules:  dedupe([...(resolved.rules ?? []).filter(r => !exRules.has(r)), ...(ad.rules ?? [])]),
   };
 }
 
@@ -100,6 +107,7 @@ export function resolveBundles(bundles, names, overrides = {}) {
   let allAgents = [];
   let allSkills = [];
   let allMcp = [];
+  let allRules = [];
   let anyEphemeral = false;
 
   for (const name of names) {
@@ -108,6 +116,7 @@ export function resolveBundles(bundles, names, overrides = {}) {
     allAgents = [...allAgents, ...resolved.agents];
     allSkills = [...allSkills, ...resolved.skills];
     allMcp = [...allMcp, ...resolved.mcp];
+    allRules = [...allRules, ...resolved.rules];
     if (resolved.ephemeral) anyEphemeral = true;
   }
 
@@ -115,6 +124,7 @@ export function resolveBundles(bundles, names, overrides = {}) {
     agents: dedupe(allAgents),
     skills: dedupe(allSkills),
     mcp: dedupe(allMcp),
+    rules: dedupe(allRules),
     ephemeral: anyEphemeral,
     description: '',
   };

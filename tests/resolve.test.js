@@ -8,9 +8,9 @@ import { resolveDesired, resolveMcp } from '../src/core/resolve.js';
 
 // Inline bundle definitions used across tests (no dependency on bundles.json)
 const BUNDLES = {
-  global:      { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'] },
-  'java-proj': { agents: [],          skills: ['coding-standards'] },
-  'research':  { agents: [],          skills: [], mcp: ['exa-web-search'] },
+  global:      { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'], rules: [] },
+  'java-proj': { agents: [],          skills: ['coding-standards'], rules: ['java'] },
+  'research':  { agents: [],          skills: [], mcp: ['exa-web-search'], rules: [] },
 };
 
 // Minimal config helper
@@ -473,6 +473,103 @@ test('resolveMcp: bundleOverrides excludes MCP from bundle', () => {
     const result = resolveMcp(config, BUNDLES, inv.mcpServers);
 
     assert.ok(!result.some(s => s.name === 'context7'), 'context7 should be excluded by bundleOverrides');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// resolveDesired: auto-installs common base rule
+// ---------------------------------------------------------------------------
+test('resolveDesired: auto-installs common base rule', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig();
+
+    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
+
+    const commonRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/common');
+    assert.ok(commonRule, 'common rule dir should be auto-installed');
+    assert.equal(commonRule.ownedBy, 'global');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// resolveDesired: rulesLanguage zh installs zh instead of common
+// ---------------------------------------------------------------------------
+test('resolveDesired: rulesLanguage zh installs zh instead of common', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig();
+    config.rulesLanguage = 'zh';
+
+    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
+
+    const zhRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/zh');
+    assert.ok(zhRule, 'zh rule dir should be installed when rulesLanguage is zh');
+
+    const commonRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/common');
+    assert.equal(commonRule, undefined, 'common rule dir should not be installed when rulesLanguage is zh');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// resolveDesired: bundle rules auto-installed
+// ---------------------------------------------------------------------------
+test('resolveDesired: bundle rules auto-installed', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig({
+      globalOverrides: {
+        bundles: ['global', 'java-proj'],
+      },
+    });
+
+    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
+
+    const javaRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/java');
+    assert.ok(javaRule, 'java rule dir should be installed from java-proj bundle');
+    assert.equal(javaRule.ownedBy, 'global');
+  } finally {
+    tmp.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// resolveDesired: extras.rulesLanguages merged with bundle rules
+// ---------------------------------------------------------------------------
+test('resolveDesired: extras.rulesLanguages merged with bundle rules', () => {
+  const tmp = makeTmpEnv();
+  try {
+    const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+    const inv = scanEcc(eccRoot);
+
+    const config = makeConfig({
+      globalOverrides: {
+        extras: { agents: [], skills: [], rulesLanguages: ['web'] },
+      },
+    });
+
+    const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
+
+    const commonRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/common');
+    assert.ok(commonRule, 'common base rule should be present');
+
+    const webRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/web');
+    assert.ok(webRule, 'web rule from extras.rulesLanguages should be present');
   } finally {
     tmp.cleanup();
   }

@@ -3,6 +3,7 @@ import { readJson } from '../util/json.js';
 
 export const DEFAULT_CONFIG = {
   eccPath: null,
+  rulesLanguage: 'en',
   global: {
     bundles: ['global'],
     extras: { agents: [], skills: [], rulesLanguages: [], commands: [], contexts: [], mcp: [] },
@@ -50,6 +51,11 @@ export function validateConfig(cfg) {
 
   if (!Array.isArray(cfg.projects)) {
     throw new Error('projects must be an array');
+  }
+
+  const rl = cfg.rulesLanguage;
+  if (rl !== undefined && rl !== 'en' && rl !== 'zh') {
+    throw new Error(`rulesLanguage must be "en" or "zh"; got: ${JSON.stringify(rl)}`);
   }
 
   for (const project of cfg.projects) {

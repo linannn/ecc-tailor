@@ -24,12 +24,14 @@
       "springboot-patterns", "springboot-tdd", "springboot-verification",
       "java-coding-standards", "jpa-patterns", "springboot-security",
       "api-design"
-    ]
+    ],
+    "rules": ["java"]
   },
   "py-proj": {
     "description": "Python project",
     "agents": ["python-reviewer"],
-    "skills": ["python-patterns", "python-testing"]
+    "skills": ["python-patterns", "python-testing"],
+    "rules": ["python"]
   },
   "py-django-proj": {
     "description": "Python + Django project",
@@ -45,13 +47,15 @@
   "ts-backend-proj": {
     "description": "TypeScript/JS backend",
     "agents": ["typescript-reviewer", "build-error-resolver"],
-    "skills": ["backend-patterns", "api-design", "bun-runtime"]
+    "skills": ["backend-patterns", "api-design", "bun-runtime"],
+    "rules": ["typescript"]
   },
   "ts-frontend-proj": {
     "description": "TypeScript/JS frontend",
     "agents": ["typescript-reviewer", "build-error-resolver", "e2e-runner"],
     "skills": ["frontend-patterns", "frontend-design", "e2e-testing", "nextjs-turbopack", "design-system", "click-path-audit", "browser-qa"],
-    "mcp": ["magic", "playwright"]
+    "mcp": ["magic", "playwright"],
+    "rules": ["typescript", "web"]
   },
   "ts-nestjs-proj": {
     "description": "NestJS project",
@@ -66,12 +70,14 @@
   "go-proj": {
     "description": "Go project",
     "agents": ["go-reviewer", "go-build-resolver"],
-    "skills": ["golang-patterns", "golang-testing", "api-design"]
+    "skills": ["golang-patterns", "golang-testing", "api-design"],
+    "rules": ["golang"]
   },
   "rust-proj": {
     "description": "Rust project",
     "agents": ["rust-reviewer", "rust-build-resolver"],
-    "skills": ["rust-patterns", "rust-testing"]
+    "skills": ["rust-patterns", "rust-testing"],
+    "rules": ["rust"]
   },
   "kotlin-proj": {
     "description": "Kotlin / Android / KMP",
@@ -80,17 +86,20 @@
       "kotlin-patterns", "kotlin-testing", "kotlin-coroutines-flows",
       "kotlin-exposed-patterns", "kotlin-ktor-patterns",
       "android-clean-architecture", "compose-multiplatform-patterns"
-    ]
+    ],
+    "rules": ["kotlin"]
   },
   "cpp-proj": {
     "description": "C++ project",
     "agents": ["cpp-reviewer", "cpp-build-resolver"],
-    "skills": ["cpp-coding-standards", "cpp-testing"]
+    "skills": ["cpp-coding-standards", "cpp-testing"],
+    "rules": ["cpp"]
   },
   "csharp-proj": {
     "description": "C# / .NET project",
     "agents": ["csharp-reviewer"],
-    "skills": ["dotnet-patterns", "csharp-testing"]
+    "skills": ["dotnet-patterns", "csharp-testing"],
+    "rules": ["csharp"]
   },
   "swift-proj": {
     "description": "Swift / iOS / macOS",
@@ -99,12 +108,14 @@
       "swiftui-patterns", "swift-concurrency-6-2",
       "swift-actor-persistence", "swift-protocol-di-testing",
       "liquid-glass-design", "foundation-models-on-device"
-    ]
+    ],
+    "rules": ["swift"]
   },
   "dart-flutter-proj": {
     "description": "Dart / Flutter",
     "agents": ["dart-build-resolver", "flutter-reviewer"],
-    "skills": ["dart-flutter-patterns", "flutter-dart-code-review"]
+    "skills": ["dart-flutter-patterns", "flutter-dart-code-review"],
+    "rules": ["dart"]
   },
   "laravel-proj": {
     "description": "Laravel / PHP",
@@ -113,12 +124,14 @@
       "laravel-patterns", "laravel-tdd", "laravel-verification",
       "laravel-security", "laravel-plugin-discovery"
     ],
-    "mcp": ["laraplugins"]
+    "mcp": ["laraplugins"],
+    "rules": ["php"]
   },
   "perl-proj": {
     "description": "Perl project",
     "agents": [],
-    "skills": ["perl-patterns", "perl-testing", "perl-security"]
+    "skills": ["perl-patterns", "perl-testing", "perl-security"],
+    "rules": ["perl"]
   },
   "ai-app-dev": {
     "description": "Claude API / MCP server / Claude Code extensibility",

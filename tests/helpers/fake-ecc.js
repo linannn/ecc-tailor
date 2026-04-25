@@ -69,6 +69,21 @@ export function makeFakeEcc(root) {
   mkdirSync(rulesDir, { recursive: true });
   writeFileSync(join(rulesDir, 'style.md'), '# Style\n', 'utf8');
 
+  // rules/java/coding-style.md
+  const javaRulesDir = join(root, 'rules', 'java');
+  mkdirSync(javaRulesDir, { recursive: true });
+  writeFileSync(join(javaRulesDir, 'coding-style.md'), '---\npaths:\n  - "**/*.java"\n---\n# Java Style\n', 'utf8');
+
+  // rules/zh/style.md
+  const zhRulesDir = join(root, 'rules', 'zh');
+  mkdirSync(zhRulesDir, { recursive: true });
+  writeFileSync(join(zhRulesDir, 'style.md'), '# Style ZH\n', 'utf8');
+
+  // rules/web/style.md
+  const webRulesDir = join(root, 'rules', 'web');
+  mkdirSync(webRulesDir, { recursive: true });
+  writeFileSync(join(webRulesDir, 'style.md'), '# Web Style\n', 'utf8');
+
   // hooks/hooks.json
   const hooksDir = join(root, 'hooks');
   mkdirSync(hooksDir, { recursive: true });
