@@ -91,16 +91,20 @@ export async function removeLayerCmd(args) {
 
   // For --global and --all: remove hooks and slash command
   if (mode === 'global' || mode === 'all') {
-    await removeEccTailorHooks({ settingsFile: paths.claudeSettings() });
+    const { removed: hooksRemoved } = await removeEccTailorHooks({ settingsFile: paths.claudeSettings() });
     state.hooks = {
       installed: false,
       settingsBackup: null,
       addedEntries: {},
       markerId: 'ecc-tailor',
     };
+    if (hooksRemoved > 0) {
+      log.ok(`removed ${hooksRemoved} hook entries from settings.json`);
+    }
 
     try {
       await unlink(paths.claudeCommand('ecc-tailor'));
+      log.ok('removed /ecc-tailor slash command');
     } catch (err) {
       if (err.code !== 'ENOENT') throw err;
     }

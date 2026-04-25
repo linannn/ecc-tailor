@@ -44,7 +44,8 @@ export function detectClaudeMem(claudeJsonPath, pluginsPath) {
 
 /**
  * Resolve claudeMemCompat: if already boolean, return as-is.
- * If null (undecided), auto-detect + optionally prompt, then persist.
+ * If null (undecided), auto-detect + optionally prompt.
+ * Does NOT persist to config — caller must save after apply succeeds.
  */
 async function resolveClaudeMemCompat(config, { dryRun }) {
   const current = config.hooks.claudeMemCompat;
@@ -62,12 +63,18 @@ async function resolveClaudeMemCompat(config, { dryRun }) {
     try {
       if (detected) {
         const answer = await new Promise(resolve =>
-          rl.question('Detected claude-mem plugin. Disable 8 ECC hooks that overlap with it? (Y/n) ', resolve),
+          rl.question(
+            'claude-mem detected → disable 8 overlapping ECC hooks? [Y/n] ',
+            resolve,
+          ),
         );
         choice = answer.trim().toLowerCase() !== 'n';
       } else {
         const answer = await new Promise(resolve =>
-          rl.question('claude-mem not detected. Enable ECC built-in session/memory hooks? (Y/n) ', resolve),
+          rl.question(
+            'claude-mem not found → use ECC built-in session/memory hooks? [Y/n] ',
+            resolve,
+          ),
         );
         choice = answer.trim().toLowerCase() === 'n';
       }
@@ -76,12 +83,7 @@ async function resolveClaudeMemCompat(config, { dryRun }) {
     }
   }
 
-  if (!dryRun) {
-    config.hooks.claudeMemCompat = choice;
-    writeJsonAtomic(paths.configFile(), config);
-    log.ok(`Saved hooks.claudeMemCompat = ${choice}`);
-  }
-
+  config.hooks.claudeMemCompat = choice;
   return choice;
 }
 
@@ -254,8 +256,9 @@ export async function applyCmd(args) {
   state.eccRef    = getEccRef(eccRoot);
   state.lastApply = new Date().toISOString();
 
-  // 13. Save state
+  // 13. Save state + persist config (claudeMemCompat may have changed from null)
   saveState(state);
+  if (!dryRun) writeJsonAtomic(paths.configFile(), config);
 
   // 13b. Passive upgrade notification (best-effort, non-blocking)
   try { await checkForUpdates(eccRoot, state); saveState(state); } catch { /* best-effort */ }
