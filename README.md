@@ -51,7 +51,7 @@ Without a config file, ecc-tailor uses these defaults: global bundle, standard h
 
 ## Bundles
 
-33 bundles covering 47 agents and 166 skills. A project can combine multiple bundles:
+33 bundles covering 48 agents and 148 skills. A project can combine multiple bundles:
 
 ```json
 { "path": "/path/to/fullstack-app", "bundles": ["ts-backend-proj", "ts-frontend-proj", "database"] }
@@ -61,16 +61,16 @@ Without a config file, ecc-tailor uses these defaults: global bundle, standard h
 
 | Bundle | Agents | Skills | Use case |
 |---|---|---|---|
-| `global` | 15 | 8 | Stack-agnostic basics (planner, architect, tdd, etc.) |
-| `java-proj` | 2 | 6 | Spring Boot projects |
+| `global` | 15 | 9 | Stack-agnostic basics (planner, architect, tdd, etc.) |
+| `java-proj` | 2 | 7 | Spring Boot projects |
 | `py-proj` | 1 | 2 | Python projects |
 | `py-django-proj` | extends py-proj | +4 | Django projects |
 | `py-ml-proj` | extends py-proj +1 | +1 | PyTorch / deep learning |
-| `ts-backend-proj` | 2 | 1 | Node/Express/Fastify backends |
-| `ts-frontend-proj` | 3 | 4 | React/Next/Vue frontends |
+| `ts-backend-proj` | 2 | 3 | Node/Express/Fastify backends |
+| `ts-frontend-proj` | 3 | 7 | React/Next/Vue frontends |
 | `ts-nestjs-proj` | extends ts-backend | +1 | NestJS projects |
 | `nuxt-proj` | extends ts-frontend | +1 | Nuxt projects |
-| `go-proj` | 2 | 2 | Go projects |
+| `go-proj` | 2 | 3 | Go projects |
 | `rust-proj` | 2 | 2 | Rust projects |
 | `kotlin-proj` | 2 | 7 | Kotlin / Android / KMP |
 | `cpp-proj` | 2 | 2 | C++ projects |
@@ -84,16 +84,16 @@ Without a config file, ecc-tailor uses these defaults: global bundle, standard h
 
 | Bundle | Agents | Skills | Use case |
 |---|---|---|---|
-| `ai-app-dev` | 0 | 3 | Claude API / MCP server development |
+| `ai-app-dev` | 0 | 5 | Claude API / MCP server / Claude Code extensibility |
 | `security` | 1 | 3 | Security review + scanning |
 | `database` | 1 | 3 | Database design, migrations, optimization |
-| `devops` | 0 | 3 | Docker, deployment, benchmarking |
+| `devops` | 0 | 4 | Docker, deployment, benchmarking |
 | `healthcare` | 1 | 5 | Medical / HIPAA / clinical systems |
 | `opensource` | 3 | 1 | Fork, sanitize, package for public release |
 | `a11y` | 1 | 1 | Accessibility / WCAG compliance |
 | `seo` | 1 | 1 | SEO audits and optimization |
 | `gan-harness` | 3 | 1 | GAN multi-agent adversarial generation |
-| `agent-dev` | 2 | 14 | AI agent development and orchestration |
+| `agent-dev` | 2 | 15 | AI agent development and orchestration |
 | `research` | 0 | 4 | Deep research, web search, market analysis |
 | `content` | 0 | 13 | Writing, video, social media, presentations |
 | `ops` | 2 | 12 | Email, Jira, GitHub, Slack workflow automation |

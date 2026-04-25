@@ -51,7 +51,7 @@ ecc-tailor apply
 
 ## Bundle 列表
 
-共 33 个 bundle，覆盖 47 个 agent 和 166 个 skill。一个项目可以组合多个 bundle：
+共 33 个 bundle，覆盖 48 个 agent 和 148 个 skill。一个项目可以组合多个 bundle：
 
 ```json
 { "path": "/path/to/fullstack-app", "bundles": ["ts-backend-proj", "ts-frontend-proj", "database"] }
@@ -61,16 +61,16 @@ ecc-tailor apply
 
 | Bundle | Agents | Skills | 适用场景 |
 |---|---|---|---|
-| `global` | 15 | 8 | 栈无关基础（planner、architect、tdd 等） |
-| `java-proj` | 2 | 6 | Spring Boot 项目 |
+| `global` | 15 | 9 | 栈无关基础（planner、architect、tdd 等） |
+| `java-proj` | 2 | 7 | Spring Boot 项目 |
 | `py-proj` | 1 | 2 | Python 项目 |
 | `py-django-proj` | 继承 py-proj | +4 | Django 项目 |
 | `py-ml-proj` | 继承 py-proj +1 | +1 | PyTorch / 深度学习 |
-| `ts-backend-proj` | 2 | 1 | Node/Express/Fastify 后端 |
-| `ts-frontend-proj` | 3 | 4 | React/Next/Vue 前端 |
+| `ts-backend-proj` | 2 | 3 | Node/Express/Fastify 后端 |
+| `ts-frontend-proj` | 3 | 7 | React/Next/Vue 前端 |
 | `ts-nestjs-proj` | 继承 ts-backend | +1 | NestJS 项目 |
 | `nuxt-proj` | 继承 ts-frontend | +1 | Nuxt 项目 |
-| `go-proj` | 2 | 2 | Go 项目 |
+| `go-proj` | 2 | 3 | Go 项目 |
 | `rust-proj` | 2 | 2 | Rust 项目 |
 | `kotlin-proj` | 2 | 7 | Kotlin / Android / KMP |
 | `cpp-proj` | 2 | 2 | C++ 项目 |
@@ -84,16 +84,16 @@ ecc-tailor apply
 
 | Bundle | Agents | Skills | 适用场景 |
 |---|---|---|---|
-| `ai-app-dev` | 0 | 3 | Claude API / MCP server 开发 |
+| `ai-app-dev` | 0 | 5 | Claude API / MCP server / Claude Code 扩展 |
 | `security` | 1 | 3 | 安全审查 + 漏洞扫描 |
 | `database` | 1 | 3 | 数据库设计、迁移、优化 |
-| `devops` | 0 | 3 | Docker、部署、基准测试 |
+| `devops` | 0 | 4 | Docker、部署、基准测试 |
 | `healthcare` | 1 | 5 | 医疗 / HIPAA / 临床系统 |
 | `opensource` | 3 | 1 | Fork、脱敏、打包开源发布 |
 | `a11y` | 1 | 1 | 无障碍 / WCAG 合规 |
 | `seo` | 1 | 1 | SEO 审计与优化 |
 | `gan-harness` | 3 | 1 | GAN 多 agent 对抗生成 |
-| `agent-dev` | 2 | 14 | AI agent 开发与编排 |
+| `agent-dev` | 2 | 15 | AI agent 开发与编排 |
 | `research` | 0 | 4 | 深度调研、网络搜索、市场分析 |
 | `content` | 0 | 13 | 写作、视频、社交媒体、演示文稿 |
 | `ops` | 2 | 12 | 邮件、Jira、GitHub、Slack 工作流自动化 |

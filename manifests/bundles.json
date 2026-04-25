@@ -9,10 +9,11 @@
       "doc-updater", "docs-lookup", "refactor-cleaner"
     ],
     "skills": [
-      "coding-standards", "api-design",
+      "coding-standards",
       "tdd-workflow", "verification-loop",
       "strategic-compact",
-      "git-workflow", "gateguard", "architecture-decision-records"
+      "git-workflow", "gateguard", "architecture-decision-records",
+      "search-first", "documentation-lookup"
     ],
     "mcp": ["context7"]
   },
@@ -21,7 +22,8 @@
     "agents": ["java-reviewer", "java-build-resolver"],
     "skills": [
       "springboot-patterns", "springboot-tdd", "springboot-verification",
-      "java-coding-standards", "jpa-patterns", "springboot-security"
+      "java-coding-standards", "jpa-patterns", "springboot-security",
+      "api-design"
     ]
   },
   "py-proj": {
@@ -43,12 +45,12 @@
   "ts-backend-proj": {
     "description": "TypeScript/JS backend",
     "agents": ["typescript-reviewer", "build-error-resolver"],
-    "skills": ["backend-patterns", "api-design"]
+    "skills": ["backend-patterns", "api-design", "bun-runtime"]
   },
   "ts-frontend-proj": {
     "description": "TypeScript/JS frontend",
     "agents": ["typescript-reviewer", "build-error-resolver", "e2e-runner"],
-    "skills": ["frontend-patterns", "frontend-design", "e2e-testing", "nextjs-turbopack"],
+    "skills": ["frontend-patterns", "frontend-design", "e2e-testing", "nextjs-turbopack", "design-system", "click-path-audit", "browser-qa"],
     "mcp": ["magic", "playwright"]
   },
   "ts-nestjs-proj": {
@@ -64,7 +66,7 @@
   "go-proj": {
     "description": "Go project",
     "agents": ["go-reviewer", "go-build-resolver"],
-    "skills": ["golang-patterns", "golang-testing"]
+    "skills": ["golang-patterns", "golang-testing", "api-design"]
   },
   "rust-proj": {
     "description": "Rust project",
@@ -119,9 +121,9 @@
     "skills": ["perl-patterns", "perl-testing", "perl-security"]
   },
   "ai-app-dev": {
-    "description": "Claude API / MCP server development",
+    "description": "Claude API / MCP server / Claude Code extensibility",
     "agents": [],
-    "skills": ["claude-api", "mcp-server-patterns", "cost-aware-llm-pipeline"]
+    "skills": ["claude-api", "mcp-server-patterns", "cost-aware-llm-pipeline", "continuous-learning-v2", "hookify-rules"]
   },
   "security": {
     "description": "Security hardening",
@@ -137,7 +139,7 @@
   "devops": {
     "description": "Deployment and infrastructure",
     "agents": [],
-    "skills": ["docker-patterns", "deployment-patterns", "benchmark"],
+    "skills": ["docker-patterns", "deployment-patterns", "benchmark", "canary-watch"],
     "mcp": ["vercel", "railway", "cloudflare-docs", "cloudflare-workers-builds", "cloudflare-workers-bindings", "cloudflare-observability"]
   },
   "healthcare": {
@@ -178,7 +180,8 @@
       "agent-introspection-debugging", "eval-harness",
       "enterprise-agent-ops", "dmux-workflows",
       "santa-method", "council", "team-builder",
-      "ralphinho-rfc-pipeline", "safety-guard"
+      "ralphinho-rfc-pipeline", "safety-guard",
+      "blueprint"
     ],
     "mcp": ["memory", "omega-memory", "sequential-thinking", "devfleet", "evalview"]
   },
