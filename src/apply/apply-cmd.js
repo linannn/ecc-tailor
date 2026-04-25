@@ -1,4 +1,5 @@
 import { readFile, copyFile, mkdir } from 'node:fs/promises';
+import { createInterface } from 'node:readline';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadConfig } from '../core/config.js';
@@ -9,6 +10,7 @@ import { scanEcc } from '../core/fs-scan.js';
 import { resolveDesired, resolveMcp } from '../core/resolve.js';
 import { planApply, executeApply } from './apply.js';
 import { paths } from '../core/paths.js';
+import { readJson, writeJsonAtomic } from '../util/json.js';
 import {
   writeHookWrapper, effectiveDisabled,
   rewriteEccHooksJson, mergeHooksIntoSettings,
@@ -17,6 +19,60 @@ import { mergeMcpServers } from '../mcp/index.js';
 import { checkForUpdates } from '../core/upgrade-notify.js';
 import { buildProvenance } from './provenance.js';
 import log from '../core/logger.js';
+
+/**
+ * Detect whether claude-mem is installed by checking ~/.claude.json mcpServers.
+ */
+export function detectClaudeMem(claudeJsonPath) {
+  const claudeJson = readJson(claudeJsonPath);
+  if (!claudeJson?.mcpServers) return false;
+  return Object.keys(claudeJson.mcpServers).some(
+    key => key.includes('claude-mem') || key.includes('mcp-search'),
+  );
+}
+
+/**
+ * Resolve claudeMemCompat: if already boolean, return as-is.
+ * If null (undecided), auto-detect + optionally prompt, then persist.
+ */
+async function resolveClaudeMemCompat(config, { dryRun }) {
+  const current = config.hooks.claudeMemCompat;
+  if (current === true || current === false) return current;
+
+  const detected = detectClaudeMem(paths.claudeJson());
+  const interactive = !dryRun && process.stdin.isTTY;
+
+  let choice;
+  if (!interactive) {
+    choice = detected;
+    log.dim(`claudeMemCompat: auto-set to ${choice} (claude-mem ${detected ? 'detected' : 'not detected'})`);
+  } else {
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    try {
+      if (detected) {
+        const answer = await new Promise(resolve =>
+          rl.question('Detected claude-mem plugin. Disable 8 ECC hooks that overlap with it? (Y/n) ', resolve),
+        );
+        choice = answer.trim().toLowerCase() !== 'n';
+      } else {
+        const answer = await new Promise(resolve =>
+          rl.question('claude-mem not detected. Enable ECC built-in session/memory hooks? (Y/n) ', resolve),
+        );
+        choice = answer.trim().toLowerCase() === 'n';
+      }
+    } finally {
+      rl.close();
+    }
+  }
+
+  if (!dryRun) {
+    config.hooks.claudeMemCompat = choice;
+    writeJsonAtomic(paths.configFile(), config);
+    log.ok(`Saved hooks.claudeMemCompat = ${choice}`);
+  }
+
+  return choice;
+}
 
 /**
  * End-to-end apply flow.
@@ -80,9 +136,12 @@ export async function applyCmd(args) {
 
   // 10. Hook integration (only when hooks.install is enabled)
   if (config.hooks?.install) {
-    const { claudeMemCompat, disabled = [], profile = 'standard' } = config.hooks;
+    const { disabled = [], profile = 'standard' } = config.hooks;
 
-    // 10a. Compute effective disabled list
+    // 10a. Resolve claudeMemCompat (may prompt on first run)
+    const claudeMemCompat = await resolveClaudeMemCompat(config, { dryRun });
+
+    // 10b. Compute effective disabled list
     const effectiveDisabledList = effectiveDisabled({ claudeMemCompat, disabled });
 
     // 10b. Write hook wrapper script

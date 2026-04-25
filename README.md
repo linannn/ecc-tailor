@@ -252,7 +252,7 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
   "hooks": {
     "install": true,
     "profile": "standard",
-    "claudeMemCompat": true,
+    "claudeMemCompat": null,
     "disabled": []
   },
   "mcp": {
@@ -275,7 +275,7 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
 | `bundleOverrides.*.exclude` | Items to remove from bundle resolution |
 | `bundleOverrides.*.add` | Items to add after bundle resolution |
 | `hooks.profile` | `minimal` / `standard` / `strict` |
-| `hooks.claudeMemCompat` | Auto-disable 8 hooks that overlap with claude-mem plugin |
+| `hooks.claudeMemCompat` | `null` (auto-detect on first apply) / `true` / `false` — disable 8 hooks that overlap with claude-mem |
 | `hooks.disabled` | Additional manually disabled hook IDs |
 | `mcp.install` | Enable/disable MCP server management (default: true) |
 
@@ -292,7 +292,7 @@ rm -rf ~/.local/share/ecc-tailor     # Remove ECC clone + wrappers
 ## Development
 
 ```bash
-npm test                             # Unit + integration tests (141)
+npm test                             # Unit + integration tests (155)
 ECC_PATH=/path/to/ecc npm test       # + real ECC verification (10 E2E tests)
 ```
 

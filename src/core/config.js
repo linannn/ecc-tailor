@@ -11,7 +11,7 @@ export const DEFAULT_CONFIG = {
   },
   bundleOverrides: {},
   projects: [],
-  hooks: { install: true, profile: 'standard', claudeMemCompat: true, disabled: [] },
+  hooks: { install: true, profile: 'standard', claudeMemCompat: null, disabled: [] },
   mcp: { install: true },
 };
 
@@ -75,6 +75,13 @@ export function validateConfig(cfg) {
   if (profile !== undefined && !VALID_PROFILES.includes(profile)) {
     throw new Error(
       `hooks.profile must be one of ${VALID_PROFILES.join('/')}; got: ${JSON.stringify(profile)}`,
+    );
+  }
+
+  const compat = cfg.hooks?.claudeMemCompat;
+  if (compat !== undefined && compat !== null && compat !== true && compat !== false) {
+    throw new Error(
+      `hooks.claudeMemCompat must be true, false, or null; got: ${JSON.stringify(compat)}`,
     );
   }
 

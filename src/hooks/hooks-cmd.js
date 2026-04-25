@@ -68,7 +68,7 @@ function cmdStatus() {
 
   log.h1('Hooks status');
   log.info(`  profile:         ${h.profile}`);
-  log.info(`  claudeMemCompat: ${h.claudeMemCompat}`);
+  log.info(`  claudeMemCompat: ${h.claudeMemCompat ?? '(auto — not yet decided)'}`);
   log.info(`  disabled:        ${h.disabled.length ? h.disabled.join(', ') : '(none)'}`);
   log.info(`  effective disabled: ${eff.length ? eff.join(', ') : '(none)'}`);
 }

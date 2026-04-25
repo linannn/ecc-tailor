@@ -40,6 +40,14 @@ test('effectiveDisabled: deduplicates ids present in both compat and user list',
 });
 
 // ---------------------------------------------------------------------------
+// effectiveDisabled: claudeMemCompat null (undecided) → same as false
+// ---------------------------------------------------------------------------
+test('effectiveDisabled: claudeMemCompat null returns only user list', () => {
+  const result = effectiveDisabled({ claudeMemCompat: null, disabled: ['my-hook'] });
+  assert.deepEqual(result, ['my-hook']);
+});
+
+// ---------------------------------------------------------------------------
 // writeHookWrapper: writes executable bash with embedded values
 // ---------------------------------------------------------------------------
 test('writeHookWrapper: writes executable bash script with correct embedded values', () => {

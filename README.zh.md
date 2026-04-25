@@ -252,7 +252,7 @@ ecc-tailor deps                                  # 生成 docs/DEPENDENCIES.{md,
   "hooks": {
     "install": true,
     "profile": "standard",
-    "claudeMemCompat": true,
+    "claudeMemCompat": null,
     "disabled": []
   },
   "mcp": {
@@ -275,7 +275,7 @@ ecc-tailor deps                                  # 生成 docs/DEPENDENCIES.{md,
 | `bundleOverrides.*.exclude` | 从 bundle 解析结果中移除的项 |
 | `bundleOverrides.*.add` | bundle 解析后追加的项 |
 | `hooks.profile` | `minimal` / `standard` / `strict` |
-| `hooks.claudeMemCompat` | 自动禁用 8 条和 claude-mem 功能重叠的 hook |
+| `hooks.claudeMemCompat` | `null`（首次 apply 自动检测）/ `true` / `false` — 禁用 8 条和 claude-mem 功能重叠的 hook |
 | `hooks.disabled` | 额外手动禁用的 hook ID |
 | `mcp.install` | 是否启用 MCP server 管理（默认 true） |
 
@@ -292,7 +292,7 @@ rm -rf ~/.local/share/ecc-tailor     # 删除 ECC clone + wrapper
 ## 开发
 
 ```bash
-npm test                             # 单元 + 集成测试（141 个）
+npm test                             # 单元 + 集成测试（155 个）
 ECC_PATH=/path/to/ecc npm test       # + 真实 ECC 验证（10 个 E2E 测试）
 ```
 

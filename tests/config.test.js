@@ -16,7 +16,7 @@ test('loadConfig: missing file returns defaults', () => {
     assert.equal(cfg.eccPath, null);
     assert.deepEqual(cfg.global.bundles, ['core']);
     assert.equal(cfg.hooks.install, true);
-    assert.equal(cfg.hooks.claudeMemCompat, true);
+    assert.equal(cfg.hooks.claudeMemCompat, null);
   } finally {
     tmp.cleanup();
   }
@@ -141,6 +141,29 @@ test('validateConfig: accepts valid rulesLanguage zh', () => {
 test('validateConfig: rejects invalid rulesLanguage', () => {
   const cfg = { ...structuredClone(DEFAULT_CONFIG), rulesLanguage: 'fr' };
   assert.throws(() => validateConfig(cfg), /rulesLanguage/);
+});
+
+// ---------------------------------------------------------------------------
+// validateConfig: claudeMemCompat validation
+// ---------------------------------------------------------------------------
+test('validateConfig: accepts null claudeMemCompat', () => {
+  const cfg = structuredClone(DEFAULT_CONFIG);
+  cfg.hooks.claudeMemCompat = null;
+  assert.doesNotThrow(() => validateConfig(cfg));
+});
+
+test('validateConfig: accepts boolean claudeMemCompat', () => {
+  const cfg = structuredClone(DEFAULT_CONFIG);
+  cfg.hooks.claudeMemCompat = true;
+  assert.doesNotThrow(() => validateConfig(cfg));
+  cfg.hooks.claudeMemCompat = false;
+  assert.doesNotThrow(() => validateConfig(cfg));
+});
+
+test('validateConfig: rejects string claudeMemCompat', () => {
+  const cfg = structuredClone(DEFAULT_CONFIG);
+  cfg.hooks.claudeMemCompat = 'auto';
+  assert.throws(() => validateConfig(cfg), /claudeMemCompat/);
 });
 
 // ---------------------------------------------------------------------------

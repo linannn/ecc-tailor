@@ -107,6 +107,30 @@ async function setupFakeEccWithHooks(eccRoot) {
   return eccRoot;
 }
 
+/**
+ * Write config.json with claudeMemCompat: null (auto-detect mode).
+ */
+async function installAutoDetectConfig(env, ecc) {
+  await mkdir(join(env.xdgConfig, 'ecc-tailor'), { recursive: true });
+  await writeFile(
+    join(env.xdgConfig, 'ecc-tailor', 'config.json'),
+    JSON.stringify({
+      eccPath: ecc,
+      global: {
+        bundles: [],
+        extras: { agents: ['planner'], skills: [], rulesLanguages: [] },
+      },
+      projects: [],
+      hooks: {
+        install: true,
+        profile: 'standard',
+        claudeMemCompat: null,
+        disabled: [],
+      },
+    }),
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Test 1: hooks.install=true — wrapper written + hooks merged into settings.json
 // ---------------------------------------------------------------------------
@@ -206,6 +230,55 @@ test('apply: idempotent — applying twice with hooks.install=true leaves exactl
       1,
       `PreToolUse should have exactly 1 entry after two applies, got ${settings.hooks.PreToolUse.length}`,
     );
+  } finally {
+    env.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Test 4: claudeMemCompat=null + no claude-mem → auto-detects false, persists
+// ---------------------------------------------------------------------------
+test('apply: claudeMemCompat null auto-detects false when no claude-mem present', async () => {
+  const env = makeTmpEnv();
+  try {
+    const eccRoot = join(env.root, 'fake-ecc');
+    await setupFakeEccWithHooks(eccRoot);
+    await installAutoDetectConfig(env, eccRoot);
+
+    // No claude-mem in ~/.claude.json (file doesn't exist)
+    const result = runCli(['apply'], env.env());
+    assert.equal(result.status, 0, `CLI exited with ${result.status}:\nstdout: ${result.stdout}\nstderr: ${result.stderr}`);
+
+    // Config should have been persisted with claudeMemCompat = false
+    const savedConfig = JSON.parse(await readFile(join(env.xdgConfig, 'ecc-tailor', 'config.json'), 'utf8'));
+    assert.equal(savedConfig.hooks.claudeMemCompat, false, 'should auto-detect false when no claude-mem');
+  } finally {
+    env.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Test 5: claudeMemCompat=null + claude-mem present → auto-detects true, persists
+// ---------------------------------------------------------------------------
+test('apply: claudeMemCompat null auto-detects true when claude-mem present', async () => {
+  const env = makeTmpEnv();
+  try {
+    const eccRoot = join(env.root, 'fake-ecc');
+    await setupFakeEccWithHooks(eccRoot);
+    await installAutoDetectConfig(env, eccRoot);
+
+    // Write ~/.claude.json with claude-mem MCP server
+    await writeFile(
+      join(env.home, '.claude.json'),
+      JSON.stringify({ mcpServers: { 'plugin_claude-mem_mcp-search': { command: 'node' } } }),
+    );
+
+    const result = runCli(['apply'], env.env());
+    assert.equal(result.status, 0, `CLI exited with ${result.status}:\nstdout: ${result.stdout}\nstderr: ${result.stderr}`);
+
+    // Config should have been persisted with claudeMemCompat = true
+    const savedConfig = JSON.parse(await readFile(join(env.xdgConfig, 'ecc-tailor', 'config.json'), 'utf8'));
+    assert.equal(savedConfig.hooks.claudeMemCompat, true, 'should auto-detect true when claude-mem present');
   } finally {
     env.cleanup();
   }

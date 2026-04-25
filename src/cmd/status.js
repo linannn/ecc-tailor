@@ -58,7 +58,8 @@ export function statusCmd() {
   log.h1('hooks:');
   log.info(`  installed:       ${hooks.installed ? 'yes' : 'no'}`);
   log.info(`  profile:         ${config.hooks?.profile ?? '(default)'}`);
-  log.info(`  claudeMemCompat: ${config.hooks?.claudeMemCompat ? 'yes' : 'no'}`);
+  const compat = config.hooks?.claudeMemCompat;
+  log.info(`  claudeMemCompat: ${compat === null ? '(auto — not yet decided)' : compat ? 'yes' : 'no'}`);
 
   log.info('');
 
