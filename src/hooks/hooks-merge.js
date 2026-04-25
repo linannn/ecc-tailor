@@ -69,10 +69,10 @@ export function rewriteEccHooksJson(eccHooksJson, wrapperPath) {
  *
  * @param {Record<string, Array<object>>} rewrittenEvents
  *   Output of `rewriteEccHooksJson`.
- * @param {{ settingsFile: string }} opts
+ * @param {{ settingsFile: string, eccRoot?: string }} opts
  * @returns {{ backupPath: string, addedCounts: Record<string, number> }}
  */
-export async function mergeHooksIntoSettings(rewrittenEvents, { settingsFile }) {
+export async function mergeHooksIntoSettings(rewrittenEvents, { settingsFile, eccRoot }) {
   // 1. Read existing settings
   const settings = readJson(settingsFile) ?? {};
 
@@ -99,6 +99,13 @@ export async function mergeHooksIntoSettings(rewrittenEvents, { settingsFile }) 
   }
 
   settings.hooks = hooks;
+
+  // 3b. Set CLAUDE_PLUGIN_ROOT so inline-bootstrap hooks find ECC
+  if (eccRoot) {
+    const env = settings.env ?? {};
+    env.CLAUDE_PLUGIN_ROOT = eccRoot;
+    settings.env = env;
+  }
 
   // 4. Write back atomically
   writeJsonAtomic(settingsFile, settings);
@@ -133,6 +140,14 @@ export async function removeEccTailorHooks({ settingsFile }) {
     delete settings.hooks;
   } else {
     settings.hooks = hooks;
+  }
+
+  // Clean up CLAUDE_PLUGIN_ROOT env var
+  if (settings.env?.CLAUDE_PLUGIN_ROOT) {
+    delete settings.env.CLAUDE_PLUGIN_ROOT;
+    if (Object.keys(settings.env).length === 0) {
+      delete settings.env;
+    }
   }
 
   writeJsonAtomic(settingsFile, settings);

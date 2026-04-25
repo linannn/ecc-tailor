@@ -183,6 +183,51 @@ test('mergeHooksIntoSettings: appends ecc-tailor entries without touching user e
 // ---------------------------------------------------------------------------
 // removeEccTailorHooks: strips marker entries, leaves user ones
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// mergeHooksIntoSettings: sets env.CLAUDE_PLUGIN_ROOT when eccRoot provided
+// ---------------------------------------------------------------------------
+test('mergeHooksIntoSettings: sets CLAUDE_PLUGIN_ROOT in env', async () => {
+  const env = makeTmpEnv();
+  try {
+    const settingsFile = join(env.claudeDir, 'settings.json');
+    writeFileSync(settingsFile, '{}', 'utf8');
+
+    await mergeHooksIntoSettings({}, { settingsFile, eccRoot: '/fake/ecc' });
+
+    const result = JSON.parse(readFileSync(settingsFile, 'utf8'));
+    assert.equal(result.env?.CLAUDE_PLUGIN_ROOT, '/fake/ecc', 'should set CLAUDE_PLUGIN_ROOT');
+  } finally {
+    env.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// removeEccTailorHooks: cleans up CLAUDE_PLUGIN_ROOT env var
+// ---------------------------------------------------------------------------
+test('removeEccTailorHooks: removes CLAUDE_PLUGIN_ROOT from env', async () => {
+  const env = makeTmpEnv();
+  try {
+    const settingsFile = join(env.claudeDir, 'settings.json');
+    writeFileSync(settingsFile, JSON.stringify({
+      env: { CLAUDE_PLUGIN_ROOT: '/fake/ecc', OTHER: 'keep' },
+      hooks: {
+        PreToolUse: [{ description: `${MARKER_PREFIX}test`, hooks: [] }],
+      },
+    }), 'utf8');
+
+    await removeEccTailorHooks({ settingsFile });
+
+    const result = JSON.parse(readFileSync(settingsFile, 'utf8'));
+    assert.equal(result.env?.CLAUDE_PLUGIN_ROOT, undefined, 'should remove CLAUDE_PLUGIN_ROOT');
+    assert.equal(result.env?.OTHER, 'keep', 'should preserve other env vars');
+  } finally {
+    env.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// removeEccTailorHooks: strips marker entries, leaves user ones
+// ---------------------------------------------------------------------------
 test('removeEccTailorHooks: removes marker entries and leaves user entries intact', async () => {
   const env = makeTmpEnv();
   try {

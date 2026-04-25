@@ -169,7 +169,7 @@ export async function applyCmd(args) {
 
     // 10e. Merge into settings.json
     const settingsFile = paths.claudeSettings();
-    const { backupPath, addedCounts } = await mergeHooksIntoSettings(rewritten, { settingsFile });
+    const { backupPath, addedCounts } = await mergeHooksIntoSettings(rewritten, { settingsFile, eccRoot });
 
     // 10f. Update state
     state.hooks = {
