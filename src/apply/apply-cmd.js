@@ -21,14 +21,25 @@ import { buildProvenance } from './provenance.js';
 import log from '../core/logger.js';
 
 /**
- * Detect whether claude-mem is installed by checking ~/.claude.json mcpServers.
+ * Detect whether claude-mem is installed by checking:
+ * 1. ~/.claude.json mcpServers (legacy / manual MCP config)
+ * 2. ~/.claude/plugins/installed_plugins.json (plugin system)
  */
-export function detectClaudeMem(claudeJsonPath) {
+export function detectClaudeMem(claudeJsonPath, pluginsPath) {
   const claudeJson = readJson(claudeJsonPath);
-  if (!claudeJson?.mcpServers) return false;
-  return Object.keys(claudeJson.mcpServers).some(
-    key => key.includes('claude-mem') || key.includes('mcp-search'),
-  );
+  if (claudeJson?.mcpServers) {
+    const found = Object.keys(claudeJson.mcpServers).some(
+      key => key.includes('claude-mem') || key.includes('mcp-search'),
+    );
+    if (found) return true;
+  }
+
+  const plugins = readJson(pluginsPath);
+  if (plugins?.plugins) {
+    return Object.keys(plugins.plugins).some(key => key.includes('claude-mem'));
+  }
+
+  return false;
 }
 
 /**
@@ -39,7 +50,7 @@ async function resolveClaudeMemCompat(config, { dryRun }) {
   const current = config.hooks.claudeMemCompat;
   if (current === true || current === false) return current;
 
-  const detected = detectClaudeMem(paths.claudeJson());
+  const detected = detectClaudeMem(paths.claudeJson(), paths.claudePlugins());
   const interactive = !dryRun && process.stdin.isTTY;
 
   let choice;

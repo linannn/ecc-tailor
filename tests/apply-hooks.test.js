@@ -283,3 +283,34 @@ test('apply: claudeMemCompat null auto-detects true when claude-mem present', as
     env.cleanup();
   }
 });
+
+// ---------------------------------------------------------------------------
+// Test 6: claudeMemCompat=null + claude-mem via plugin system → auto-detects true
+// ---------------------------------------------------------------------------
+test('apply: claudeMemCompat null auto-detects true via installed_plugins.json', async () => {
+  const env = makeTmpEnv();
+  try {
+    const eccRoot = join(env.root, 'fake-ecc');
+    await setupFakeEccWithHooks(eccRoot);
+    await installAutoDetectConfig(env, eccRoot);
+
+    // Write installed_plugins.json (plugin system, not mcpServers)
+    const pluginsDir = join(env.home, '.claude', 'plugins');
+    await mkdir(pluginsDir, { recursive: true });
+    await writeFile(
+      join(pluginsDir, 'installed_plugins.json'),
+      JSON.stringify({
+        version: 2,
+        plugins: { 'claude-mem@thedotmack': [{ scope: 'user', version: '12.0.0' }] },
+      }),
+    );
+
+    const result = runCli(['apply'], env.env());
+    assert.equal(result.status, 0, `CLI exited with ${result.status}:\nstdout: ${result.stdout}\nstderr: ${result.stderr}`);
+
+    const savedConfig = JSON.parse(await readFile(join(env.xdgConfig, 'ecc-tailor', 'config.json'), 'utf8'));
+    assert.equal(savedConfig.hooks.claudeMemCompat, true, 'should auto-detect true via plugin system');
+  } finally {
+    env.cleanup();
+  }
+});
