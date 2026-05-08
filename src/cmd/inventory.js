@@ -65,6 +65,19 @@ function renderCheckbox(itemState) {
 }
 
 /**
+ * Render a scope-aware indicator for bundles.
+ *
+ * @param {'global'|'project'|'both'|undefined} scope
+ * @returns {string}
+ */
+function renderBundleScope(scope) {
+  if (scope === 'both')    return `${c.green}[✓]${c.reset}`;
+  if (scope === 'global')  return `${c.green}[G]${c.reset}`;
+  if (scope === 'project') return `${c.green}[P]${c.reset}`;
+  return '[ ]';
+}
+
+/**
  * Format a single inventory item line.
  *
  * @param {{ name: string, description: string }} item
@@ -349,7 +362,7 @@ export async function inventoryCmd(args) {
   }
 
   if (showAll || type === 'bundle') {
-    const selectedBundles = collectSelectedBundles(cfg);
+    const selectedBundles = collectSelectedBundles(cfg, process.cwd());
 
     const bundleItems = Object.entries(bundles).map(([name, def]) => ({
       name,
@@ -369,7 +382,7 @@ export async function inventoryCmd(args) {
 
     log.h1(`BUNDLES (${filtered.length})`);
     for (const item of filtered) {
-      const checkbox = selectedBundles.has(item.name) ? renderCheckbox('selected') : renderCheckbox('unselected');
+      const checkbox = renderBundleScope(selectedBundles.get(item.name));
       const name = item.name.padEnd(32);
       const desc = (item.description || '').slice(0, 70);
       log.info(`${checkbox} ${name} ${desc}`);
@@ -379,16 +392,33 @@ export async function inventoryCmd(args) {
 }
 
 /**
- * Collect all bundle names referenced in config (global + all projects).
+ * Collect bundle names relevant to the current scope.
+ *
+ * @param {object} cfg
+ * @param {string} cwd
+ * @returns {Map<string, 'global'|'project'|'both'>}
  */
-function collectSelectedBundles(cfg) {
-  const set = new Set(cfg.global?.bundles ?? []);
+function collectSelectedBundles(cfg, cwd) {
+  const globalSet = new Set(cfg.global?.bundles ?? []);
+  const projectSet = new Set();
   for (const proj of cfg.projects ?? []) {
-    for (const b of proj.bundles ?? []) {
-      set.add(b);
+    if (proj.path === cwd) {
+      for (const b of proj.bundles ?? []) {
+        projectSet.add(b);
+      }
     }
   }
-  return set;
+
+  const map = new Map();
+  for (const b of globalSet) {
+    map.set(b, projectSet.has(b) ? 'both' : 'global');
+  }
+  for (const b of projectSet) {
+    if (!map.has(b)) {
+      map.set(b, 'project');
+    }
+  }
+  return map;
 }
 
 /**

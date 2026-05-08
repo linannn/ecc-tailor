@@ -49,6 +49,7 @@ Per-bundle listing of all agents and skills with descriptions.
 | skill | java-coding-standards | Java naming, immutability, Optional, streams, exceptions |
 | skill | jpa-patterns | JPA/Hibernate entity design, queries, transactions, indexing |
 | skill | springboot-security | Spring Security authn/authz, CSRF, validation, rate limiting |
+| skill | api-design | REST API design: resource naming, status codes, pagination, versioning |
 
 </details>
 
@@ -93,6 +94,8 @@ Per-bundle listing of all agents and skills with descriptions.
 | agent | typescript-reviewer | Type safety, async correctness, Node/web security review |
 | agent | build-error-resolver | Fix build/type errors with minimal diffs |
 | skill | backend-patterns | Backend arch, API design, DB optimization for Node.js/Express |
+| skill | api-design | REST API design: resource naming, status codes, pagination, versioning |
+| skill | bun-runtime | Bun as runtime, package manager, bundler, and test runner |
 
 </details>
 
@@ -108,6 +111,9 @@ Per-bundle listing of all agents and skills with descriptions.
 | skill | frontend-design | Production-grade frontend with high design quality |
 | skill | e2e-testing | Playwright patterns, Page Object Model, CI/CD, flaky test strategies |
 | skill | nextjs-turbopack | Next.js 16+ Turbopack incremental bundling and configuration |
+| skill | design-system | Design system generation, visual consistency audits, styling PR review |
+| skill | click-path-audit | Trace user-facing buttons through full state change sequence to find bugs |
+| skill | browser-qa | Automated visual testing and UI interaction verification via browser |
 
 </details>
 
@@ -117,6 +123,16 @@ Per-bundle listing of all agents and skills with descriptions.
 | Type | Name | Description |
 |---|---|---|
 | skill | nestjs-patterns | Modules, controllers, providers, DTO validation, guards, interceptors |
+
+</details>
+
+<details>
+<summary><b>ts-tooling-proj</b> — TypeScript/JS CLI tools and scripts (extends core)</summary>
+
+| Type | Name | Description |
+|---|---|---|
+| agent | typescript-reviewer | Type safety, async correctness, Node/web security review |
+| agent | build-error-resolver | Fix build/type errors with minimal diffs |
 
 </details>
 
@@ -138,6 +154,7 @@ Per-bundle listing of all agents and skills with descriptions.
 | agent | go-build-resolver | Fix go build errors, vet issues, linter warnings |
 | skill | golang-patterns | Idiomatic Go patterns and conventions |
 | skill | golang-testing | Table-driven tests, subtests, benchmarks, fuzzing, coverage |
+| skill | api-design | REST API design: resource naming, status codes, pagination, versioning |
 
 </details>
 
@@ -251,6 +268,8 @@ Per-bundle listing of all agents and skills with descriptions.
 | skill | claude-api | Messages API, streaming, tool use, vision, thinking, batches, caching |
 | skill | mcp-server-patterns | Build MCP servers: tools, resources, prompts, Zod, stdio vs HTTP |
 | skill | cost-aware-llm-pipeline | LLM cost optimization: model routing, budget tracking, caching |
+| skill | continuous-learning-v2 | Instinct-based learning: observe sessions, create instincts, evolve into skills |
+| skill | hookify-rules | Create hookify rules, configure syntax and patterns |
 
 </details>
 
@@ -286,6 +305,7 @@ Per-bundle listing of all agents and skills with descriptions.
 | skill | docker-patterns | Docker/Compose: container security, networking, multi-service |
 | skill | deployment-patterns | CI/CD pipelines, health checks, rollback, production readiness |
 | skill | benchmark | Performance baselines, regression detection, stack comparison |
+| skill | canary-watch | Monitor deployed URLs for regressions after deploys and upgrades |
 
 </details>
 
@@ -368,6 +388,7 @@ Per-bundle listing of all agents and skills with descriptions.
 | skill | team-builder | Interactive agent picker for composing parallel teams |
 | skill | ralphinho-rfc-pipeline | RFC-driven multi-agent DAG with quality gates and merge queues |
 | skill | safety-guard | Prevent destructive operations in autonomous agent runs |
+| skill | blueprint | Turn a one-line objective into a step-by-step multi-session construction plan |
 
 </details>
 

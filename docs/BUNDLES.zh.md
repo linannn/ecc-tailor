@@ -49,6 +49,7 @@
 | skill | java-coding-standards | Java 命名、不变性、Optional、流、异常 |
 | skill | jpa-patterns | JPA/Hibernate 实体设计、查询、事务、索引 |
 | skill | springboot-security | Spring Security 认证/授权、CSRF、校验、限流 |
+| skill | api-design | REST API 设计：资源命名、状态码、分页、版本控制 |
 
 </details>
 
@@ -93,6 +94,8 @@
 | agent | typescript-reviewer | 类型安全、异步正确性、Node/Web 安全审查 |
 | agent | build-error-resolver | 最小改动修复构建/类型错误 |
 | skill | backend-patterns | 后端架构、API 设计、数据库优化（Node.js/Express） |
+| skill | api-design | REST API 设计：资源命名、状态码、分页、版本控制 |
+| skill | bun-runtime | Bun 运行时、包管理器、打包器和测试运行器 |
 
 </details>
 
@@ -108,6 +111,9 @@
 | skill | frontend-design | 高设计质量的生产级前端界面 |
 | skill | e2e-testing | Playwright 模式、Page Object Model、CI/CD、flaky test 策略 |
 | skill | nextjs-turbopack | Next.js 16+ Turbopack 增量打包配置 |
+| skill | design-system | 设计系统生成、视觉一致性审计、样式 PR 审查 |
+| skill | click-path-audit | 追踪用户按钮的完整状态变更序列，发现交互 bug |
+| skill | browser-qa | 通过浏览器自动化进行视觉测试与 UI 交互验证 |
 
 </details>
 
@@ -117,6 +123,16 @@
 | 类型 | 名称 | 说明 |
 |---|---|---|
 | skill | nestjs-patterns | 模块、控制器、Provider、DTO 校验、守卫、拦截器 |
+
+</details>
+
+<details>
+<summary><b>ts-tooling-proj</b> — TypeScript/JS CLI 工具与脚本（继承 core）</summary>
+
+| 类型 | 名称 | 说明 |
+|---|---|---|
+| agent | typescript-reviewer | 类型安全、异步正确性、Node/Web 安全审查 |
+| agent | build-error-resolver | 最小改动修复构建/类型错误 |
 
 </details>
 
@@ -138,6 +154,7 @@
 | agent | go-build-resolver | 修复 go build 错误、vet 问题、linter 警告 |
 | skill | golang-patterns | 地道 Go 模式与约定 |
 | skill | golang-testing | 表驱动测试、子测试、基准测试、模糊测试、覆盖率 |
+| skill | api-design | REST API 设计：资源命名、状态码、分页、版本控制 |
 
 </details>
 
@@ -251,6 +268,8 @@
 | skill | claude-api | Messages API、流式、工具调用、视觉、思考、批量、缓存 |
 | skill | mcp-server-patterns | 构建 MCP 服务器：工具、资源、Zod、stdio vs HTTP |
 | skill | cost-aware-llm-pipeline | LLM 成本优化：模型路由、预算追踪、缓存 |
+| skill | continuous-learning-v2 | 基于本能的学习系统：观察会话、创建本能、进化为 skill |
+| skill | hookify-rules | 创建 hookify 规则、配置语法与模式 |
 
 </details>
 
@@ -286,6 +305,7 @@
 | skill | docker-patterns | Docker/Compose：容器安全、网络、多服务编排 |
 | skill | deployment-patterns | CI/CD 流水线、健康检查、回滚、生产就绪检查 |
 | skill | benchmark | 性能基线、回归检测、技术栈对比 |
+| skill | canary-watch | 部署后监控 URL，检测回归问题 |
 
 </details>
 
@@ -368,6 +388,7 @@
 | skill | team-builder | 交互式 agent 选择器，组建并行团队 |
 | skill | ralphinho-rfc-pipeline | RFC 驱动的多 agent DAG，带质量门与合并队列 |
 | skill | safety-guard | 防止自主 agent 运行时的破坏性操作 |
+| skill | blueprint | 将一句话目标转化为多会话分步构建计划 |
 
 </details>
 

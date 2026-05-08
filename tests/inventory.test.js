@@ -109,9 +109,9 @@ test('inventory --detail coding-standards: prints SKILL.md content', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Test 4: inventory --type bundle lists bundles with selection state
+// Test 4: inventory --type bundle lists bundles
 // ---------------------------------------------------------------------------
-test('inventory --type bundle: lists bundles with selected marker for core', () => {
+test('inventory --type bundle: lists available bundles', () => {
   const env = makeTmpEnv();
   try {
     const ecc = makeFakeEcc(join(env.root, 'fake-ecc'));
@@ -125,6 +125,130 @@ test('inventory --type bundle: lists bundles with selected marker for core', () 
     assert.match(combined, /BUNDLES/, 'output should have BUNDLES header');
     assert.match(combined, /core/, 'output should list core bundle');
     assert.match(combined, /java-proj/, 'output should list java-proj bundle');
+  } finally {
+    env.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Test 4b: [G] for global bundles, [ ] for other-project bundles
+// ---------------------------------------------------------------------------
+test('inventory --type bundle: shows [G] for global, [ ] for other-project bundles', () => {
+  const env = makeTmpEnv();
+  try {
+    const ecc = makeFakeEcc(join(env.root, 'fake-ecc'));
+
+    const configDir = join(env.xdgConfig, 'ecc-tailor');
+    mkdirSync(configDir, { recursive: true });
+    writeFileSync(
+      join(configDir, 'config.json'),
+      JSON.stringify({
+        eccPath: ecc,
+        global: {
+          bundles: ['scan'],
+          extras: { agents: [], skills: [], rulesLanguages: [] },
+        },
+        projects: [],
+        hooks: { install: false },
+      }),
+      'utf8',
+    );
+
+    const result = runCli(['inventory', '--type', 'bundle'], env.env());
+
+    assert.equal(result.status, 0, `CLI exited with ${result.status}: ${result.stderr}`);
+
+    const lines = (result.stdout + result.stderr).split('\n');
+    const scanLine = lines.find(l => /\bscan\b/.test(l));
+    const javaLine = lines.find(l => /\bjava-proj\b/.test(l));
+
+    assert.ok(scanLine, 'should have a scan bundle line');
+    assert.match(scanLine, /\[G\]/, 'scan should show [G] for global scope');
+
+    assert.ok(javaLine, 'should have a java-proj bundle line');
+    assert.match(javaLine, /\[ \]/, 'java-proj (not installed) should show [ ]');
+  } finally {
+    env.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Test 4c: [P] for project-only bundle
+// ---------------------------------------------------------------------------
+test('inventory --type bundle: shows [P] for project-only bundle', () => {
+  const env = makeTmpEnv();
+  try {
+    const ecc = makeFakeEcc(join(env.root, 'fake-ecc'));
+    const cwd = process.cwd();
+
+    const configDir = join(env.xdgConfig, 'ecc-tailor');
+    mkdirSync(configDir, { recursive: true });
+    writeFileSync(
+      join(configDir, 'config.json'),
+      JSON.stringify({
+        eccPath: ecc,
+        global: {
+          bundles: [],
+          extras: { agents: [], skills: [], rulesLanguages: [] },
+        },
+        projects: [
+          { path: cwd, bundles: ['scan'] },
+        ],
+        hooks: { install: false },
+      }),
+      'utf8',
+    );
+
+    const result = runCli(['inventory', '--type', 'bundle'], env.env());
+
+    assert.equal(result.status, 0, `CLI exited with ${result.status}: ${result.stderr}`);
+
+    const lines = (result.stdout + result.stderr).split('\n');
+    const scanLine = lines.find(l => /\bscan\b/.test(l));
+
+    assert.ok(scanLine, 'should have a scan bundle line');
+    assert.match(scanLine, /\[P\]/, 'scan (project-only) should show [P]');
+  } finally {
+    env.cleanup();
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Test 4d: [✓] for bundle in both global and current project
+// ---------------------------------------------------------------------------
+test('inventory --type bundle: shows [✓] when bundle is both global and project', () => {
+  const env = makeTmpEnv();
+  try {
+    const ecc = makeFakeEcc(join(env.root, 'fake-ecc'));
+    const cwd = process.cwd();
+
+    const configDir = join(env.xdgConfig, 'ecc-tailor');
+    mkdirSync(configDir, { recursive: true });
+    writeFileSync(
+      join(configDir, 'config.json'),
+      JSON.stringify({
+        eccPath: ecc,
+        global: {
+          bundles: ['scan'],
+          extras: { agents: [], skills: [], rulesLanguages: [] },
+        },
+        projects: [
+          { path: cwd, bundles: ['scan'] },
+        ],
+        hooks: { install: false },
+      }),
+      'utf8',
+    );
+
+    const result = runCli(['inventory', '--type', 'bundle'], env.env());
+
+    assert.equal(result.status, 0, `CLI exited with ${result.status}: ${result.stderr}`);
+
+    const lines = (result.stdout + result.stderr).split('\n');
+    const scanLine = lines.find(l => /\bscan\b/.test(l));
+
+    assert.ok(scanLine, 'should have a scan bundle line');
+    assert.match(scanLine, /\[✓\]/, 'scan (global + project) should show [✓]');
   } finally {
     env.cleanup();
   }

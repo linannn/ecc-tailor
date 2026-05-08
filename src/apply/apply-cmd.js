@@ -122,20 +122,32 @@ export async function applyCmd(args) {
     return;
   }
 
-  // 7. Print plan summary
+  // 7. Print plan summary grouped by scope
   const addCount    = plan.toAdd.length;
   const removeCount = plan.toRemove.length;
   const keepCount   = plan.toKeep.length;
 
   log.info(`Plan: ${addCount} to add, ${removeCount} to remove, ${keepCount} to keep`);
-  for (const item of plan.toAdd) {
-    log.dim(`  + ${item.dst}`);
+
+  const allItems = [
+    ...plan.toAdd.map(i => ({ dst: i.dst, ownedBy: i.ownedBy, action: '+' })),
+    ...plan.toRemove.map(i => ({ dst: i.dst, ownedBy: i.owned?.ownedBy, action: '-' })),
+    ...plan.toKeep.map(i => ({ dst: i.dst, ownedBy: i.ownedBy, action: '=' })),
+  ];
+
+  const groups = new Map();
+  for (const item of allItems) {
+    const scope = item.ownedBy ?? 'global';
+    if (!groups.has(scope)) groups.set(scope, []);
+    groups.get(scope).push(item);
   }
-  for (const item of plan.toRemove) {
-    log.dim(`  - ${item.dst}`);
-  }
-  for (const item of plan.toKeep) {
-    log.dim(`  = ${item.dst}`);
+
+  for (const [scope, items] of groups) {
+    const label = scope === 'global' ? 'global' : scope.replace(/^proj:/, '');
+    log.dim(`  [${label}]`);
+    for (const item of items) {
+      log.dim(`    ${item.action} ${item.dst}`);
+    }
   }
 
   // 8. If dry-run → return (don't execute)
