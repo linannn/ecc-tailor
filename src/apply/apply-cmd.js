@@ -142,12 +142,23 @@ export async function applyCmd(args) {
     groups.get(scope).push(item);
   }
 
+  let unchangedScopeCount = 0;
+  let unchangedItemCount = 0;
   for (const [scope, items] of groups) {
+    const hasChanges = items.some(i => i.action !== '=');
+    if (!hasChanges) {
+      unchangedScopeCount++;
+      unchangedItemCount += items.length;
+      continue;
+    }
     const label = scope === 'global' ? 'global' : scope.replace(/^proj:/, '');
     log.dim(`  [${label}]`);
     for (const item of items) {
       log.dim(`    ${item.action} ${item.dst}`);
     }
+  }
+  if (unchangedScopeCount > 0) {
+    log.dim(`  (${unchangedItemCount} unchanged across ${unchangedScopeCount} other scope${unchangedScopeCount > 1 ? 's' : ''})`);
   }
 
   // 8. If dry-run → return (don't execute)
