@@ -10,6 +10,21 @@ import { backupFile } from '../util/backup.js';
  */
 export const MARKER_PREFIX = '[ecc-tailor] ';
 
+const ECC_TAILOR_CMD_SIGNATURES = ['ecc-tailor', 'CLAUDE_PLUGIN_ROOT'];
+
+/**
+ * Claude Code strips `description` when it rewrites settings.json,
+ * so we fall back to matching command content for ownership detection.
+ */
+export function isOwnedByEccTailor(entry) {
+  if ((entry.description ?? '').startsWith(MARKER_PREFIX)) return true;
+
+  return (entry.hooks ?? []).some(hook => {
+    const cmd = hook.command ?? '';
+    return ECC_TAILOR_CMD_SIGNATURES.some(sig => cmd.includes(sig));
+  });
+}
+
 /**
  * Regex to extract <id> <script> <profiles> from the tail of a
  * run-with-flags.js invocation command string.
@@ -115,9 +130,7 @@ export async function mergeHooksIntoSettings(rewrittenEvents, { settingsFile, ec
   let newHooks = {};
   for (const event of Object.keys(oldHooks)) {
     const entries = oldHooks[event] ?? [];
-    const userOnly = entries.filter(
-      e => !(e.description ?? '').startsWith(MARKER_PREFIX),
-    );
+    const userOnly = entries.filter(e => !isOwnedByEccTailor(e));
     if (userOnly.length > 0) {
       newHooks = { ...newHooks, [event]: userOnly };
     }
@@ -160,7 +173,7 @@ export async function removeEccTailorHooks({ settingsFile }) {
   // Build newHooks immutably: strip ecc-tailor entries, omit empty events
   let newHooks = {};
   for (const [event, entries] of Object.entries(oldHooks)) {
-    const filtered = entries.filter(e => !(e.description ?? '').startsWith(MARKER_PREFIX));
+    const filtered = entries.filter(e => !isOwnedByEccTailor(e));
     removed += entries.length - filtered.length;
     if (filtered.length > 0) {
       newHooks = { ...newHooks, [event]: filtered };
