@@ -55,12 +55,9 @@ test('apply: rules symlink is created and notice printed', async () => {
     const target = readlinkSync(ruleFileDst);
     assert.equal(target, join(ecc, 'rules/common/style.md'), 'symlink should point to ECC per-file path');
 
-    // stdout should contain "@rules/common"
+    // rules are auto-loaded by Claude Code — no warning should be printed
     const combined = result.stdout + result.stderr;
-    assert.match(combined, /@rules\/common/, 'output should contain @rules/common');
-
-    // stdout should contain "not auto-loaded" (case insensitive)
-    assert.match(combined, /not auto-loaded/i, 'output should mention "not auto-loaded"');
+    assert.ok(!combined.includes('NOT auto-loaded'), 'should not print stale auto-load warning');
   } finally {
     env.cleanup();
   }

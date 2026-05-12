@@ -312,20 +312,5 @@ export async function applyCmd(args) {
     log.ok('apply complete');
 
     // Print rules notice if any rules-file items were added (dedupe by language)
-    const addedRulesLangs = [
-      ...new Set(
-        plan.toAdd
-          .filter(item => item.kind === 'rules-file')
-          .map(item => item.eccSrc.split('/')[1]),
-      ),
-    ];
-    if (addedRulesLangs.length > 0) {
-      log.info('');
-      log.warn('rules installed — NOT auto-loaded by Claude Code');
-      log.info('To activate, add to ~/.claude/CLAUDE.md:');
-      for (const lang of addedRulesLangs) {
-        log.dim(`  @rules/${lang}/<file>.md`);
-      }
-    }
   }
 }

@@ -115,10 +115,13 @@ export function makeFakeEcc(root) {
   mkdirSync(rulesDir, { recursive: true });
   writeFileSync(join(rulesDir, 'style.md'), '# Style\n', 'utf8');
 
-  // rules/java/coding-style.md
+  // rules/java/coding-style.md, patterns.md, hooks.md, security.md
   const javaRulesDir = join(root, 'rules', 'java');
   mkdirSync(javaRulesDir, { recursive: true });
   writeFileSync(join(javaRulesDir, 'coding-style.md'), '---\npaths:\n  - "**/*.java"\n---\n# Java Style\n', 'utf8');
+  writeFileSync(join(javaRulesDir, 'patterns.md'), '---\npaths:\n  - "**/*.java"\n---\n# Java Patterns\n', 'utf8');
+  writeFileSync(join(javaRulesDir, 'hooks.md'), '---\npaths:\n  - "**/*.java"\n---\n# Java Hooks\n', 'utf8');
+  writeFileSync(join(javaRulesDir, 'security.md'), '---\npaths:\n  - "**/*.java"\n---\n# Java Security\n', 'utf8');
 
   // rules/zh/style.md
   const zhRulesDir = join(root, 'rules', 'zh');

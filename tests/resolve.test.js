@@ -1,4 +1,4 @@
-import { test } from 'node:test';
+import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { makeTmpEnv } from './helpers/tmp-env.js';
@@ -572,6 +572,159 @@ test('resolveDesired: extras.rulesLanguages merged with bundle rules', () => {
   } finally {
     tmp.cleanup();
   }
+});
+
+// ---------------------------------------------------------------------------
+// resolveDesired: project-level rules
+// ---------------------------------------------------------------------------
+describe('project-level rules', () => {
+  // Bundles for this suite: java-proj has rules: ['java'], extends nothing.
+  // global core has rules: ['common'] effectively (via baseRule auto-inject).
+  const bundles = {
+    core:        { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'], rules: [] },
+    'java-proj': { agents: [],          skills: [],                    rules: ['java'] },
+  };
+
+  test('project bundle rules are installed at project path', () => {
+    const tmp = makeTmpEnv();
+    try {
+      const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+      const inv = scanEcc(eccRoot);
+
+      const projPath = join(tmp.root, 'my-project');
+
+      const config = {
+        global: {
+          bundles: ['core'],
+          extras:  { agents: [], skills: [], rulesLanguages: [] },
+          excludes: { agents: [], skills: [] },
+        },
+        projects: [
+          {
+            path: projPath,
+            bundles: ['java-proj'],
+            extras:  { agents: [], skills: [] },
+            excludes: { agents: [], skills: [] },
+          },
+        ],
+      };
+
+      const links = resolveDesired(config, bundles, inv, { home: tmp.home, eccRoot });
+
+      // Java rules should be at project path
+      const javaRules = links.filter(
+        l => l.kind === 'rules-file' && l.dst.startsWith(join(projPath, '.claude', 'rules', 'java')),
+      );
+      assert.ok(javaRules.length > 0, 'project should have java rule symlinks under project path');
+      assert.ok(
+        javaRules.every(l => l.ownedBy === `proj:${projPath}`),
+        'all java rule entries should be owned by the project',
+      );
+
+      // common rules (the global base rule) must NOT appear under the project path
+      const projCommonRules = links.filter(
+        l => l.kind === 'rules-file' && l.dst.startsWith(join(projPath, '.claude', 'rules', 'common')),
+      );
+      assert.equal(
+        projCommonRules.length,
+        0,
+        'common rules are global — should not be duplicated at project path',
+      );
+    } finally {
+      tmp.cleanup();
+    }
+  });
+
+  test('project rule excludes work independently from global', () => {
+    const tmp = makeTmpEnv();
+    try {
+      const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+      const inv = scanEcc(eccRoot);
+
+      const projPath = join(tmp.root, 'my-project');
+
+      // bundleOverrides at top level:
+      //   - core gets 'patterns' excluded (core has no java rules → no cross-scope bleed expected)
+      //   - java-proj gets 'hooks' excluded
+      const config = {
+        global: {
+          bundles: ['core'],
+          extras:  { agents: [], skills: [], rulesLanguages: [] },
+          excludes: { agents: [], skills: [] },
+        },
+        bundleOverrides: {
+          core:       { exclude: { rules: ['patterns'] } },
+          'java-proj': { exclude: { rules: ['hooks'] } },
+        },
+        projects: [
+          {
+            path: projPath,
+            bundles: ['java-proj'],
+            extras:  { agents: [], skills: [] },
+            excludes: { agents: [], skills: [] },
+          },
+        ],
+      };
+
+      const links = resolveDesired(config, bundles, inv, { home: tmp.home, eccRoot });
+
+      // java/patterns.md must be present — global core exclude for 'patterns' must not bleed
+      const patternsLink = links.find(
+        l => l.dst === join(projPath, '.claude', 'rules', 'java', 'patterns.md'),
+      );
+      assert.ok(patternsLink, 'java/patterns.md should be present (global exclude on core must not affect project java rules)');
+
+      // java/hooks.md must be absent — project bundleOverrides for java-proj excludes it
+      const hooksLink = links.find(
+        l => l.dst === join(projPath, '.claude', 'rules', 'java', 'hooks.md'),
+      );
+      assert.equal(hooksLink, undefined, 'java/hooks.md should be excluded by project bundleOverrides');
+    } finally {
+      tmp.cleanup();
+    }
+  });
+
+  test('project excludes from config.projects[].excludes.rules also work', () => {
+    const tmp = makeTmpEnv();
+    try {
+      const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+      const inv = scanEcc(eccRoot);
+
+      const projPath = join(tmp.root, 'my-project');
+
+      const config = {
+        global: {
+          bundles: ['core'],
+          extras:  { agents: [], skills: [], rulesLanguages: [] },
+          excludes: { agents: [], skills: [] },
+        },
+        projects: [
+          {
+            path: projPath,
+            bundles: ['java-proj'],
+            extras:  { agents: [], skills: [] },
+            excludes: { agents: [], skills: [], rules: ['security'] },
+          },
+        ],
+      };
+
+      const links = resolveDesired(config, bundles, inv, { home: tmp.home, eccRoot });
+
+      // java/security.md must be absent — project excludes.rules removes it
+      const securityLink = links.find(
+        l => l.dst === join(projPath, '.claude', 'rules', 'java', 'security.md'),
+      );
+      assert.equal(securityLink, undefined, 'java/security.md should be excluded by project excludes.rules');
+
+      // other java rules should still be present
+      const codingStyleLink = links.find(
+        l => l.dst === join(projPath, '.claude', 'rules', 'java', 'coding-style.md'),
+      );
+      assert.ok(codingStyleLink, 'java/coding-style.md should still be present');
+    } finally {
+      tmp.cleanup();
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------

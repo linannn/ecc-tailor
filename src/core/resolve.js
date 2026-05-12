@@ -156,6 +156,7 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
     if (entry.kind === 'agent') globalAgentSet.add(entry.eccSrc.replace(/^agents\//, '').replace(/\.md$/, ''));
     if (entry.kind === 'skill-dir') globalSkillSet.add(entry.eccSrc.replace(/^skills\//, ''));
   }
+  const globalRuleLangSet = new Set(allRules);
 
   // -------------------------------------------------------------------------
   // Project layers
@@ -202,6 +203,34 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
         ownedBy,
         ephemeral: projEphemeral,
       });
+    }
+
+    // Project-level rules (per-file symlinks)
+    const projRuleLangs = (projResolved.rules ?? [])
+      .filter(lang => !globalRuleLangSet.has(lang));
+    const projBundleRuleExcludes = projBundleNames.flatMap(
+      b => overrides[b]?.exclude?.rules ?? [],
+    );
+    const projExcludeRules = new Set([
+      ...(projExcludes.rules ?? []),
+      ...projBundleRuleExcludes,
+    ]);
+
+    for (const lang of projRuleLangs) {
+      if (!ruleNames.has(lang)) {
+        throw new Error(`rule "${lang}" not found in ECC`);
+      }
+      const filesForLang = ruleFilesByLang.get(lang) ?? [];
+      for (const rf of filesForLang) {
+        if (projExcludeRules.has(rf.name)) continue;
+        result.push({
+          dst: join(projPath, '.claude', 'rules', lang, `${rf.name}.md`),
+          eccSrc: `rules/${lang}/${rf.name}.md`,
+          kind: 'rules-file',
+          ownedBy,
+          ephemeral: false,
+        });
+      }
     }
   }
 
