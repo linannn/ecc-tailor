@@ -112,7 +112,9 @@ export function resolveBundles(bundles, names, overrides = {}) {
 
   for (const name of names) {
     let resolved = resolveBundle(bundles, name);
-    resolved = applyBundleOverride(resolved, overrides[name]);
+    for (const ancestor of extendsChain(bundles, name)) {
+      resolved = applyBundleOverride(resolved, overrides[ancestor]);
+    }
     allAgents = [...allAgents, ...resolved.agents];
     allSkills = [...allSkills, ...resolved.skills];
     allMcp = [...allMcp, ...resolved.mcp];
@@ -128,6 +130,19 @@ export function resolveBundles(bundles, names, overrides = {}) {
     ephemeral: anyEphemeral,
     description: '',
   };
+}
+
+function extendsChain(bundles, name) {
+  const chain = [name];
+  let current = name;
+  const seen = new Set([name]);
+  while (bundles[current]?.extends) {
+    current = bundles[current].extends;
+    if (seen.has(current)) break;
+    seen.add(current);
+    chain.push(current);
+  }
+  return chain;
 }
 
 /** Return array with duplicates removed (first occurrence wins). */
