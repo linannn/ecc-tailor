@@ -3,17 +3,14 @@
     "description": "Stack-agnostic software development essentials",
     "agents": [
       "planner", "architect", "code-architect", "code-explorer",
-      "code-reviewer", "code-simplifier", "comment-analyzer",
-      "silent-failure-hunter", "tdd-guide", "type-design-analyzer",
-      "performance-optimizer", "pr-test-analyzer",
-      "doc-updater", "docs-lookup", "refactor-cleaner"
+      "code-reviewer", "comment-analyzer",
+      "tdd-guide",
+      "doc-updater"
     ],
     "skills": [
       "coding-standards",
-      "tdd-workflow", "verification-loop",
-      "strategic-compact",
-      "git-workflow", "gateguard", "architecture-decision-records",
-      "search-first", "documentation-lookup"
+      "tdd-workflow",
+      "git-workflow", "gateguard"
     ],
     "mcp": ["context7"]
   },

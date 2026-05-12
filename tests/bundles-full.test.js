@@ -174,10 +174,10 @@ test('scan bundle is ephemeral', () => {
   assert.equal(result.ephemeral, true);
 });
 
-test('core bundle has 15 agents and 9 skills', () => {
+test('core bundle has 8 agents and 4 skills', () => {
   const bundles = loadBundles();
-  assert.equal(bundles.core.agents.length, 15);
-  assert.equal(bundles.core.skills.length, 9);
+  assert.equal(bundles.core.agents.length, 8);
+  assert.equal(bundles.core.skills.length, 4);
 });
 
 test('all 34 bundles are present', () => {
