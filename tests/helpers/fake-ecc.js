@@ -45,6 +45,21 @@ export function makeFakeEcc(root) {
     '---\nname: pr-test-analyzer\ndescription: fake pr-test-analyzer agent\n---\n',
     'utf8',
   );
+  writeFileSync(
+    join(agentsDir, 'architect.md'),
+    '---\nname: architect\ndescription: fake architect agent\n---\n',
+    'utf8',
+  );
+  writeFileSync(
+    join(agentsDir, 'code-architect.md'),
+    '---\nname: code-architect\ndescription: fake code-architect agent\n---\n',
+    'utf8',
+  );
+  writeFileSync(
+    join(agentsDir, 'comment-analyzer.md'),
+    '---\nname: comment-analyzer\ndescription: fake comment-analyzer agent\n---\n',
+    'utf8',
+  );
 
   // skills/coding-standards/SKILL.md
   const codingStdDir = join(root, 'skills', 'coding-standards');
@@ -52,6 +67,15 @@ export function makeFakeEcc(root) {
   writeFileSync(
     join(codingStdDir, 'SKILL.md'),
     '---\nname: coding-standards\ndescription: fake coding standards\n---\n',
+    'utf8',
+  );
+
+  // skills/git-workflow/SKILL.md
+  const gitWorkflowDir = join(root, 'skills', 'git-workflow');
+  mkdirSync(gitWorkflowDir, { recursive: true });
+  writeFileSync(
+    join(gitWorkflowDir, 'SKILL.md'),
+    '---\nname: git-workflow\ndescription: fake git workflow\n---\n',
     'utf8',
   );
 
