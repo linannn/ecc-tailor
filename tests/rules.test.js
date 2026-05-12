@@ -47,13 +47,13 @@ test('apply: rules symlink is created and notice printed', async () => {
 
     assert.equal(result.status, 0, `CLI exited with ${result.status}: ${result.stderr}`);
 
-    // Symlink should exist at ~/.claude/rules/common
-    const rulesDst = join(env.home, '.claude', 'rules', 'common');
-    assert.ok(existsSync(rulesDst), `rules/common symlink should exist at ${rulesDst}`);
+    // Per-file symlink should exist at ~/.claude/rules/common/style.md
+    const ruleFileDst = join(env.home, '.claude', 'rules', 'common', 'style.md');
+    assert.ok(existsSync(ruleFileDst), `rules/common/style.md symlink should exist at ${ruleFileDst}`);
 
-    // Symlink should point to fake ECC's rules/common
-    const target = readlinkSync(rulesDst);
-    assert.equal(target, join(ecc, 'rules/common'), 'symlink should point to ECC rules/common');
+    // Symlink should point to fake ECC's rules/common/style.md
+    const target = readlinkSync(ruleFileDst);
+    assert.equal(target, join(ecc, 'rules/common/style.md'), 'symlink should point to ECC per-file path');
 
     // stdout should contain "@rules/common"
     const combined = result.stdout + result.stderr;

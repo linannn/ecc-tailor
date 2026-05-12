@@ -54,6 +54,7 @@ function safeDirents(dirPath) {
  *   agents:     { name: string, path: string, description: string }[],
  *   skills:     { name: string, path: string, description: string }[],
  *   rules:      { name: string, path: string, description: string }[],
+ *   ruleFiles:  { name: string, lang: string, path: string, description: string }[],
  *   commands:   { name: string, path: string, description: string }[],
  *   contexts:   { name: string, path: string, description: string }[],
  *   mcpServers: { name: string, config: object, description: string }[],
@@ -90,7 +91,7 @@ export function scanEcc(eccRoot) {
       return { name, path, description };
     });
 
-  // rules/*/ (directories)
+  // rules/*/ (directories) — kept for backward compat with bundle resolution
   const rules = safeDirents(join(eccRoot, 'rules'))
     .filter(d => d.isDirectory())
     .map(d => ({
@@ -98,6 +99,18 @@ export function scanEcc(eccRoot) {
       path: `rules/${d.name}`,
       description: '',
     }));
+
+  // rules/*/*.md (individual files) — used for per-file symlinks
+  const ruleFiles = rules.flatMap(dir =>
+    safeDirents(join(eccRoot, 'rules', dir.name))
+      .filter(f => f.isFile() && f.name.endsWith('.md'))
+      .map(f => ({
+        name: f.name.slice(0, -3),
+        lang: dir.name,
+        path: `rules/${dir.name}/${f.name}`,
+        description: '',
+      })),
+  );
 
   // commands/*.md
   const commands = safeDirents(join(eccRoot, 'commands'))
@@ -131,5 +144,5 @@ export function scanEcc(eccRoot) {
     if (err.code !== 'ENOENT') throw err;
   }
 
-  return { agents, skills, rules, commands, contexts, mcpServers };
+  return { agents, skills, rules, ruleFiles, commands, contexts, mcpServers };
 }

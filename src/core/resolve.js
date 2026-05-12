@@ -13,7 +13,7 @@ import { scanCommandDeps } from './deps-scan.js';
  * @returns {Array<{
  *   dst: string,
  *   eccSrc: string,
- *   kind: 'agent' | 'skill-dir' | 'rules-dir' | 'command' | 'context',
+ *   kind: 'agent' | 'skill-dir' | 'rules-file' | 'command' | 'context',
  *   ownedBy: 'global' | string,
  *   ephemeral: boolean,
  *   autoDep?: boolean,
@@ -87,21 +87,39 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
   const extraRules = globalExtras.rulesLanguages ?? [];
   const allRules = dedupe([baseRule, ...bundleRules, ...extraRules]);
 
+  // Per-file rule symlinks — exclude by filename (without .md extension)
+  // Merge global excludes + all active bundleOverrides excludes
+  const bundleRuleExcludes = globalBundleNames.flatMap(
+    b => overrides[b]?.exclude?.rules ?? [],
+  );
+  const excludeRules = new Set([...(globalExcludes.rules ?? []), ...bundleRuleExcludes]);
+  const ruleFilesByLang = new Map();
+  for (const rf of (inv.ruleFiles ?? [])) {
+    const list = ruleFilesByLang.get(rf.lang) ?? [];
+    ruleFilesByLang.set(rf.lang, [...list, rf]);
+  }
+
   for (const lang of allRules) {
     if (!ruleNames.has(lang)) {
       throw new Error(`rule "${lang}" not found in ECC`);
     }
-    result.push({
-      dst: join(home, '.claude', 'rules', lang),
-      eccSrc: `rules/${lang}`,
-      kind: 'rules-dir',
-      ownedBy: 'global',
-      ephemeral: false,
-    });
+    const filesForLang = ruleFilesByLang.get(lang) ?? [];
+    for (const rf of filesForLang) {
+      if (excludeRules.has(rf.name)) continue;
+      result.push({
+        dst: join(home, '.claude', 'rules', lang, `${rf.name}.md`),
+        eccSrc: `rules/${lang}/${rf.name}.md`,
+        kind: 'rules-file',
+        ownedBy: 'global',
+        ephemeral: false,
+      });
+    }
   }
 
   // Commands (global only, per-file symlink)
+  const excludeCommands = new Set(globalExcludes.commands ?? []);
   for (const name of (globalExtras.commands ?? [])) {
+    if (excludeCommands.has(name)) continue;
     if (!commandNames.has(name)) {
       throw new Error(`command "${name}" not found in ECC`);
     }
@@ -197,7 +215,6 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
     }
 
     const manualCommands = new Set(globalExtras.commands ?? []);
-    const excludeCommands = new Set(globalExcludes.commands ?? []);
 
     const commandDeps = scanCommandDeps([...allAgents], [...allSkills], eccRoot, commandNames);
 

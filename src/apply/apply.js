@@ -68,7 +68,14 @@ export async function planApply(desired, state, { ecc }) {
     }
   }
 
-  return { toAdd, toRemove, toKeep, conflicts };
+  // Remove false conflicts: files reachable only through a stale dir symlink
+  // that will be removed (e.g. rules-dir → rules-file migration)
+  const removeDsts = new Set(toRemove.map(r => r.dst));
+  const realConflicts = conflicts.filter(
+    c => !removeDsts.has(dirname(c.dst)),
+  );
+
+  return { toAdd, toRemove, toKeep, conflicts: realConflicts };
 }
 
 /**

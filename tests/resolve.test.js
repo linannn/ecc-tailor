@@ -71,13 +71,13 @@ test('resolveDesired: project skill deduped when already global', () => {
     assert.equal(csLink.kind, 'skill-dir');
     assert.equal(csLink.ownedBy, 'global');
 
-    // Global: 1 rule (common)
+    // Global: per-file rule for rules/common/style.md
     const ruleLink = links.find(
-      l => l.dst === join(tmp.home, '.claude', 'rules', 'common'),
+      l => l.dst === join(tmp.home, '.claude', 'rules', 'common', 'style.md'),
     );
-    assert.ok(ruleLink, 'global common rule link should exist');
-    assert.equal(ruleLink.eccSrc, 'rules/common');
-    assert.equal(ruleLink.kind, 'rules-dir');
+    assert.ok(ruleLink, 'global common/style.md rule link should exist');
+    assert.equal(ruleLink.eccSrc, 'rules/common/style.md');
+    assert.equal(ruleLink.kind, 'rules-file');
     assert.equal(ruleLink.ownedBy, 'global');
 
     // Project: coding-standards is deduped because it's already installed globally
@@ -490,8 +490,8 @@ test('resolveDesired: auto-installs common base rule', () => {
 
     const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
 
-    const commonRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/common');
-    assert.ok(commonRule, 'common rule dir should be auto-installed');
+    const commonRule = links.find(l => l.kind === 'rules-file' && l.eccSrc === 'rules/common/style.md');
+    assert.ok(commonRule, 'common/style.md should be auto-installed as rules-file');
     assert.equal(commonRule.ownedBy, 'global');
   } finally {
     tmp.cleanup();
@@ -512,11 +512,11 @@ test('resolveDesired: rulesLanguage zh installs zh instead of common', () => {
 
     const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
 
-    const zhRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/zh');
-    assert.ok(zhRule, 'zh rule dir should be installed when rulesLanguage is zh');
+    const zhRule = links.find(l => l.kind === 'rules-file' && l.eccSrc === 'rules/zh/style.md');
+    assert.ok(zhRule, 'zh/style.md should be installed when rulesLanguage is zh');
 
-    const commonRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/common');
-    assert.equal(commonRule, undefined, 'common rule dir should not be installed when rulesLanguage is zh');
+    const commonRule = links.find(l => l.kind === 'rules-file' && l.eccSrc === 'rules/common/style.md');
+    assert.equal(commonRule, undefined, 'common/style.md should not be installed when rulesLanguage is zh');
   } finally {
     tmp.cleanup();
   }
@@ -539,8 +539,8 @@ test('resolveDesired: bundle rules auto-installed', () => {
 
     const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
 
-    const javaRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/java');
-    assert.ok(javaRule, 'java rule dir should be installed from java-proj bundle');
+    const javaRule = links.find(l => l.kind === 'rules-file' && l.eccSrc === 'rules/java/coding-style.md');
+    assert.ok(javaRule, 'java/coding-style.md should be installed from java-proj bundle');
     assert.equal(javaRule.ownedBy, 'global');
   } finally {
     tmp.cleanup();
@@ -564,11 +564,11 @@ test('resolveDesired: extras.rulesLanguages merged with bundle rules', () => {
 
     const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
 
-    const commonRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/common');
-    assert.ok(commonRule, 'common base rule should be present');
+    const commonRule = links.find(l => l.kind === 'rules-file' && l.eccSrc === 'rules/common/style.md');
+    assert.ok(commonRule, 'common/style.md base rule should be present');
 
-    const webRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/web');
-    assert.ok(webRule, 'web rule from extras.rulesLanguages should be present');
+    const webRule = links.find(l => l.kind === 'rules-file' && l.eccSrc === 'rules/web/style.md');
+    assert.ok(webRule, 'web/style.md from extras.rulesLanguages should be present');
   } finally {
     tmp.cleanup();
   }

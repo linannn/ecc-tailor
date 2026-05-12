@@ -7,7 +7,7 @@ export const DEFAULT_CONFIG = {
   global: {
     bundles: ['core'],
     extras: { agents: [], skills: [], rulesLanguages: [], commands: [], contexts: [], mcp: [] },
-    excludes: { agents: [], skills: [], mcp: [], commands: [] },
+    excludes: { agents: [], skills: [], mcp: [], commands: [], rules: [] },
   },
   bundleOverrides: {},
   projects: [],

@@ -311,15 +311,19 @@ export async function applyCmd(args) {
   } else {
     log.ok('apply complete');
 
-    // Print rules notice if any rules-dir items were added
-    const addedRules = plan.toAdd.filter(item => item.kind === 'rules-dir');
-    if (addedRules.length > 0) {
+    // Print rules notice if any rules-file items were added (dedupe by language)
+    const addedRulesLangs = [
+      ...new Set(
+        plan.toAdd
+          .filter(item => item.kind === 'rules-file')
+          .map(item => item.eccSrc.split('/')[1]),
+      ),
+    ];
+    if (addedRulesLangs.length > 0) {
       log.info('');
       log.warn('rules installed — NOT auto-loaded by Claude Code');
       log.info('To activate, add to ~/.claude/CLAUDE.md:');
-      for (const item of addedRules) {
-        // Extract language from eccSrc, e.g. "rules/common" → "common"
-        const lang = item.eccSrc.split('/')[1];
+      for (const lang of addedRulesLangs) {
         log.dim(`  @rules/${lang}/<file>.md`);
       }
     }
