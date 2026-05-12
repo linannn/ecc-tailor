@@ -10,7 +10,11 @@
       "tdd-workflow",
       "gateguard"
     ],
-    "mcp": ["context7"]
+    "mcp": ["context7"],
+    "rules": [
+      "common/coding-style", "common/development-workflow",
+      "common/git-workflow", "common/security"
+    ]
   },
   "java-proj": {
     "description": "Java + Spring Boot project",

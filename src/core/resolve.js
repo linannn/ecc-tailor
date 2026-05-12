@@ -81,14 +81,20 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
     });
   }
 
-  // Rules layer (global only): base rule (common/zh) + bundle rules + extras
-  const baseRule = (config.rulesLanguage ?? 'en') === 'zh' ? 'zh' : 'common';
-  const bundleRules = resolved.rules ?? [];
+  // Rules layer (global): bundle rules + extras
+  // Entries can be "lang" (all files) or "lang/file" (single file).
+  // rulesLanguage: "zh" swaps common→zh for backward compat
+  const zhMode = (config.rulesLanguage ?? 'en') === 'zh';
+  const swapZh = r => {
+    if (!zhMode) return r;
+    if (r === 'common') return 'zh';
+    return r.startsWith('common/') ? 'zh' + r.slice(6) : r;
+  };
+  const bundleRules = (resolved.rules ?? []).map(swapZh);
   const extraRules = globalExtras.rulesLanguages ?? [];
-  const allRules = dedupe([baseRule, ...bundleRules, ...extraRules]);
+  const allRules = dedupe([...bundleRules, ...extraRules]);
 
-  // Per-file rule symlinks — exclude by filename (without .md extension)
-  // Merge global excludes + all active bundleOverrides excludes
+  // Per-file exclude set
   const bundleRuleExcludes = globalBundleNames.flatMap(
     b => overrides[b]?.exclude?.rules ?? [],
   );
@@ -99,21 +105,11 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
     ruleFilesByLang.set(rf.lang, [...list, rf]);
   }
 
-  for (const lang of allRules) {
-    if (!ruleNames.has(lang)) {
-      throw new Error(`rule "${lang}" not found in ECC`);
-    }
-    const filesForLang = ruleFilesByLang.get(lang) ?? [];
-    for (const rf of filesForLang) {
-      if (excludeRules.has(rf.name)) continue;
-      result.push({
-        dst: join(home, '.claude', 'rules', lang, `${rf.name}.md`),
-        eccSrc: `rules/${lang}/${rf.name}.md`,
-        kind: 'rules-file',
-        ownedBy: 'global',
-        ephemeral: false,
-      });
-    }
+  for (const entry of allRules) {
+    result.push(...emitRuleLinks(entry, {
+      ruleNames, ruleFilesByLang, excludeRules,
+      basePath: home, ownedBy: 'global', ephemeral: false,
+    }));
   }
 
   // Commands (global only, per-file symlink)
@@ -205,9 +201,9 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
       });
     }
 
-    // Project-level rules (per-file symlinks)
-    const projRuleLangs = (projResolved.rules ?? [])
-      .filter(lang => !globalRuleLangSet.has(lang));
+    // Project-level rules
+    const projRuleEntries = (projResolved.rules ?? [])
+      .filter(entry => !globalRuleLangSet.has(entry));
     const projBundleRuleExcludes = projBundleNames.flatMap(
       b => overrides[b]?.exclude?.rules ?? [],
     );
@@ -216,21 +212,11 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
       ...projBundleRuleExcludes,
     ]);
 
-    for (const lang of projRuleLangs) {
-      if (!ruleNames.has(lang)) {
-        throw new Error(`rule "${lang}" not found in ECC`);
-      }
-      const filesForLang = ruleFilesByLang.get(lang) ?? [];
-      for (const rf of filesForLang) {
-        if (projExcludeRules.has(rf.name)) continue;
-        result.push({
-          dst: join(projPath, '.claude', 'rules', lang, `${rf.name}.md`),
-          eccSrc: `rules/${lang}/${rf.name}.md`,
-          kind: 'rules-file',
-          ownedBy,
-          ephemeral: false,
-        });
-      }
+    for (const entry of projRuleEntries) {
+      result.push(...emitRuleLinks(entry, {
+        ruleNames, ruleFilesByLang, excludeRules: projExcludeRules,
+        basePath: projPath, ownedBy, ephemeral: false,
+      }));
     }
   }
 
@@ -264,6 +250,47 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
 
   // Dedup within each layer by dst (keep first occurrence)
   return dedupByDst(result);
+}
+
+/**
+ * Emit rule link entries for a single rules entry.
+ * Supports "lang" (all files in directory) and "lang/file" (single file).
+ */
+function emitRuleLinks(entry, { ruleNames, ruleFilesByLang, excludeRules, basePath, ownedBy, ephemeral }) {
+  const results = [];
+  if (entry.includes('/')) {
+    const [lang, fileName] = entry.split('/', 2);
+    if (!ruleNames.has(lang)) {
+      throw new Error(`rule language "${lang}" not found in ECC`);
+    }
+    if (excludeRules.has(fileName)) return results;
+    const rf = (ruleFilesByLang.get(lang) ?? []).find(f => f.name === fileName);
+    if (!rf) {
+      throw new Error(`rule file "${fileName}" not found in ECC rules/${lang}/`);
+    }
+    results.push({
+      dst: join(basePath, '.claude', 'rules', lang, `${rf.name}.md`),
+      eccSrc: `rules/${lang}/${rf.name}.md`,
+      kind: 'rules-file',
+      ownedBy,
+      ephemeral,
+    });
+  } else {
+    if (!ruleNames.has(entry)) {
+      throw new Error(`rule "${entry}" not found in ECC`);
+    }
+    for (const rf of (ruleFilesByLang.get(entry) ?? [])) {
+      if (excludeRules.has(rf.name)) continue;
+      results.push({
+        dst: join(basePath, '.claude', 'rules', entry, `${rf.name}.md`),
+        eccSrc: `rules/${entry}/${rf.name}.md`,
+        kind: 'rules-file',
+        ownedBy,
+        ephemeral,
+      });
+    }
+  }
+  return results;
 }
 
 /** Return array with duplicates removed (first occurrence wins). */

@@ -8,7 +8,7 @@ import { resolveDesired, resolveMcp } from '../src/core/resolve.js';
 
 // Inline bundle definitions used across tests (no dependency on bundles.json)
 const BUNDLES = {
-  core:        { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'], rules: [] },
+  core:        { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'], rules: ['common/style'] },
   'java-proj': { agents: [],          skills: ['coding-standards'], rules: ['java'] },
   'research':  { agents: [],          skills: [], mcp: ['exa-web-search'], rules: [] },
 };
@@ -478,9 +478,9 @@ test('resolveMcp: bundleOverrides excludes MCP from bundle', () => {
 });
 
 // ---------------------------------------------------------------------------
-// resolveDesired: auto-installs common base rule
+// resolveDesired: core bundle installs common rule
 // ---------------------------------------------------------------------------
-test('resolveDesired: auto-installs common base rule', () => {
+test('resolveDesired: core bundle installs common rule', () => {
   const tmp = makeTmpEnv();
   try {
     const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
@@ -579,9 +579,9 @@ test('resolveDesired: extras.rulesLanguages merged with bundle rules', () => {
 // ---------------------------------------------------------------------------
 describe('project-level rules', () => {
   // Bundles for this suite: java-proj has rules: ['java'], extends nothing.
-  // global core has rules: ['common'] effectively (via baseRule auto-inject).
+  // global core declares file-level rules.
   const bundles = {
-    core:        { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'], rules: [] },
+    core:        { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'], rules: ['common/style'] },
     'java-proj': { agents: [],          skills: [],                    rules: ['java'] },
   };
 
