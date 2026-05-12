@@ -63,7 +63,7 @@ The slash command covers all CLI features. Claude translates your intent into th
 
 ## Core Concepts
 
-**Bundle** — A curated set of agents, skills, rules, and MCP servers for a tech stack or domain. Bundles compose: a fullstack project might use `ts-backend-proj` + `ts-frontend-proj` + `database`. All language bundles automatically include `core` (planner, architect, tdd, etc.).
+**Bundle** — A curated set of agents, skills, rules, and MCP servers for a tech stack or domain. Bundles compose: a fullstack project might use `ts-backend-proj` + `ts-frontend-proj` + `database`. All language bundles automatically include `core` (planner, code-reviewer, tdd, etc.).
 
 **Two-level install** — Stack-agnostic bundles (like `core`) go to `~/.claude/` (available everywhere). Stack-specific bundles go to `<project>/.claude/` (only active in that project).
 
@@ -82,7 +82,7 @@ The slash command covers all CLI features. Claude translates your intent into th
 
 | Bundle | Agents | Skills | Use case |
 |---|---|---|---|
-| `core` | 15 | 9 | Software development essentials (planner, architect, tdd, etc.) |
+| `core` | 4 | 2 | Software development essentials (planner, code-reviewer, tdd, etc.) |
 | `java-proj` | 2 | 7 | Spring Boot projects |
 | `py-proj` | 1 | 2 | Python projects |
 | `py-django-proj` | extends py-proj | +4 | Django projects |
@@ -110,20 +110,20 @@ The slash command covers all CLI features. Claude translates your intent into th
 | Bundle | Agents | Skills | Use case |
 |---|---|---|---|
 | `ai-app-dev` | 0 | 5 | Claude API / MCP server / Claude Code extensibility |
-| `security` | 1 | 3 | Security review + scanning |
+| `security` | 2 | 3 | Security review + scanning |
 | `database` | 1 | 3 | Database design, migrations, optimization |
-| `devops` | 0 | 4 | Docker, deployment, benchmarking |
+| `devops` | 1 | 5 | Docker, deployment, benchmarking |
 | `healthcare` | 1 | 5 | Medical / HIPAA / clinical systems |
 | `opensource` | 3 | 1 | Fork, sanitize, package for public release |
 | `a11y` | 1 | 1 | Accessibility / WCAG compliance |
 | `seo` | 1 | 1 | SEO audits and optimization |
 | `gan-harness` | 3 | 1 | GAN multi-agent adversarial generation |
-| `agent-dev` | 2 | 15 | AI agent development and orchestration |
-| `research` | 0 | 4 | Deep research, web search, market analysis |
-| `content` | 0 | 13 | Writing, video, social media, presentations |
+| `agent-dev` | 2 | 16 | AI agent development and orchestration |
+| `research` | 2 | 6 | Deep research, web search, market analysis |
+| `content` | 1 | 13 | Writing, video, social media, presentations |
 | `ops` | 2 | 12 | Email, Jira, GitHub, Slack workflow automation |
 | `crypto` | 0 | 4 | Web3 / DeFi security |
-| `scan` | 0 | 11 | Temporary evaluation tools (attach/detach) |
+| `scan` | 6 | 13 | Temporary evaluation tools (attach/detach) |
 
 </details>
 
@@ -223,7 +223,7 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
 
 ## How It Works
 
-- **Symlink** — agents linked per-file, skills and rules linked per-directory, pointing to ECC clone
+- **Symlink** — agents and rules linked per-file, skills linked per-directory, pointing to ECC clone
 - **State** — `~/.local/state/ecc-tailor/state.json` tracks all symlinks, forks, and ephemeral scans
 - **Hooks** — generates a wrapper script that sets `ECC_HOOK_PROFILE` + `ECC_DISABLED_HOOKS` env vars; ECC's own `run-with-flags.js` handles the rest
 - **Rules** — ECC rules auto-installed per bundle (`java-proj` → `rules/java/`); base rules (`common` or `zh`) always included; language-specific rules use `paths:` frontmatter for lazy loading (only enters context when touching matching file types)
@@ -258,6 +258,7 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
       "agents": [],
       "skills": [],
       "commands": [],
+      "rules": [],
       "mcp": []
     }
   },
@@ -296,7 +297,7 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
 | `global.extras.*` | Extra agents/skills/commands/contexts/mcp beyond bundles; `rulesLanguages` for additional rule sets |
 | `global.excludes.*` | Exclude specific items from bundles |
 | `projects[].bundles` | Array — a project can use multiple bundles |
-| `bundleOverrides` | Per-bundle customization (exclude/add agents, skills, mcp) |
+| `bundleOverrides` | Per-bundle customization (exclude/add agents, skills, mcp, rules, commands) |
 | `hooks.profile` | `minimal` / `standard` / `strict` |
 | `hooks.claudeMemCompat` | `null` (auto-detect on first apply) / `true` / `false` — disable 8 hooks that overlap with claude-mem |
 | `hooks.disabled` | Additional manually disabled hook IDs |
@@ -319,7 +320,7 @@ ECC doesn't include a brainstorming / design-before-code skill. For structured i
 ## Development
 
 ```bash
-npm test                             # Unit + integration tests (176)
+npm test                             # Unit + integration tests (205)
 ECC_PATH=/path/to/ecc npm test       # + real ECC verification (10 E2E tests)
 ```
 

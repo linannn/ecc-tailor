@@ -9,7 +9,7 @@ ecc-tailor is a CLI tool for selectively installing [Everything Claude Code (ECC
 ## Commands
 
 ```bash
-npm test                          # Run all 176 unit/integration tests (node:test)
+npm test                          # Run all 205 unit/integration tests (node:test)
 npm run test:one -- tests/apply.test.js   # Run a single test file
 ECC_PATH=/path/to/ecc npm test    # Include 10 E2E tests against real ECC checkout
 node bin/ecc-tailor <command>     # Run CLI locally without npm link
