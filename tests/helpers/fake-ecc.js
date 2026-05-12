@@ -25,6 +25,27 @@ export function makeFakeEcc(root) {
     'utf8',
   );
 
+  writeFileSync(
+    join(agentsDir, 'code-simplifier.md'),
+    '---\nname: code-simplifier\ndescription: fake code-simplifier agent\n---\n',
+    'utf8',
+  );
+  writeFileSync(
+    join(agentsDir, 'refactor-cleaner.md'),
+    '---\nname: refactor-cleaner\ndescription: fake refactor-cleaner agent\n---\n',
+    'utf8',
+  );
+  writeFileSync(
+    join(agentsDir, 'type-design-analyzer.md'),
+    '---\nname: type-design-analyzer\ndescription: fake type-design-analyzer agent\n---\n',
+    'utf8',
+  );
+  writeFileSync(
+    join(agentsDir, 'pr-test-analyzer.md'),
+    '---\nname: pr-test-analyzer\ndescription: fake pr-test-analyzer agent\n---\n',
+    'utf8',
+  );
+
   // skills/coding-standards/SKILL.md
   const codingStdDir = join(root, 'skills', 'coding-standards');
   mkdirSync(codingStdDir, { recursive: true });
@@ -40,6 +61,7 @@ export function makeFakeEcc(root) {
     'workspace-surface-audit', 'ecc-tools-cost-audit',
     'rules-distill', 'agent-eval', 'skill-comply',
     'codebase-onboarding', 'configure-ecc', 'context-budget',
+    'verification-loop', 'architecture-decision-records',
   ]) {
     const skillDir = join(root, 'skills', skillName);
     mkdirSync(skillDir, { recursive: true });

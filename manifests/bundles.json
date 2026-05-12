@@ -156,7 +156,7 @@
   },
   "security": {
     "description": "Security hardening",
-    "agents": ["security-reviewer"],
+    "agents": ["security-reviewer", "silent-failure-hunter"],
     "skills": ["security-review", "security-scan", "security-bounty-hunter"]
   },
   "database": {
@@ -167,7 +167,7 @@
   },
   "devops": {
     "description": "Deployment and infrastructure",
-    "agents": [],
+    "agents": ["performance-optimizer"],
     "skills": ["docker-patterns", "deployment-patterns", "benchmark", "canary-watch"],
     "mcp": ["vercel", "railway", "cloudflare-docs", "cloudflare-workers-builds", "cloudflare-workers-bindings", "cloudflare-observability"]
   },
@@ -210,14 +210,14 @@
       "enterprise-agent-ops", "dmux-workflows",
       "santa-method", "council", "team-builder",
       "ralphinho-rfc-pipeline", "safety-guard",
-      "blueprint"
+      "blueprint", "strategic-compact"
     ],
     "mcp": ["memory", "omega-memory", "sequential-thinking", "devfleet", "evalview"]
   },
   "research": {
     "description": "Research and analysis",
-    "agents": [],
-    "skills": ["deep-research", "exa-search", "market-research", "research-ops"],
+    "agents": ["docs-lookup"],
+    "skills": ["deep-research", "exa-search", "market-research", "research-ops", "search-first", "documentation-lookup"],
     "mcp": ["exa-web-search", "firecrawl"]
   },
   "content": {
@@ -253,12 +253,13 @@
   "scan": {
     "description": "Ephemeral evaluation tools",
     "ephemeral": true,
-    "agents": [],
+    "agents": ["code-simplifier", "refactor-cleaner", "type-design-analyzer", "pr-test-analyzer"],
     "skills": [
       "agent-sort", "skill-stocktake", "repo-scan",
       "workspace-surface-audit", "ecc-tools-cost-audit",
       "rules-distill", "agent-eval", "skill-comply",
-      "codebase-onboarding", "configure-ecc", "context-budget"
+      "codebase-onboarding", "configure-ecc", "context-budget",
+      "verification-loop", "architecture-decision-records"
     ],
     "mcp": ["token-optimizer"]
   }
