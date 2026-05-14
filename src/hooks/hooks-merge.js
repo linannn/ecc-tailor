@@ -17,6 +17,15 @@ export const MARKER_PREFIX = '[ecc-tailor] ';
 const RUN_WITH_FLAGS_RE = /run-with-flags\.js\s+(\S+)\s+(\S+)\s+(\S+)\s*$/;
 
 /**
+ * Matches inline bootstrap node commands that self-resolve CLAUDE_PLUGIN_ROOT
+ * at runtime (e.g. pre-bash-dispatcher, post-bash-dispatcher, session hooks).
+ * These commands check process.env.CLAUDE_PLUGIN_ROOT first, so prepending
+ * the env var makes them resolve correctly when ECC is installed via ecc-tailor
+ * rather than as a Claude plugin.
+ */
+const INLINE_BOOTSTRAP_RE = /^node -e ".+?CLAUDE_PLUGIN_ROOT/;
+
+/**
  * Rewrite the parsed ECC hooks/hooks.json object so that every hook
  * command points to our wrapper script instead of run-with-flags.js,
  * and every entry's description is prefixed with MARKER_PREFIX.
@@ -24,22 +33,32 @@ const RUN_WITH_FLAGS_RE = /run-with-flags\.js\s+(\S+)\s+(\S+)\s+(\S+)\s*$/;
  * @param {{ hooks: Record<string, Array<object>> }} eccHooksJson
  *   Parsed ECC hooks.json (shape: { hooks: { PreToolUse: [...], ... } })
  * @param {string} wrapperPath  Absolute path to the ecc-tailor wrapper script.
+ * @param {string} [eccRoot]    Absolute path to the ECC installation root.
  * @returns {Record<string, Array<object>>}
  *   Flat map of event → rewritten entries (no outer `hooks` wrapper).
  */
-export function rewriteEccHooksJson(eccHooksJson, wrapperPath) {
+export function rewriteEccHooksJson(eccHooksJson, wrapperPath, eccRoot) {
   const result = {};
 
   for (const [event, entries] of Object.entries(eccHooksJson.hooks ?? {})) {
     result[event] = entries.map(entry => {
       const rewrittenHooks = (entry.hooks ?? []).map(hook => {
-        const m = RUN_WITH_FLAGS_RE.exec(hook.command ?? '');
-        if (!m) return { ...hook };
-        const [, id, script, profiles] = m;
-        return {
-          ...hook,
-          command: `bash ${wrapperPath} ${id} ${script} ${profiles}`,
-        };
+        const cmd = hook.command ?? '';
+        const m = RUN_WITH_FLAGS_RE.exec(cmd);
+        if (m) {
+          const [, id, script, profiles] = m;
+          return {
+            ...hook,
+            command: `bash ${wrapperPath} ${id} ${script} ${profiles}`,
+          };
+        }
+        if (eccRoot && INLINE_BOOTSTRAP_RE.test(cmd)) {
+          return {
+            ...hook,
+            command: `CLAUDE_PLUGIN_ROOT=${eccRoot} ${cmd}`,
+          };
+        }
+        return { ...hook };
       });
 
       const description = entry.description ?? '';

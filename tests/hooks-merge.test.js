@@ -58,6 +58,53 @@ test('rewriteEccHooksJson: rewrites command and adds marker prefix', () => {
 });
 
 // ---------------------------------------------------------------------------
+// rewriteEccHooksJson: injects CLAUDE_PLUGIN_ROOT for inline bootstrap hooks
+// ---------------------------------------------------------------------------
+test('rewriteEccHooksJson: injects CLAUDE_PLUGIN_ROOT prefix for inline bootstrap commands', () => {
+  const inlineCmd = 'node -e "const p=require(\'path\');const r=(()=>{var e=process.env.CLAUDE_PLUGIN_ROOT;if(e&&e.trim())return e.trim();return \'/fallback\'})();require(r)" node scripts/hooks/pre-bash-dispatcher.js';
+  const eccHooksJson = {
+    hooks: {
+      PreToolUse: [
+        {
+          description: 'Bash dispatcher',
+          matcher: 'Bash',
+          hooks: [{ type: 'command', command: inlineCmd }],
+        },
+      ],
+    },
+  };
+
+  const result = rewriteEccHooksJson(eccHooksJson, '/ecc/wrapper.sh', '/opt/ecc-tailor/ecc');
+
+  const hook = result.PreToolUse[0].hooks[0];
+  assert.equal(
+    hook.command,
+    `CLAUDE_PLUGIN_ROOT=/opt/ecc-tailor/ecc ${inlineCmd}`,
+    'should prepend CLAUDE_PLUGIN_ROOT to inline bootstrap commands',
+  );
+});
+
+test('rewriteEccHooksJson: leaves inline bootstrap commands unchanged when eccRoot is not provided', () => {
+  const inlineCmd = 'node -e "const p=require(\'path\');const r=(()=>{var e=process.env.CLAUDE_PLUGIN_ROOT;if(e)return e;return \'/fallback\'})();require(r)" node scripts/hooks/pre-bash-dispatcher.js';
+  const eccHooksJson = {
+    hooks: {
+      PreToolUse: [
+        {
+          description: 'Bash dispatcher',
+          matcher: 'Bash',
+          hooks: [{ type: 'command', command: inlineCmd }],
+        },
+      ],
+    },
+  };
+
+  const result = rewriteEccHooksJson(eccHooksJson, '/ecc/wrapper.sh');
+
+  const hook = result.PreToolUse[0].hooks[0];
+  assert.equal(hook.command, inlineCmd, 'command should be unchanged when eccRoot is omitted');
+});
+
+// ---------------------------------------------------------------------------
 // rewriteEccHooksJson: preserves async/timeout
 // ---------------------------------------------------------------------------
 test('rewriteEccHooksJson: preserves async and timeout fields', () => {

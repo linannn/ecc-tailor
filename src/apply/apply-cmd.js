@@ -165,7 +165,7 @@ export async function applyCmd(args) {
     const eccHooksJson = JSON.parse(eccHooksJsonRaw);
 
     // 10d. Rewrite hooks to use wrapper
-    const rewritten = rewriteEccHooksJson(eccHooksJson, wrapperPath);
+    const rewritten = rewriteEccHooksJson(eccHooksJson, wrapperPath, eccRoot);
 
     // 10e. Merge into settings.json
     const settingsFile = paths.claudeSettings();
