@@ -13,7 +13,7 @@ import { scanCommandDeps } from './deps-scan.js';
  * @returns {Array<{
  *   dst: string,
  *   eccSrc: string,
- *   kind: 'agent' | 'skill-dir' | 'rules-dir' | 'command' | 'context',
+ *   kind: 'agent' | 'skill-dir' | 'rules-file' | 'command' | 'context',
  *   ownedBy: 'global' | string,
  *   ephemeral: boolean,
  *   autoDep?: boolean,
@@ -81,27 +81,41 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
     });
   }
 
-  // Rules layer (global only): base rule (common/zh) + bundle rules + extras
-  const baseRule = (config.rulesLanguage ?? 'en') === 'zh' ? 'zh' : 'common';
-  const bundleRules = resolved.rules ?? [];
+  // Rules layer (global): bundle rules + extras
+  // Entries can be "lang" (all files) or "lang/file" (single file).
+  // rulesLanguage: "zh" swaps common→zh for backward compat
+  const zhMode = (config.rulesLanguage ?? 'en') === 'zh';
+  const swapZh = r => {
+    if (!zhMode) return r;
+    if (r === 'common') return 'zh';
+    return r.startsWith('common/') ? 'zh' + r.slice(6) : r;
+  };
+  const bundleRules = (resolved.rules ?? []).map(swapZh);
   const extraRules = globalExtras.rulesLanguages ?? [];
-  const allRules = dedupe([baseRule, ...bundleRules, ...extraRules]);
+  const allRules = dedupe([...bundleRules, ...extraRules]);
 
-  for (const lang of allRules) {
-    if (!ruleNames.has(lang)) {
-      throw new Error(`rule "${lang}" not found in ECC`);
-    }
-    result.push({
-      dst: join(home, '.claude', 'rules', lang),
-      eccSrc: `rules/${lang}`,
-      kind: 'rules-dir',
-      ownedBy: 'global',
-      ephemeral: false,
-    });
+  // Per-file exclude set
+  const bundleRuleExcludes = globalBundleNames.flatMap(
+    b => overrides[b]?.exclude?.rules ?? [],
+  );
+  const excludeRules = new Set([...(globalExcludes.rules ?? []), ...bundleRuleExcludes]);
+  const ruleFilesByLang = new Map();
+  for (const rf of (inv.ruleFiles ?? [])) {
+    const list = ruleFilesByLang.get(rf.lang) ?? [];
+    ruleFilesByLang.set(rf.lang, [...list, rf]);
+  }
+
+  for (const entry of allRules) {
+    result.push(...emitRuleLinks(entry, {
+      ruleNames, ruleFilesByLang, excludeRules,
+      basePath: home, ownedBy: 'global', ephemeral: false,
+    }));
   }
 
   // Commands (global only, per-file symlink)
+  const excludeCommands = new Set(globalExcludes.commands ?? []);
   for (const name of (globalExtras.commands ?? [])) {
+    if (excludeCommands.has(name)) continue;
     if (!commandNames.has(name)) {
       throw new Error(`command "${name}" not found in ECC`);
     }
@@ -138,6 +152,7 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
     if (entry.kind === 'agent') globalAgentSet.add(entry.eccSrc.replace(/^agents\//, '').replace(/\.md$/, ''));
     if (entry.kind === 'skill-dir') globalSkillSet.add(entry.eccSrc.replace(/^skills\//, ''));
   }
+  const globalRuleLangSet = new Set(allRules);
 
   // -------------------------------------------------------------------------
   // Project layers
@@ -185,6 +200,24 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
         ephemeral: projEphemeral,
       });
     }
+
+    // Project-level rules
+    const projRuleEntries = (projResolved.rules ?? [])
+      .filter(entry => !globalRuleLangSet.has(entry));
+    const projBundleRuleExcludes = projBundleNames.flatMap(
+      b => overrides[b]?.exclude?.rules ?? [],
+    );
+    const projExcludeRules = new Set([
+      ...(projExcludes.rules ?? []),
+      ...projBundleRuleExcludes,
+    ]);
+
+    for (const entry of projRuleEntries) {
+      result.push(...emitRuleLinks(entry, {
+        ruleNames, ruleFilesByLang, excludeRules: projExcludeRules,
+        basePath: projPath, ownedBy, ephemeral: false,
+      }));
+    }
   }
 
   // Auto-detect command dependencies from selected agents/skills
@@ -197,7 +230,6 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
     }
 
     const manualCommands = new Set(globalExtras.commands ?? []);
-    const excludeCommands = new Set(globalExcludes.commands ?? []);
 
     const commandDeps = scanCommandDeps([...allAgents], [...allSkills], eccRoot, commandNames);
 
@@ -218,6 +250,47 @@ export function resolveDesired(config, bundles, inv, { home, eccRoot }) {
 
   // Dedup within each layer by dst (keep first occurrence)
   return dedupByDst(result);
+}
+
+/**
+ * Emit rule link entries for a single rules entry.
+ * Supports "lang" (all files in directory) and "lang/file" (single file).
+ */
+function emitRuleLinks(entry, { ruleNames, ruleFilesByLang, excludeRules, basePath, ownedBy, ephemeral }) {
+  const results = [];
+  if (entry.includes('/')) {
+    const [lang, fileName] = entry.split('/', 2);
+    if (!ruleNames.has(lang)) {
+      throw new Error(`rule language "${lang}" not found in ECC`);
+    }
+    if (excludeRules.has(fileName)) return results;
+    const rf = (ruleFilesByLang.get(lang) ?? []).find(f => f.name === fileName);
+    if (!rf) {
+      throw new Error(`rule file "${fileName}" not found in ECC rules/${lang}/`);
+    }
+    results.push({
+      dst: join(basePath, '.claude', 'rules', lang, `${rf.name}.md`),
+      eccSrc: `rules/${lang}/${rf.name}.md`,
+      kind: 'rules-file',
+      ownedBy,
+      ephemeral,
+    });
+  } else {
+    if (!ruleNames.has(entry)) {
+      throw new Error(`rule "${entry}" not found in ECC`);
+    }
+    for (const rf of (ruleFilesByLang.get(entry) ?? [])) {
+      if (excludeRules.has(rf.name)) continue;
+      results.push({
+        dst: join(basePath, '.claude', 'rules', entry, `${rf.name}.md`),
+        eccSrc: `rules/${entry}/${rf.name}.md`,
+        kind: 'rules-file',
+        ownedBy,
+        ephemeral,
+      });
+    }
+  }
+  return results;
 }
 
 /** Return array with duplicates removed (first occurrence wins). */

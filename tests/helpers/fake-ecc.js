@@ -25,6 +25,42 @@ export function makeFakeEcc(root) {
     'utf8',
   );
 
+  writeFileSync(
+    join(agentsDir, 'code-simplifier.md'),
+    '---\nname: code-simplifier\ndescription: fake code-simplifier agent\n---\n',
+    'utf8',
+  );
+  writeFileSync(
+    join(agentsDir, 'refactor-cleaner.md'),
+    '---\nname: refactor-cleaner\ndescription: fake refactor-cleaner agent\n---\n',
+    'utf8',
+  );
+  writeFileSync(
+    join(agentsDir, 'type-design-analyzer.md'),
+    '---\nname: type-design-analyzer\ndescription: fake type-design-analyzer agent\n---\n',
+    'utf8',
+  );
+  writeFileSync(
+    join(agentsDir, 'pr-test-analyzer.md'),
+    '---\nname: pr-test-analyzer\ndescription: fake pr-test-analyzer agent\n---\n',
+    'utf8',
+  );
+  writeFileSync(
+    join(agentsDir, 'architect.md'),
+    '---\nname: architect\ndescription: fake architect agent\n---\n',
+    'utf8',
+  );
+  writeFileSync(
+    join(agentsDir, 'code-architect.md'),
+    '---\nname: code-architect\ndescription: fake code-architect agent\n---\n',
+    'utf8',
+  );
+  writeFileSync(
+    join(agentsDir, 'comment-analyzer.md'),
+    '---\nname: comment-analyzer\ndescription: fake comment-analyzer agent\n---\n',
+    'utf8',
+  );
+
   // skills/coding-standards/SKILL.md
   const codingStdDir = join(root, 'skills', 'coding-standards');
   mkdirSync(codingStdDir, { recursive: true });
@@ -34,12 +70,22 @@ export function makeFakeEcc(root) {
     'utf8',
   );
 
+  // skills/git-workflow/SKILL.md
+  const gitWorkflowDir = join(root, 'skills', 'git-workflow');
+  mkdirSync(gitWorkflowDir, { recursive: true });
+  writeFileSync(
+    join(gitWorkflowDir, 'SKILL.md'),
+    '---\nname: git-workflow\ndescription: fake git workflow\n---\n',
+    'utf8',
+  );
+
   // skills used by the scan bundle
   for (const skillName of [
     'agent-sort', 'skill-stocktake', 'repo-scan',
     'workspace-surface-audit', 'ecc-tools-cost-audit',
     'rules-distill', 'agent-eval', 'skill-comply',
     'codebase-onboarding', 'configure-ecc', 'context-budget',
+    'verification-loop', 'architecture-decision-records',
   ]) {
     const skillDir = join(root, 'skills', skillName);
     mkdirSync(skillDir, { recursive: true });
@@ -69,10 +115,13 @@ export function makeFakeEcc(root) {
   mkdirSync(rulesDir, { recursive: true });
   writeFileSync(join(rulesDir, 'style.md'), '# Style\n', 'utf8');
 
-  // rules/java/coding-style.md
+  // rules/java/coding-style.md, patterns.md, hooks.md, security.md
   const javaRulesDir = join(root, 'rules', 'java');
   mkdirSync(javaRulesDir, { recursive: true });
   writeFileSync(join(javaRulesDir, 'coding-style.md'), '---\npaths:\n  - "**/*.java"\n---\n# Java Style\n', 'utf8');
+  writeFileSync(join(javaRulesDir, 'patterns.md'), '---\npaths:\n  - "**/*.java"\n---\n# Java Patterns\n', 'utf8');
+  writeFileSync(join(javaRulesDir, 'hooks.md'), '---\npaths:\n  - "**/*.java"\n---\n# Java Hooks\n', 'utf8');
+  writeFileSync(join(javaRulesDir, 'security.md'), '---\npaths:\n  - "**/*.java"\n---\n# Java Security\n', 'utf8');
 
   // rules/zh/style.md
   const zhRulesDir = join(root, 'rules', 'zh');

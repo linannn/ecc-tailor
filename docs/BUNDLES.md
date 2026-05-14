@@ -10,29 +10,11 @@ Per-bundle listing of all agents and skills with descriptions.
 | Type | Name | Description |
 |---|---|---|
 | agent | planner | Complex feature and refactoring planning |
-| agent | architect | System design, scalability, and technical decisions |
-| agent | code-architect | Feature architecture blueprints from codebase patterns |
 | agent | code-explorer | Trace execution paths and map architecture layers |
 | agent | code-reviewer | Code quality, security, and maintainability review |
-| agent | code-simplifier | Simplify code for clarity while preserving behavior |
-| agent | comment-analyzer | Analyze code comments for accuracy and rot risk |
-| agent | silent-failure-hunter | Find swallowed errors, bad fallbacks, missing propagation |
 | agent | tdd-guide | Test-driven development enforcement |
-| agent | type-design-analyzer | Analyze type design for encapsulation and invariants |
-| agent | performance-optimizer | Bottleneck identification and optimization |
-| agent | pr-test-analyzer | PR test coverage quality review |
-| agent | doc-updater | Documentation and codemap maintenance |
-| agent | docs-lookup | Library/framework docs via Context7 MCP |
-| agent | refactor-cleaner | Dead code cleanup and consolidation |
-| skill | coding-standards | Cross-project conventions: naming, readability, immutability |
 | skill | tdd-workflow | Write-tests-first methodology with 80%+ coverage |
-| skill | verification-loop | Comprehensive verification for Claude Code sessions |
-| skill | strategic-compact | Manual context compaction at logical intervals |
-| skill | git-workflow | Branching strategies, commit conventions, merge vs rebase |
 | skill | gateguard | Per-file fact-forcing gate, blocks edits until investigation (+2.25 quality) |
-| skill | architecture-decision-records | Capture architectural decisions as structured ADR documents |
-| skill | search-first | Search before writing: locate existing code before creating new |
-| skill | documentation-lookup | Look up library/framework docs before coding |
 
 </details>
 
@@ -49,6 +31,7 @@ Per-bundle listing of all agents and skills with descriptions.
 | skill | java-coding-standards | Java naming, immutability, Optional, streams, exceptions |
 | skill | jpa-patterns | JPA/Hibernate entity design, queries, transactions, indexing |
 | skill | springboot-security | Spring Security authn/authz, CSRF, validation, rate limiting |
+| skill | api-design | REST API design: resource naming, status codes, pagination, versioning |
 
 </details>
 
@@ -93,6 +76,8 @@ Per-bundle listing of all agents and skills with descriptions.
 | agent | typescript-reviewer | Type safety, async correctness, Node/web security review |
 | agent | build-error-resolver | Fix build/type errors with minimal diffs |
 | skill | backend-patterns | Backend arch, API design, DB optimization for Node.js/Express |
+| skill | api-design | REST API design: resource naming, status codes, pagination, versioning |
+| skill | bun-runtime | Bun as runtime, package manager, bundler, and test runner |
 
 </details>
 
@@ -108,6 +93,9 @@ Per-bundle listing of all agents and skills with descriptions.
 | skill | frontend-design | Production-grade frontend with high design quality |
 | skill | e2e-testing | Playwright patterns, Page Object Model, CI/CD, flaky test strategies |
 | skill | nextjs-turbopack | Next.js 16+ Turbopack incremental bundling and configuration |
+| skill | design-system | Design system generation, visual consistency audits, styling PR review |
+| skill | click-path-audit | Trace user-facing buttons through full state change sequence to find bugs |
+| skill | browser-qa | Automated visual testing and UI interaction verification via browser |
 
 </details>
 
@@ -117,6 +105,16 @@ Per-bundle listing of all agents and skills with descriptions.
 | Type | Name | Description |
 |---|---|---|
 | skill | nestjs-patterns | Modules, controllers, providers, DTO validation, guards, interceptors |
+
+</details>
+
+<details>
+<summary><b>ts-tooling-proj</b> — TypeScript/JS CLI tools and scripts (extends core)</summary>
+
+| Type | Name | Description |
+|---|---|---|
+| agent | typescript-reviewer | Type safety, async correctness, Node/web security review |
+| agent | build-error-resolver | Fix build/type errors with minimal diffs |
 
 </details>
 
@@ -138,6 +136,7 @@ Per-bundle listing of all agents and skills with descriptions.
 | agent | go-build-resolver | Fix go build errors, vet issues, linter warnings |
 | skill | golang-patterns | Idiomatic Go patterns and conventions |
 | skill | golang-testing | Table-driven tests, subtests, benchmarks, fuzzing, coverage |
+| skill | api-design | REST API design: resource naming, status codes, pagination, versioning |
 
 </details>
 
@@ -251,6 +250,8 @@ Per-bundle listing of all agents and skills with descriptions.
 | skill | claude-api | Messages API, streaming, tool use, vision, thinking, batches, caching |
 | skill | mcp-server-patterns | Build MCP servers: tools, resources, prompts, Zod, stdio vs HTTP |
 | skill | cost-aware-llm-pipeline | LLM cost optimization: model routing, budget tracking, caching |
+| skill | continuous-learning-v2 | Instinct-based learning: observe sessions, create instincts, evolve into skills |
+| skill | hookify-rules | Create hookify rules, configure syntax and patterns |
 
 </details>
 
@@ -260,6 +261,7 @@ Per-bundle listing of all agents and skills with descriptions.
 | Type | Name | Description |
 |---|---|---|
 | agent | security-reviewer | SSRF, injection, unsafe crypto, OWASP Top 10 detection |
+| agent | silent-failure-hunter | Find swallowed errors, bad fallbacks, missing propagation |
 | skill | security-review | Security vulnerability review |
 | skill | security-scan | Scan .claude/ config for misconfigurations and injection risks |
 | skill | security-bounty-hunter | Hunt exploitable, bounty-worthy vulnerabilities |
@@ -283,9 +285,12 @@ Per-bundle listing of all agents and skills with descriptions.
 
 | Type | Name | Description |
 |---|---|---|
+| agent | performance-optimizer | Bottleneck identification and optimization |
 | skill | docker-patterns | Docker/Compose: container security, networking, multi-service |
 | skill | deployment-patterns | CI/CD pipelines, health checks, rollback, production readiness |
 | skill | benchmark | Performance baselines, regression detection, stack comparison |
+| skill | canary-watch | Monitor deployed URLs for regressions after deploys and upgrades |
+| skill | git-workflow | Branching strategies, commit conventions, merge vs rebase |
 
 </details>
 
@@ -368,6 +373,8 @@ Per-bundle listing of all agents and skills with descriptions.
 | skill | team-builder | Interactive agent picker for composing parallel teams |
 | skill | ralphinho-rfc-pipeline | RFC-driven multi-agent DAG with quality gates and merge queues |
 | skill | safety-guard | Prevent destructive operations in autonomous agent runs |
+| skill | blueprint | Turn a one-line objective into a step-by-step multi-session construction plan |
+| skill | strategic-compact | Manual context compaction at logical intervals |
 
 </details>
 
@@ -376,10 +383,14 @@ Per-bundle listing of all agents and skills with descriptions.
 
 | Type | Name | Description |
 |---|---|---|
+| agent | docs-lookup | Library/framework docs via Context7 MCP |
+| agent | architect | System design, scalability, and technical decisions |
 | skill | deep-research | Multi-source web research with citations via firecrawl and exa |
 | skill | exa-search | Neural search for web, code, companies, people via Exa MCP |
 | skill | market-research | Competitive analysis, market sizing, industry intelligence |
 | skill | research-ops | Current-state research with public evidence and local context |
+| skill | search-first | Search before writing: locate existing code before creating new |
+| skill | documentation-lookup | Look up library/framework docs before coding |
 
 </details>
 
@@ -388,6 +399,7 @@ Per-bundle listing of all agents and skills with descriptions.
 
 | Type | Name | Description |
 |---|---|---|
+| agent | doc-updater | Documentation and codemap maintenance |
 | skill | article-writing | Articles, guides, blog posts, tutorials, newsletter issues |
 | skill | brand-voice | Build writing style profiles from real posts and reuse across content |
 | skill | content-engine | Platform-native content for X, LinkedIn, TikTok, YouTube, newsletters |
@@ -443,6 +455,12 @@ Per-bundle listing of all agents and skills with descriptions.
 
 | Type | Name | Description |
 |---|---|---|
+| agent | code-simplifier | Simplify code for clarity while preserving behavior |
+| agent | refactor-cleaner | Dead code cleanup and consolidation |
+| agent | type-design-analyzer | Analyze type design for encapsulation and invariants |
+| agent | pr-test-analyzer | PR test coverage quality review |
+| agent | code-architect | Feature architecture blueprints from codebase patterns |
+| agent | comment-analyzer | Analyze code comments for accuracy and rot risk |
 | skill | agent-sort | Evidence-backed ECC install plan: DAILY vs LIBRARY buckets |
 | skill | skill-stocktake | Audit skills and commands for quality (quick scan / full stocktake) |
 | skill | repo-scan | Cross-stack source code audit with four-level verdicts |
@@ -454,5 +472,8 @@ Per-bundle listing of all agents and skills with descriptions.
 | skill | codebase-onboarding | Analyze unfamiliar codebase, generate onboarding guide + CLAUDE.md |
 | skill | configure-ecc | Interactive ECC installer with skill/rule selection |
 | skill | context-budget | Audit context window consumption, find bloat, recommend savings |
+| skill | verification-loop | Comprehensive verification for Claude Code sessions |
+| skill | architecture-decision-records | Capture architectural decisions as structured ADR documents |
+| skill | coding-standards | Cross-project conventions: naming, readability, immutability |
 
 </details>

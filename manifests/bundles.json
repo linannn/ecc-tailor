@@ -2,20 +2,19 @@
   "core": {
     "description": "Stack-agnostic software development essentials",
     "agents": [
-      "planner", "architect", "code-architect", "code-explorer",
-      "code-reviewer", "code-simplifier", "comment-analyzer",
-      "silent-failure-hunter", "tdd-guide", "type-design-analyzer",
-      "performance-optimizer", "pr-test-analyzer",
-      "doc-updater", "docs-lookup", "refactor-cleaner"
+      "planner", "code-explorer",
+      "code-reviewer",
+      "tdd-guide"
     ],
     "skills": [
-      "coding-standards",
-      "tdd-workflow", "verification-loop",
-      "strategic-compact",
-      "git-workflow", "gateguard", "architecture-decision-records",
-      "search-first", "documentation-lookup"
+      "tdd-workflow",
+      "gateguard"
     ],
-    "mcp": ["context7"]
+    "mcp": ["context7"],
+    "rules": [
+      "common/coding-style", "common/development-workflow",
+      "common/git-workflow", "common/security"
+    ]
   },
   "java-proj": {
     "description": "Java + Spring Boot project",
@@ -45,6 +44,12 @@
     "extends": "py-proj",
     "agents": ["pytorch-build-resolver"],
     "skills": ["pytorch-patterns"]
+  },
+  "ts-tooling-proj": {
+    "description": "TypeScript/JS CLI tools and scripts",
+    "extends": "core",
+    "agents": ["typescript-reviewer", "build-error-resolver"],
+    "rules": ["typescript"]
   },
   "ts-backend-proj": {
     "description": "TypeScript/JS backend",
@@ -153,7 +158,7 @@
   },
   "security": {
     "description": "Security hardening",
-    "agents": ["security-reviewer"],
+    "agents": ["security-reviewer", "silent-failure-hunter"],
     "skills": ["security-review", "security-scan", "security-bounty-hunter"]
   },
   "database": {
@@ -164,8 +169,8 @@
   },
   "devops": {
     "description": "Deployment and infrastructure",
-    "agents": [],
-    "skills": ["docker-patterns", "deployment-patterns", "benchmark", "canary-watch"],
+    "agents": ["performance-optimizer"],
+    "skills": ["docker-patterns", "deployment-patterns", "benchmark", "canary-watch", "git-workflow"],
     "mcp": ["vercel", "railway", "cloudflare-docs", "cloudflare-workers-builds", "cloudflare-workers-bindings", "cloudflare-observability"]
   },
   "healthcare": {
@@ -207,19 +212,19 @@
       "enterprise-agent-ops", "dmux-workflows",
       "santa-method", "council", "team-builder",
       "ralphinho-rfc-pipeline", "safety-guard",
-      "blueprint"
+      "blueprint", "strategic-compact"
     ],
     "mcp": ["memory", "omega-memory", "sequential-thinking", "devfleet", "evalview"]
   },
   "research": {
     "description": "Research and analysis",
-    "agents": [],
-    "skills": ["deep-research", "exa-search", "market-research", "research-ops"],
+    "agents": ["docs-lookup", "architect"],
+    "skills": ["deep-research", "exa-search", "market-research", "research-ops", "search-first", "documentation-lookup"],
     "mcp": ["exa-web-search", "firecrawl"]
   },
   "content": {
     "description": "Content creation and social media",
-    "agents": [],
+    "agents": ["doc-updater"],
     "skills": [
       "article-writing", "brand-voice", "content-engine", "crosspost",
       "frontend-slides", "manim-video", "video-editing",
@@ -250,12 +255,14 @@
   "scan": {
     "description": "Ephemeral evaluation tools",
     "ephemeral": true,
-    "agents": [],
+    "agents": ["code-simplifier", "refactor-cleaner", "type-design-analyzer", "pr-test-analyzer", "code-architect", "comment-analyzer"],
     "skills": [
       "agent-sort", "skill-stocktake", "repo-scan",
       "workspace-surface-audit", "ecc-tools-cost-audit",
       "rules-distill", "agent-eval", "skill-comply",
-      "codebase-onboarding", "configure-ecc", "context-budget"
+      "codebase-onboarding", "configure-ecc", "context-budget",
+      "verification-loop", "architecture-decision-records",
+      "coding-standards"
     ],
     "mcp": ["token-optimizer"]
   }

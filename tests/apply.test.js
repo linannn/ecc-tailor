@@ -70,17 +70,17 @@ test('executeApply: creates symlinks on disk and records them in state', async (
     const state   = structuredClone(EMPTY_STATE);
 
     const plan = await planApply(desired, state, { ecc });
-    await executeApply(plan, state, { ecc });
+    const newState = await executeApply(plan, state, { ecc });
 
     // Check planner.md symlink
     const plannerDst = join(env.home, '.claude', 'agents', 'planner.md');
     const target = readlinkSync(plannerDst);
     assert.equal(target, join(ecc, 'agents/planner.md'), 'symlink should point to absolute ECC path');
 
-    // Check state was updated
-    assert.ok(plannerDst in state.symlinks, 'state.symlinks should contain planner dst');
-    assert.equal(state.symlinks[plannerDst].eccSrc, 'agents/planner.md');
-    assert.equal(state.symlinks[plannerDst].kind, 'agent');
+    // Check returned state was updated
+    assert.ok(plannerDst in newState.symlinks, 'state.symlinks should contain planner dst');
+    assert.equal(newState.symlinks[plannerDst].eccSrc, 'agents/planner.md');
+    assert.equal(newState.symlinks[plannerDst].kind, 'agent');
   } finally {
     env.cleanup();
   }
@@ -153,11 +153,11 @@ test('executeApply: idempotent — second apply leaves nothing to add or remove'
     const inv = scanEcc(ecc);
     const config  = makeConfig();
     const desired = resolveDesired(config, BUNDLES, inv, { home: env.home });
-    const state   = structuredClone(EMPTY_STATE);
+    let state = structuredClone(EMPTY_STATE);
 
     // First apply
     const plan1 = await planApply(desired, state, { ecc });
-    await executeApply(plan1, state, { ecc });
+    state = await executeApply(plan1, state, { ecc });
 
     // Second plan (same desired, state now updated)
     const plan2 = await planApply(desired, state, { ecc });

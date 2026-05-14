@@ -1,7 +1,5 @@
 # Dependency Map
 
-[English](DEPENDENCIES.md) | [中文](DEPENDENCIES.zh.md)
-
 Auto-generated. Shows the full dependency chain: resource → who needs it → which bundle.
 
 ## Command Dependencies
@@ -14,23 +12,23 @@ Auto-detected from `/command-name` references in agent/skill content during `res
 | `/claw` | skill:autonomous-loops | agent-dev |
 | `/code-review` | skill:prompt-optimizer | — |
 | `/context-budget` | skill:context-budget | — |
-| `/docs` | skill:design-system | — |
+| `/docs` | skill:design-system | nuxt-proj, ts-frontend-proj |
 | `/e2e` | skill:prompt-optimizer | — |
 | `/eval` | skill:eval-harness | agent-dev |
-| `/evolve` | skill:continuous-learning-v2 | — |
+| `/evolve` | skill:continuous-learning-v2 | ai-app-dev |
 | `/go-review` | skill:prompt-optimizer | — |
 | `/harness-audit` | agent:harness-optimizer, skill:continuous-agent-loop | agent-dev |
-| `/hookify` | agent:conversation-analyzer, skill:hookify-rules | ops |
-| `/hookify-configure` | skill:hookify-rules | — |
-| `/hookify-help` | skill:hookify-rules | — |
-| `/hookify-list` | skill:hookify-rules | — |
-| `/instinct-export` | skill:continuous-learning-v2 | — |
-| `/instinct-import` | skill:continuous-learning-v2 | — |
-| `/instinct-status` | skill:continuous-learning-v2 | — |
+| `/hookify` | agent:conversation-analyzer, skill:hookify-rules | ai-app-dev, ops |
+| `/hookify-configure` | skill:hookify-rules | ai-app-dev |
+| `/hookify-help` | skill:hookify-rules | ai-app-dev |
+| `/hookify-list` | skill:hookify-rules | ai-app-dev |
+| `/instinct-export` | skill:continuous-learning-v2 | ai-app-dev |
+| `/instinct-import` | skill:continuous-learning-v2 | ai-app-dev |
+| `/instinct-status` | skill:continuous-learning-v2 | ai-app-dev |
 | `/learn` | skill:continuous-learning | — |
 | `/plan` | skill:prompt-optimizer | — |
-| `/projects` | skill:continuous-learning-v2, skill:laravel-security | laravel-proj |
-| `/promote` | skill:continuous-learning-v2 | — |
+| `/projects` | skill:continuous-learning-v2, skill:laravel-security | ai-app-dev, laravel-proj |
+| `/promote` | skill:continuous-learning-v2 | ai-app-dev |
 | `/prompt-optimize` | skill:prompt-optimizer | — |
 | `/quality-gate` | skill:continuous-agent-loop | agent-dev |
 | `/refactor-clean` | skill:prompt-optimizer | — |
@@ -39,9 +37,9 @@ Auto-detected from `/command-name` references in agent/skill content during `res
 | `/save-session` | skill:council, skill:prompt-optimizer | agent-dev |
 | `/tdd` | skill:prompt-optimizer | — |
 | `/test-coverage` | skill:prompt-optimizer | — |
-| `/update-codemaps` | agent:doc-updater, skill:prompt-optimizer | global |
-| `/update-docs` | agent:doc-updater, skill:prompt-optimizer | global |
-| `/verify` | skill:autonomous-loops, skill:prompt-optimizer, skill:verification-loop | agent-dev, global |
+| `/update-codemaps` | agent:doc-updater, skill:prompt-optimizer | content |
+| `/update-docs` | agent:doc-updater, skill:prompt-optimizer | content |
+| `/verify` | skill:autonomous-loops, skill:prompt-optimizer, skill:verification-loop | agent-dev |
 
 ## MCP Server Dependencies
 
@@ -56,7 +54,7 @@ MCP servers configured in bundle definitions. Agent/skill references detected fr
 | `cloudflare-workers-bindings` | — | devops |
 | `cloudflare-workers-builds` | — | devops |
 | `confluence` | — | ops |
-| `context7` | agent:docs-lookup | global |
+| `context7` | agent:docs-lookup | core |
 | `devfleet` | — | agent-dev |
 | `evalview` | — | agent-dev |
 | `exa-web-search` | skill:exa-search | research |

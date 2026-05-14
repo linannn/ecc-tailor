@@ -3,8 +3,17 @@ import { loadConfig } from '../core/config.js';
 import { loadBundles, resolveBundle, applyBundleOverride } from '../core/bundles.js';
 import { writeJsonAtomic } from '../util/json.js';
 import { paths } from '../core/paths.js';
+import { resolveEccRoot } from '../core/ecc-repo.js';
+import { scanEcc } from '../core/fs-scan.js';
 
-const VALID_TYPES = ['agents', 'skills', 'mcp'];
+const VALID_TYPES = ['agents', 'skills', 'mcp', 'rules', 'commands'];
+const TYPE_HINT = 'agents (agent), skills (skill), mcp, rules (rule), commands (command)';
+const INVENTORY_KEY = { agents: 'agents', skills: 'skills', mcp: 'mcpServers', rules: 'ruleFiles', commands: 'commands' };
+
+function normalizeType(raw) {
+  const map = { agent: 'agents', skill: 'skills', rule: 'rules', command: 'commands' };
+  return map[raw] ?? raw;
+}
 
 function printUsage() {
   log.h1('ecc-tailor customize');
@@ -15,25 +24,34 @@ function printUsage() {
   log.info('  ecc-tailor customize <bundle> exclude <type> <name>[,name]');
   log.info('  ecc-tailor customize <bundle> reset');
   log.info('');
-  log.info(`<type> is one of: ${VALID_TYPES.join(', ')}`);
+  log.info(`<type> is one of: ${TYPE_HINT}`);
 }
 
 function ensureOverride(cfg, bundleName) {
-  if (!cfg.bundleOverrides) cfg.bundleOverrides = {};
-  if (!cfg.bundleOverrides[bundleName]) {
-    cfg.bundleOverrides[bundleName] = {
-      exclude: { agents: [], skills: [], mcp: [] },
-      add:     { agents: [], skills: [], mcp: [] },
-    };
-  }
-  const ov = cfg.bundleOverrides[bundleName];
-  if (!ov.exclude) ov.exclude = { agents: [], skills: [], mcp: [] };
-  if (!ov.add)     ov.add     = { agents: [], skills: [], mcp: [] };
-  for (const t of VALID_TYPES) {
-    if (!Array.isArray(ov.exclude[t])) ov.exclude[t] = [];
-    if (!Array.isArray(ov.add[t]))     ov.add[t]     = [];
-  }
-  return ov;
+  const overrides = cfg.bundleOverrides ?? {};
+  const existing = overrides[bundleName] ?? {};
+
+  const ov = {
+    exclude: {
+      agents:   Array.isArray(existing.exclude?.agents)   ? [...existing.exclude.agents]   : [],
+      skills:   Array.isArray(existing.exclude?.skills)   ? [...existing.exclude.skills]   : [],
+      mcp:      Array.isArray(existing.exclude?.mcp)      ? [...existing.exclude.mcp]      : [],
+      rules:    Array.isArray(existing.exclude?.rules)    ? [...existing.exclude.rules]    : [],
+      commands: Array.isArray(existing.exclude?.commands) ? [...existing.exclude.commands] : [],
+    },
+    add: {
+      agents: Array.isArray(existing.add?.agents) ? [...existing.add.agents] : [],
+      skills: Array.isArray(existing.add?.skills) ? [...existing.add.skills] : [],
+      mcp:    Array.isArray(existing.add?.mcp)    ? [...existing.add.mcp]    : [],
+    },
+  };
+
+  const newCfg = {
+    ...cfg,
+    bundleOverrides: { ...overrides, [bundleName]: ov },
+  };
+
+  return { cfg: newCfg, ov };
 }
 
 function cmdShow(bundleName) {
@@ -52,12 +70,14 @@ function cmdShow(bundleName) {
   if (override) {
     log.info('');
     log.h1('Override:');
-    log.dim(`  exclude.agents : ${(override.exclude?.agents ?? []).join(', ') || '(none)'}`);
-    log.dim(`  exclude.skills : ${(override.exclude?.skills ?? []).join(', ') || '(none)'}`);
-    log.dim(`  exclude.mcp    : ${(override.exclude?.mcp    ?? []).join(', ') || '(none)'}`);
-    log.dim(`  add.agents     : ${(override.add?.agents     ?? []).join(', ') || '(none)'}`);
-    log.dim(`  add.skills     : ${(override.add?.skills     ?? []).join(', ') || '(none)'}`);
-    log.dim(`  add.mcp        : ${(override.add?.mcp        ?? []).join(', ') || '(none)'}`);
+    log.dim(`  exclude.agents   : ${(override.exclude?.agents   ?? []).join(', ') || '(none)'}`);
+    log.dim(`  exclude.skills   : ${(override.exclude?.skills   ?? []).join(', ') || '(none)'}`);
+    log.dim(`  exclude.mcp      : ${(override.exclude?.mcp      ?? []).join(', ') || '(none)'}`);
+    log.dim(`  exclude.rules    : ${(override.exclude?.rules    ?? []).join(', ') || '(none)'}`);
+    log.dim(`  exclude.commands : ${(override.exclude?.commands ?? []).join(', ') || '(none)'}`);
+    log.dim(`  add.agents       : ${(override.add?.agents       ?? []).join(', ') || '(none)'}`);
+    log.dim(`  add.skills       : ${(override.add?.skills       ?? []).join(', ') || '(none)'}`);
+    log.dim(`  add.mcp          : ${(override.add?.mcp          ?? []).join(', ') || '(none)'}`);
   } else {
     log.info('');
     log.dim('No override defined for this bundle.');
@@ -73,11 +93,12 @@ function cmdShow(bundleName) {
   log.info(`  mcp    : ${final.mcp.join(', ')    || '(none)'}`);
 }
 
-function cmdAdd(bundleName, args) {
-  const [type, nameArg] = args;
+async function cmdAdd(bundleName, args) {
+  const [rawType, nameArg] = args;
+  const type = normalizeType(rawType);
 
   if (!type || !VALID_TYPES.includes(type)) {
-    log.err(`Invalid type "${type}". Must be one of: ${VALID_TYPES.join(', ')}`);
+    log.err(`Invalid type "${rawType}". Must be one of: ${TYPE_HINT}`);
     process.exit(2);
   }
 
@@ -99,23 +120,44 @@ function cmdAdd(bundleName, args) {
   }
 
   const cfg = loadConfig();
-  const ov  = ensureOverride(cfg, bundleName);
 
-  for (const name of names) {
-    if (!ov.add[type].includes(name)) {
-      ov.add[type].push(name);
+  try {
+    const eccRoot = resolveEccRoot(cfg, { clone: false });
+    const inventory = scanEcc(eccRoot);
+    const inventoryKey = INVENTORY_KEY[type];
+    const known = new Set(inventory[inventoryKey].map(e => e.name));
+    for (const name of names) {
+      if (!known.has(name)) {
+        log.err(`"${name}" not found in ECC inventory (${type})`);
+        process.exit(2);
+      }
     }
+  } catch {
+    log.warn('ECC not cloned — skipping name validation');
   }
 
-  writeJsonAtomic(paths.configFile(), cfg);
+  const { cfg: updatedCfg, ov } = ensureOverride(cfg, bundleName);
+
+  const newAdd = {
+    ...ov.add,
+    [type]: [...new Set([...ov.add[type], ...names])],
+  };
+  const newOv = { ...ov, add: newAdd };
+  const finalCfg = {
+    ...updatedCfg,
+    bundleOverrides: { ...updatedCfg.bundleOverrides, [bundleName]: newOv },
+  };
+
+  writeJsonAtomic(paths.configFile(), finalCfg);
   log.ok(`Added ${names.join(', ')} to ${bundleName}.add.${type}`);
 }
 
 function cmdExclude(bundleName, args) {
-  const [type, nameArg] = args;
+  const [rawType, nameArg] = args;
+  const type = normalizeType(rawType);
 
   if (!type || !VALID_TYPES.includes(type)) {
-    log.err(`Invalid type "${type}". Must be one of: ${VALID_TYPES.join(', ')}`);
+    log.err(`Invalid type "${rawType}". Must be one of: ${TYPE_HINT}`);
     process.exit(2);
   }
 
@@ -138,21 +180,25 @@ function cmdExclude(bundleName, args) {
 
   const resolved = resolveBundle(bundles, bundleName);
   for (const name of names) {
-    if (!resolved[type].includes(name)) {
+    if (!(resolved[type] ?? []).includes(name)) {
       log.warn(`"${name}" is not in the resolved bundle "${bundleName}" — the exclusion will have no effect`);
     }
   }
 
   const cfg = loadConfig();
-  const ov  = ensureOverride(cfg, bundleName);
+  const { cfg: updatedCfg, ov } = ensureOverride(cfg, bundleName);
 
-  for (const name of names) {
-    if (!ov.exclude[type].includes(name)) {
-      ov.exclude[type].push(name);
-    }
-  }
+  const newExclude = {
+    ...ov.exclude,
+    [type]: [...new Set([...ov.exclude[type], ...names])],
+  };
+  const newOv = { ...ov, exclude: newExclude };
+  const finalCfg = {
+    ...updatedCfg,
+    bundleOverrides: { ...updatedCfg.bundleOverrides, [bundleName]: newOv },
+  };
 
-  writeJsonAtomic(paths.configFile(), cfg);
+  writeJsonAtomic(paths.configFile(), finalCfg);
   log.ok(`Excluded ${names.join(', ')} from ${bundleName}.${type}`);
 }
 
@@ -164,12 +210,12 @@ function cmdReset(bundleName) {
     return;
   }
 
-  delete cfg.bundleOverrides[bundleName];
-  if (Object.keys(cfg.bundleOverrides).length === 0) {
-    delete cfg.bundleOverrides;
-  }
+  const { [bundleName]: _, ...restOverrides } = cfg.bundleOverrides;
+  const updated = Object.keys(restOverrides).length === 0
+    ? (({ bundleOverrides: __, ...rest }) => rest)(cfg)
+    : { ...cfg, bundleOverrides: restOverrides };
 
-  writeJsonAtomic(paths.configFile(), cfg);
+  writeJsonAtomic(paths.configFile(), updated);
   log.ok(`Reset overrides for bundle "${bundleName}"`);
 }
 
@@ -195,7 +241,7 @@ export async function customizeCmd(args) {
 
   switch (subCmd) {
     case 'add':
-      cmdAdd(bundleName, rest);
+      await cmdAdd(bundleName, rest);
       break;
     case 'exclude':
       cmdExclude(bundleName, rest);

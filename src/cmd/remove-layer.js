@@ -1,6 +1,8 @@
 import { unlink } from 'node:fs/promises';
 import log from '../core/logger.js';
 import { loadState, saveState } from '../core/state.js';
+import { loadConfig } from '../core/config.js';
+import { writeJsonAtomic } from '../util/json.js';
 import { removeEccTailorHooks } from '../hooks/index.js';
 import { paths } from '../core/paths.js';
 
@@ -55,7 +57,8 @@ export async function removeLayerCmd(args) {
     return;
   }
 
-  const state = loadState();
+  let state = loadState();
+  let newSymlinks = { ...state.symlinks };
   let removed = 0;
 
   // Determine which symlink entries match the requested layer
@@ -85,21 +88,28 @@ export async function removeLayerCmd(args) {
       if (err.code !== 'ENOENT') throw err;
     }
 
-    delete state.symlinks[dst];
+    const { [dst]: _removed, ...rest } = newSymlinks;
+    newSymlinks = rest;
     removed++;
   }
+
+  // Build updated state with new symlinks map
+  state = { ...state, symlinks: newSymlinks };
 
   // For --global and --all: remove hooks and slash command
   if (mode === 'global' || mode === 'all') {
     const { removed: hooksRemoved } = await removeEccTailorHooks({ settingsFile: paths.claudeSettings() });
-    state.hooks = {
-      installed: false,
-      settingsBackup: null,
-      addedEntries: {},
-      markerId: 'ecc-tailor',
+    state = {
+      ...state,
+      hooks: {
+        installed: false,
+        settingsBackup: null,
+        addedEntries: {},
+        markerId: 'ecc-tailor',
+      },
     };
     if (hooksRemoved > 0) {
-      log.ok(`removed ${hooksRemoved} hook entries from settings.json`);
+      log.ok(`removed ${hooksRemoved} hook entries + env.CLAUDE_PLUGIN_ROOT from settings.json`);
     }
 
     try {
@@ -111,6 +121,18 @@ export async function removeLayerCmd(args) {
   }
 
   saveState(state);
+
+  if (mode === 'project') {
+    const cfg = loadConfig();
+    const updated = { ...cfg, projects: cfg.projects.filter(p => p.path !== projectPath) };
+    writeJsonAtomic(paths.configFile(), updated);
+    log.ok('cleaned project entry from config');
+  } else if (mode === 'all') {
+    const cfg = loadConfig();
+    const updated = { ...cfg, projects: [] };
+    writeJsonAtomic(paths.configFile(), updated);
+    log.ok('cleared all project entries from config');
+  }
 
   const kind = mode === 'project' ? `project:${projectPath}` : mode;
   log.ok(`removed ${removed} symlinks (layer: ${kind})`);

@@ -21,11 +21,11 @@ export function statusCmd() {
 
   // Tally symlinks per layer per kind
   // state.symlinks = { dstAbsPath: { eccSrc, kind, ownedBy, ephemeral } }
-  const layers = {}; // { ownedBy: { agent: N, 'skill-dir': N, 'rules-dir': N } }
+  const layers = {}; // { ownedBy: { agent: N, 'skill-dir': N, 'rules-dir': N, 'rules-file': N, command: N, context: N } }
   for (const entry of Object.values(state.symlinks ?? {})) {
     const owner = entry.ownedBy ?? '(unknown)';
     if (!layers[owner]) {
-      layers[owner] = { agent: 0, 'skill-dir': 0, 'rules-dir': 0 };
+      layers[owner] = { agent: 0, 'skill-dir': 0, 'rules-dir': 0, 'rules-file': 0, command: 0, context: 0 };
     }
     const kind = entry.kind;
     if (kind in layers[owner]) {
@@ -40,13 +40,17 @@ export function statusCmd() {
   } else {
     log.h1('layers:');
     for (const [owner, counts] of Object.entries(layers)) {
-      const agents    = counts['agent']     ?? 0;
-      const skills    = counts['skill-dir'] ?? 0;
-      const ruleDirs  = counts['rules-dir'] ?? 0;
+      const agents    = counts['agent']       ?? 0;
+      const skills    = counts['skill-dir']   ?? 0;
+      const rules     = (counts['rules-dir']  ?? 0) + (counts['rules-file'] ?? 0);
+      const commands  = counts['command']     ?? 0;
+      const contexts  = counts['context']     ?? 0;
       log.info(
         `  ${owner}: ${agents} agent${agents !== 1 ? 's' : ''}, ` +
         `${skills} skill${skills !== 1 ? 's' : ''}, ` +
-        `${ruleDirs} rule dir${ruleDirs !== 1 ? 's' : ''}`,
+        `${rules} rule${rules !== 1 ? 's' : ''}, ` +
+        `${commands} command${commands !== 1 ? 's' : ''}, ` +
+        `${contexts} context${contexts !== 1 ? 's' : ''}`,
       );
     }
   }

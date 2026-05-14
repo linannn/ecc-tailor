@@ -7,7 +7,7 @@ export const DEFAULT_CONFIG = {
   global: {
     bundles: ['core'],
     extras: { agents: [], skills: [], rulesLanguages: [], commands: [], contexts: [], mcp: [] },
-    excludes: { agents: [], skills: [], mcp: [], commands: [] },
+    excludes: { agents: [], skills: [], mcp: [], commands: [], rules: [] },
   },
   bundleOverrides: {},
   projects: [],
@@ -117,25 +117,29 @@ export function validateConfig(cfg) {
  * @returns {object}
  */
 function migrateLegacyBundleName(cfg) {
-  const rename = b => b === 'global' ? 'core' : b;
-  if (cfg.global?.bundles) {
-    cfg.global.bundles = cfg.global.bundles.map(rename);
+  const rename = n => n === 'global' ? 'core' : n;
+
+  const newGlobal = { ...cfg.global, bundles: (cfg.global?.bundles ?? []).map(rename) };
+
+  const newProjects = (cfg.projects ?? []).map(proj => ({
+    ...proj,
+    bundles: (proj.bundles ?? []).map(rename),
+  }));
+
+  let newOverrides = cfg.bundleOverrides;
+  if (newOverrides?.global) {
+    const { global: globalOverride, ...restOverrides } = newOverrides;
+    newOverrides = { ...restOverrides, core: globalOverride };
   }
-  for (const proj of (cfg.projects ?? [])) {
-    if (proj.bundles) proj.bundles = proj.bundles.map(rename);
-  }
-  if (cfg.bundleOverrides?.global) {
-    cfg.bundleOverrides.core = cfg.bundleOverrides.global;
-    delete cfg.bundleOverrides.global;
-  }
-  return cfg;
+
+  return { ...cfg, global: newGlobal, projects: newProjects, bundleOverrides: newOverrides };
 }
 
 export function loadConfig({ home } = {}) {
   const file = home ? `${home}/config.json` : paths.configFile();
   const raw = readJson(file);
   const cfg = raw ? deepMerge(DEFAULT_CONFIG, raw) : deepMerge({}, DEFAULT_CONFIG);
-  migrateLegacyBundleName(cfg);
-  validateConfig(cfg);
-  return cfg;
+  const migrated = migrateLegacyBundleName(cfg);
+  validateConfig(migrated);
+  return migrated;
 }

@@ -10,29 +10,11 @@
 | 类型 | 名称 | 说明 |
 |---|---|---|
 | agent | planner | 复杂功能与重构的规划专家 |
-| agent | architect | 系统设计、可扩展性与技术决策 |
-| agent | code-architect | 基于代码库模式设计功能架构蓝图 |
 | agent | code-explorer | 追踪执行路径、映射架构层次 |
 | agent | code-reviewer | 代码质量、安全性与可维护性审查 |
-| agent | code-simplifier | 在保持行为的前提下简化代码 |
-| agent | comment-analyzer | 分析代码注释的准确性与腐化风险 |
-| agent | silent-failure-hunter | 查找被吞掉的错误、错误回退、缺失传播 |
 | agent | tdd-guide | 测试驱动开发方法论执行 |
-| agent | type-design-analyzer | 分析类型设计的封装性与不变量 |
-| agent | performance-optimizer | 性能瓶颈识别与优化 |
-| agent | pr-test-analyzer | PR 测试覆盖质量审查 |
-| agent | doc-updater | 文档与 codemap 维护 |
-| agent | docs-lookup | 通过 Context7 MCP 查找库/框架文档 |
-| agent | refactor-cleaner | 死代码清理与整合 |
-| skill | coding-standards | 跨项目编码规范：命名、可读性、不变性 |
 | skill | tdd-workflow | 先写测试方法论，80%+ 覆盖率 |
-| skill | verification-loop | Claude Code 会话综合验证 |
-| skill | strategic-compact | 在逻辑节点手动压缩上下文 |
-| skill | git-workflow | 分支策略、commit 规范、merge vs rebase |
 | skill | gateguard | 每文件事实验证门控，编辑前强制调查（+2.25 质量） |
-| skill | architecture-decision-records | 将架构决策记录为结构化 ADR 文档 |
-| skill | search-first | 先搜索后编写：新建前先找已有代码 |
-| skill | documentation-lookup | 编码前先查阅库/框架文档 |
 
 </details>
 
@@ -49,6 +31,7 @@
 | skill | java-coding-standards | Java 命名、不变性、Optional、流、异常 |
 | skill | jpa-patterns | JPA/Hibernate 实体设计、查询、事务、索引 |
 | skill | springboot-security | Spring Security 认证/授权、CSRF、校验、限流 |
+| skill | api-design | REST API 设计：资源命名、状态码、分页、版本控制 |
 
 </details>
 
@@ -93,6 +76,8 @@
 | agent | typescript-reviewer | 类型安全、异步正确性、Node/Web 安全审查 |
 | agent | build-error-resolver | 最小改动修复构建/类型错误 |
 | skill | backend-patterns | 后端架构、API 设计、数据库优化（Node.js/Express） |
+| skill | api-design | REST API 设计：资源命名、状态码、分页、版本控制 |
+| skill | bun-runtime | Bun 运行时、包管理器、打包器和测试运行器 |
 
 </details>
 
@@ -108,6 +93,9 @@
 | skill | frontend-design | 高设计质量的生产级前端界面 |
 | skill | e2e-testing | Playwright 模式、Page Object Model、CI/CD、flaky test 策略 |
 | skill | nextjs-turbopack | Next.js 16+ Turbopack 增量打包配置 |
+| skill | design-system | 设计系统生成、视觉一致性审计、样式 PR 审查 |
+| skill | click-path-audit | 追踪用户按钮的完整状态变更序列，发现交互 bug |
+| skill | browser-qa | 通过浏览器自动化进行视觉测试与 UI 交互验证 |
 
 </details>
 
@@ -117,6 +105,16 @@
 | 类型 | 名称 | 说明 |
 |---|---|---|
 | skill | nestjs-patterns | 模块、控制器、Provider、DTO 校验、守卫、拦截器 |
+
+</details>
+
+<details>
+<summary><b>ts-tooling-proj</b> — TypeScript/JS CLI 工具与脚本（继承 core）</summary>
+
+| 类型 | 名称 | 说明 |
+|---|---|---|
+| agent | typescript-reviewer | 类型安全、异步正确性、Node/Web 安全审查 |
+| agent | build-error-resolver | 最小改动修复构建/类型错误 |
 
 </details>
 
@@ -138,6 +136,7 @@
 | agent | go-build-resolver | 修复 go build 错误、vet 问题、linter 警告 |
 | skill | golang-patterns | 地道 Go 模式与约定 |
 | skill | golang-testing | 表驱动测试、子测试、基准测试、模糊测试、覆盖率 |
+| skill | api-design | REST API 设计：资源命名、状态码、分页、版本控制 |
 
 </details>
 
@@ -251,6 +250,8 @@
 | skill | claude-api | Messages API、流式、工具调用、视觉、思考、批量、缓存 |
 | skill | mcp-server-patterns | 构建 MCP 服务器：工具、资源、Zod、stdio vs HTTP |
 | skill | cost-aware-llm-pipeline | LLM 成本优化：模型路由、预算追踪、缓存 |
+| skill | continuous-learning-v2 | 基于本能的学习系统：观察会话、创建本能、进化为 skill |
+| skill | hookify-rules | 创建 hookify 规则、配置语法与模式 |
 
 </details>
 
@@ -260,6 +261,7 @@
 | 类型 | 名称 | 说明 |
 |---|---|---|
 | agent | security-reviewer | SSRF、注入、不安全加密、OWASP Top 10 检测 |
+| agent | silent-failure-hunter | 查找被吞掉的错误、错误回退、缺失传播 |
 | skill | security-review | 安全漏洞审查 |
 | skill | security-scan | 扫描 .claude/ 配置中的错误配置与注入风险 |
 | skill | security-bounty-hunter | 主动挖掘可提交赏金的可利用漏洞 |
@@ -283,9 +285,12 @@
 
 | 类型 | 名称 | 说明 |
 |---|---|---|
+| agent | performance-optimizer | 性能瓶颈识别与优化 |
 | skill | docker-patterns | Docker/Compose：容器安全、网络、多服务编排 |
 | skill | deployment-patterns | CI/CD 流水线、健康检查、回滚、生产就绪检查 |
 | skill | benchmark | 性能基线、回归检测、技术栈对比 |
+| skill | canary-watch | 部署后监控 URL，检测回归问题 |
+| skill | git-workflow | 分支策略、commit 规范、merge vs rebase |
 
 </details>
 
@@ -368,6 +373,8 @@
 | skill | team-builder | 交互式 agent 选择器，组建并行团队 |
 | skill | ralphinho-rfc-pipeline | RFC 驱动的多 agent DAG，带质量门与合并队列 |
 | skill | safety-guard | 防止自主 agent 运行时的破坏性操作 |
+| skill | blueprint | 将一句话目标转化为多会话分步构建计划 |
+| skill | strategic-compact | 在逻辑节点手动压缩上下文 |
 
 </details>
 
@@ -376,10 +383,14 @@
 
 | 类型 | 名称 | 说明 |
 |---|---|---|
+| agent | docs-lookup | 通过 Context7 MCP 查找库/框架文档 |
+| agent | architect | 系统设计、可扩展性与技术决策 |
 | skill | deep-research | 通过 firecrawl 和 exa 的多源网络调研（带引用） |
 | skill | exa-search | 通过 Exa MCP 进行网络、代码、公司、人物的神经搜索 |
 | skill | market-research | 竞争分析、市场规模、行业情报 |
 | skill | research-ops | 基于公开证据和本地上下文的现状调研 |
+| skill | search-first | 先搜索后编写：新建前先找已有代码 |
+| skill | documentation-lookup | 编码前先查阅库/框架文档 |
 
 </details>
 
@@ -388,6 +399,7 @@
 
 | 类型 | 名称 | 说明 |
 |---|---|---|
+| agent | doc-updater | 文档与 codemap 维护 |
 | skill | article-writing | 文章、指南、博客、教程、新闻稿 |
 | skill | brand-voice | 从真实帖子构建写作风格档案并跨内容复用 |
 | skill | content-engine | X、LinkedIn、TikTok、YouTube、newsletter 的平台原生内容 |
@@ -443,6 +455,12 @@
 
 | 类型 | 名称 | 说明 |
 |---|---|---|
+| agent | code-simplifier | 在保持行为的前提下简化代码 |
+| agent | refactor-cleaner | 死代码清理与整合 |
+| agent | type-design-analyzer | 分析类型设计的封装性与不变量 |
+| agent | pr-test-analyzer | PR 测试覆盖质量审查 |
+| agent | code-architect | 基于代码库模式设计功能架构蓝图 |
+| agent | comment-analyzer | 分析代码注释的准确性与腐化风险 |
 | skill | agent-sort | 基于证据的 ECC 安装计划：DAILY vs LIBRARY 分桶 |
 | skill | skill-stocktake | 审计 skill 和 command 质量（快扫 / 全盘点） |
 | skill | repo-scan | 跨栈源码审计，四级评定 |
@@ -454,5 +472,8 @@
 | skill | codebase-onboarding | 分析陌生代码库，生成入门指南 + CLAUDE.md |
 | skill | configure-ecc | 交互式 ECC 安装向导 |
 | skill | context-budget | 审计 context window 消耗，找出膨胀点，推荐节省 |
+| skill | verification-loop | Claude Code 会话综合验证 |
+| skill | architecture-decision-records | 将架构决策记录为结构化 ADR 文档 |
+| skill | coding-standards | 跨项目编码规范：命名、可读性、不变性 |
 
 </details>

@@ -11,6 +11,21 @@ import { hooksCmd } from './hooks/index.js';
 import { customizeCmd } from './cmd/customize.js';
 import { depsCmd } from './deps/index.js';
 
+const SUBCOMMAND_HELP = {
+  apply:     'Usage: ecc-tailor apply [--dry-run]',
+  status:    'Usage: ecc-tailor status',
+  doctor:    'Usage: ecc-tailor doctor',
+  add:       'Usage: ecc-tailor add <type> <name>[,name] [--to global] [--no-apply]\n<type>: skill, agent, bundle, rule, command, context, mcp',
+  remove:    'Usage: ecc-tailor remove <type> <name>[,name] [--from global] [--no-apply]\n       ecc-tailor remove --project <path> | --global | --all',
+  inventory: 'Usage: ecc-tailor inventory [--type <type>] [--state <state>] [--filter <regex>] [--detail <name>]\n<type>: skill, agent, rule, command, context, mcp, bundle\n<state>: selected, unselected, ignored',
+  fork:      'Usage: ecc-tailor fork <path>',
+  scan:      'Usage: ecc-tailor scan attach [path]\n       ecc-tailor scan detach [path]',
+  upgrade:   'Usage: ecc-tailor upgrade',
+  hooks:     'Usage: ecc-tailor hooks status\n       ecc-tailor hooks set-profile <minimal|standard|strict>\n       ecc-tailor hooks disable <hook-id>\n       ecc-tailor hooks enable <hook-id>\n       ecc-tailor hooks claude-mem-compat <on|off>',
+  deps:      'Usage: ecc-tailor deps',
+  customize: 'Usage: ecc-tailor customize <bundle>\n       ecc-tailor customize <bundle> add <type> <name>[,name]\n       ecc-tailor customize <bundle> exclude <type> <name>[,name]\n       ecc-tailor customize <bundle> reset\n<type>: agents (agent), skills (skill), mcp',
+};
+
 function printHelp() {
   log.h1('ecc-tailor');
   log.info('');
@@ -49,6 +64,14 @@ export async function main(argv) {
   if (!cmd || cmd === 'help' || cmd === '--help' || cmd === '-h') {
     printHelp();
     return;
+  }
+
+  if (rest.includes('--help') || rest.includes('-h')) {
+    const help = SUBCOMMAND_HELP[cmd];
+    if (help) {
+      log.info(help);
+      return;
+    }
   }
 
   switch (cmd) {

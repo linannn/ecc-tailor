@@ -120,13 +120,21 @@ export async function upgradeCmd(_args) {
   const uniqueAgents = [...new Set(rawAgents)];
 
   // 8. Look up descriptions from ECC inventory (checkout origin/main)
+  //    Wrap in try/finally so we always restore HEAD even if scanEcc throws.
+  const prevRef = git(['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: eccRoot, throwOnError: false }).stdout.trim();
   git(['checkout', 'origin/main', '--detach', '--quiet'], { cwd: eccRoot, throwOnError: false });
 
   let inv;
   try {
     inv = scanEcc(eccRoot);
   } finally {
-    // We'll pull properly later; for now leave detached HEAD
+    // Restore the previous branch/ref so we don't leave a detached HEAD on error.
+    try {
+      const refToRestore = prevRef === 'HEAD' ? 'main' : prevRef;
+      git(['checkout', refToRestore, '--quiet'], { cwd: eccRoot, throwOnError: false });
+    } catch {
+      // best effort
+    }
   }
 
   const skillMap = new Map(inv.skills.map(s => [s.name, s.description]));
@@ -152,8 +160,7 @@ export async function upgradeCmd(_args) {
   if (plan.length === 0) {
     log.info('No new items to review.');
     pullEcc(eccRoot);
-    state.eccRef = getEccRef(eccRoot);
-    saveState(state);
+    saveState({ ...state, eccRef: getEccRef(eccRoot) });
     log.ok('ECC updated.');
     return;
   }
@@ -170,6 +177,10 @@ export async function upgradeCmd(_args) {
 
   const approved = [];
   let quit = false;
+
+  // Accumulate ignored changes in local arrays to avoid mutating state.ignored
+  const newIgnoredSkills = [...(state.ignored?.skills ?? [])];
+  const newIgnoredAgents = [...(state.ignored?.agents ?? [])];
 
   for (const item of plan) {
     if (quit) break;
@@ -199,12 +210,12 @@ export async function upgradeCmd(_args) {
         break;
       } else if (key === 'i') {
         if (item.kind === 'skill') {
-          if (!state.ignored.skills.includes(item.name)) {
-            state.ignored.skills.push(item.name);
+          if (!newIgnoredSkills.includes(item.name)) {
+            newIgnoredSkills.push(item.name);
           }
         } else {
-          if (!state.ignored.agents.includes(item.name)) {
-            state.ignored.agents.push(item.name);
+          if (!newIgnoredAgents.includes(item.name)) {
+            newIgnoredAgents.push(item.name);
           }
         }
         log.dim(`  Ignored ${item.name}`);
@@ -228,54 +239,84 @@ export async function upgradeCmd(_args) {
 
   rl.close();
 
-  // 12. Pull ECC and update eccRef
+  // 12. Pull ECC and update eccRef; build new state with updated ignored lists and eccRef
   pullEcc(eccRoot);
-  state.eccRef = getEccRef(eccRoot);
+  const updatedState = {
+    ...state,
+    eccRef: getEccRef(eccRoot),
+    ignored: {
+      ...state.ignored,
+      skills: newIgnoredSkills,
+      agents: newIgnoredAgents,
+    },
+  };
 
   // 13. If any approved: update config extras + write + apply
   if (approved.length > 0) {
     const cfg = loadConfig();
+    let newGlobalExtras = { ...cfg.global.extras };
+    let newProjects = [...cfg.projects];
 
     for (const { item, scope } of approved) {
       const isGlobal = scope === 'global' || scope === '';
       const key = item.kind === 'skill' ? 'skills' : 'agents';
 
       if (isGlobal) {
-        if (!cfg.global.extras[key]) cfg.global.extras[key] = [];
-        if (!cfg.global.extras[key].includes(item.name)) {
-          cfg.global.extras[key].push(item.name);
-        }
+        const oldList = newGlobalExtras[key] ?? [];
+        newGlobalExtras = {
+          ...newGlobalExtras,
+          [key]: [...new Set([...oldList, item.name])],
+        };
       } else {
         // Project scope — scope is an absolute path
-        let entry = cfg.projects.find(p => p.path === scope);
-        if (!entry) {
-          entry = {
-            path: scope,
-            bundles: [],
-            extras: { agents: [], skills: [], rulesLanguages: [] },
+        const existingIdx = newProjects.findIndex(p => p.path === scope);
+        if (existingIdx === -1) {
+          // New project entry
+          newProjects = [
+            ...newProjects,
+            {
+              path: scope,
+              bundles: [],
+              extras: { agents: [], skills: [], rulesLanguages: [], [key]: [item.name] },
+            },
+          ];
+        } else {
+          const existingEntry = newProjects[existingIdx];
+          const existingExtras = existingEntry.extras ?? {};
+          const oldList = existingExtras[key] ?? [];
+          const newEntry = {
+            ...existingEntry,
+            extras: {
+              ...existingExtras,
+              [key]: [...new Set([...oldList, item.name])],
+            },
           };
-          cfg.projects.push(entry);
-        }
-        if (!entry.extras) entry.extras = {};
-        if (!Array.isArray(entry.extras[key])) entry.extras[key] = [];
-        if (!entry.extras[key].includes(item.name)) {
-          entry.extras[key].push(item.name);
+          newProjects = [
+            ...newProjects.slice(0, existingIdx),
+            newEntry,
+            ...newProjects.slice(existingIdx + 1),
+          ];
         }
       }
     }
 
-    writeJsonAtomic(paths.configFile(), cfg);
+    const updatedCfg = {
+      ...cfg,
+      global: { ...cfg.global, extras: newGlobalExtras },
+      projects: newProjects,
+    };
+    writeJsonAtomic(paths.configFile(), updatedCfg);
     await applyCmd([]);
   }
 
   // 14. Save state
-  saveState(state);
+  saveState(updatedState);
 
   // 15. Summary
   const approvedCount = approved.length;
   const ignoredCount = plan.filter(item => {
-    if (item.kind === 'skill') return state.ignored.skills.includes(item.name);
-    return state.ignored.agents.includes(item.name);
+    if (item.kind === 'skill') return updatedState.ignored.skills.includes(item.name);
+    return updatedState.ignored.agents.includes(item.name);
   }).length;
 
   log.ok(

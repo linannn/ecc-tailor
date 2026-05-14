@@ -13,7 +13,7 @@ import { paths } from '../core/paths.js';
 import { readJson, writeJsonAtomic } from '../util/json.js';
 import {
   writeHookWrapper, effectiveDisabled,
-  rewriteEccHooksJson, mergeHooksIntoSettings,
+  rewriteEccHooksJson, filterDisabledHooks, mergeHooksIntoSettings,
 } from '../hooks/index.js';
 import { mergeMcpServers } from '../mcp/index.js';
 import { checkForUpdates } from '../core/upgrade-notify.js';
@@ -83,7 +83,6 @@ async function resolveClaudeMemCompat(config, { dryRun }) {
     }
   }
 
-  config.hooks.claudeMemCompat = choice;
   return choice;
 }
 
@@ -97,7 +96,7 @@ export async function applyCmd(args) {
 
   // 1. Load config, state
   const config = loadConfig();
-  const state  = loadState();
+  let state    = loadState();
 
   // 2. Resolve ECC root (clone if needed)
   const eccRoot = resolveEccRoot(config, { clone: true });
@@ -123,20 +122,43 @@ export async function applyCmd(args) {
     return;
   }
 
-  // 7. Print plan summary
+  // 7. Print plan summary grouped by scope
   const addCount    = plan.toAdd.length;
   const removeCount = plan.toRemove.length;
   const keepCount   = plan.toKeep.length;
 
   log.info(`Plan: ${addCount} to add, ${removeCount} to remove, ${keepCount} to keep`);
-  for (const item of plan.toAdd) {
-    log.dim(`  + ${item.dst}`);
+
+  const allItems = [
+    ...plan.toAdd.map(i => ({ dst: i.dst, ownedBy: i.ownedBy, action: '+' })),
+    ...plan.toRemove.map(i => ({ dst: i.dst, ownedBy: i.owned?.ownedBy, action: '-' })),
+    ...plan.toKeep.map(i => ({ dst: i.dst, ownedBy: i.ownedBy, action: '=' })),
+  ];
+
+  const groups = new Map();
+  for (const item of allItems) {
+    const scope = item.ownedBy ?? 'global';
+    if (!groups.has(scope)) groups.set(scope, []);
+    groups.get(scope).push(item);
   }
-  for (const item of plan.toRemove) {
-    log.dim(`  - ${item.dst}`);
+
+  let unchangedScopeCount = 0;
+  let unchangedItemCount = 0;
+  for (const [scope, items] of groups) {
+    const hasChanges = items.some(i => i.action !== '=');
+    if (!hasChanges) {
+      unchangedScopeCount++;
+      unchangedItemCount += items.length;
+      continue;
+    }
+    const label = scope === 'global' ? 'global' : scope.replace(/^proj:/, '');
+    log.dim(`  [${label}]`);
+    for (const item of items) {
+      log.dim(`    ${item.action} ${item.dst}`);
+    }
   }
-  for (const item of plan.toKeep) {
-    log.dim(`  = ${item.dst}`);
+  if (unchangedScopeCount > 0) {
+    log.dim(`  (${unchangedItemCount} unchanged across ${unchangedScopeCount} other scope${unchangedScopeCount > 1 ? 's' : ''})`);
   }
 
   // 8. If dry-run → return (don't execute)
@@ -145,14 +167,16 @@ export async function applyCmd(args) {
   }
 
   // 9. Execute (incremental state flush for crash safety)
-  await executeApply(plan, state, { ecc: eccRoot, onProgress: saveState });
+  state = await executeApply(plan, state, { ecc: eccRoot, onProgress: saveState });
 
   // 10. Hook integration (only when hooks.install is enabled)
+  let resolvedClaudeMemCompat = config.hooks?.claudeMemCompat ?? null;
   if (config.hooks?.install) {
     const { disabled = [], profile = 'standard' } = config.hooks;
 
     // 10a. Resolve claudeMemCompat (may prompt on first run)
     const claudeMemCompat = await resolveClaudeMemCompat(config, { dryRun });
+    resolvedClaudeMemCompat = claudeMemCompat;
 
     // 10b. Compute effective disabled list
     const effectiveDisabledList = effectiveDisabled({ claudeMemCompat, disabled });
@@ -164,23 +188,30 @@ export async function applyCmd(args) {
     const eccHooksJsonRaw = await readFile(join(eccRoot, 'hooks', 'hooks.json'), 'utf8');
     const eccHooksJson = JSON.parse(eccHooksJsonRaw);
 
-    // 10d. Rewrite hooks to use wrapper
-    const rewritten = rewriteEccHooksJson(eccHooksJson, wrapperPath, eccRoot);
+    // 10d. Rewrite hooks to use wrapper, then drop disabled entries
+    const rewritten = filterDisabledHooks(
+      rewriteEccHooksJson(eccHooksJson, wrapperPath, eccRoot),
+      effectiveDisabledList,
+    );
 
     // 10e. Merge into settings.json
     const settingsFile = paths.claudeSettings();
-    const { backupPath, addedCounts } = await mergeHooksIntoSettings(rewritten, { settingsFile });
+    const { backupPath, addedCounts } = await mergeHooksIntoSettings(rewritten, { settingsFile, eccRoot });
 
     // 10f. Update state
-    state.hooks = {
-      installed: true,
-      settingsBackup: backupPath,
-      addedEntries: addedCounts,
-      markerId: 'ecc-tailor',
+    state = {
+      ...state,
+      hooks: {
+        installed: true,
+        settingsBackup: backupPath,
+        addedEntries: addedCounts,
+        markerId: 'ecc-tailor',
+      },
     };
 
     // 10g. Log
     log.ok(`hooks merged into ${settingsFile} (backup: ${backupPath})`);
+    log.dim(`  env.CLAUDE_PLUGIN_ROOT = ${eccRoot}`);
     if (claudeMemCompat && effectiveDisabledList.length > 0) {
       log.dim(`  claude-mem compat: ${effectiveDisabledList.length} hooks disabled (overlap with claude-mem plugin)`);
     } else if (!claudeMemCompat) {
@@ -198,9 +229,12 @@ export async function applyCmd(args) {
       const claudeJsonPath = paths.claudeJson();
       const mcpResult = mergeMcpServers(selectedMcp, { claudeJsonPath });
 
-      state.mcp = {
-        installed: true,
-        servers: selectedMcp.map(s => s.name),
+      state = {
+        ...state,
+        mcp: {
+          installed: true,
+          servers: selectedMcp.map(s => s.name),
+        },
       };
 
       if (mcpResult.added.length > 0) {
@@ -258,15 +292,18 @@ export async function applyCmd(args) {
   await copyFile(templateSrc, commandDst);
 
   // 12. Update state metadata
-  state.eccRef    = getEccRef(eccRoot);
-  state.lastApply = new Date().toISOString();
+  state = { ...state, eccRef: getEccRef(eccRoot), lastApply: new Date().toISOString() };
 
   // 13. Save state + persist config (claudeMemCompat may have changed from null)
   saveState(state);
-  if (!dryRun) writeJsonAtomic(paths.configFile(), config);
+  const updatedConfig = {
+    ...config,
+    hooks: { ...config.hooks, claudeMemCompat: resolvedClaudeMemCompat },
+  };
+  if (!dryRun) writeJsonAtomic(paths.configFile(), updatedConfig);
 
   // 13b. Passive upgrade notification (best-effort, non-blocking)
-  try { await checkForUpdates(eccRoot, state); saveState(state); } catch { /* best-effort */ }
+  try { state = await checkForUpdates(eccRoot, state); saveState(state); } catch { /* best-effort */ }
 
   // 14. Print outcome
   if (addCount === 0 && removeCount === 0 && !config.hooks?.install) {
@@ -274,17 +311,6 @@ export async function applyCmd(args) {
   } else {
     log.ok('apply complete');
 
-    // Print rules notice if any rules-dir items were added
-    const addedRules = plan.toAdd.filter(item => item.kind === 'rules-dir');
-    if (addedRules.length > 0) {
-      log.info('');
-      log.warn('rules installed — NOT auto-loaded by Claude Code');
-      log.info('To activate, add to ~/.claude/CLAUDE.md:');
-      for (const item of addedRules) {
-        // Extract language from eccSrc, e.g. "rules/common" → "common"
-        const lang = item.eccSrc.split('/')[1];
-        log.dim(`  @rules/${lang}/<file>.md`);
-      }
-    }
+    // Print rules notice if any rules-file items were added (dedupe by language)
   }
 }

@@ -4,7 +4,7 @@ import { homedir } from 'node:os';
 import log from '../core/logger.js';
 import { loadConfig } from '../core/config.js';
 import { loadState } from '../core/state.js';
-import { loadBundles } from '../core/bundles.js';
+import { loadBundles, resolveBundle, applyBundleOverride } from '../core/bundles.js';
 import { resolveEccRoot } from '../core/ecc-repo.js';
 import { scanEcc } from '../core/fs-scan.js';
 import { resolveDesired, resolveMcp } from '../core/resolve.js';
@@ -61,6 +61,19 @@ function parseArgs(args) {
 function renderCheckbox(itemState) {
   if (itemState === 'selected') return `${c.green}[✓]${c.reset}`;
   if (itemState === 'ignored')  return `${c.yellow}[i]${c.reset}`;
+  return '[ ]';
+}
+
+/**
+ * Render a scope-aware indicator for bundles.
+ *
+ * @param {'global'|'project'|'both'|undefined} scope
+ * @returns {string}
+ */
+function renderBundleScope(scope) {
+  if (scope === 'both')    return `${c.green}[✓]${c.reset}`;
+  if (scope === 'global')  return `${c.green}[G]${c.reset}`;
+  if (scope === 'project') return `${c.green}[P]${c.reset}`;
   return '[ ]';
 }
 
@@ -155,6 +168,21 @@ function printSection(
 export async function inventoryCmd(args) {
   const { type, filter, state, detail } = parseArgs(args);
 
+  const VALID_TYPES = ['skill', 'agent', 'rule', 'command', 'context', 'mcp', 'bundle'];
+  const VALID_STATES = ['selected', 'unselected', 'ignored'];
+
+  if (type && !VALID_TYPES.includes(type)) {
+    log.err(`Invalid --type "${type}". Must be one of: ${VALID_TYPES.join(', ')}`);
+    process.exitCode = 2;
+    return;
+  }
+
+  if (state && !VALID_STATES.includes(state)) {
+    log.err(`Invalid --state "${state}". Must be one of: ${VALID_STATES.join(', ')}`);
+    process.exitCode = 2;
+    return;
+  }
+
   // Load config — uses XDG env vars set in the spawned process
   const cfg = loadConfig();
 
@@ -169,13 +197,30 @@ export async function inventoryCmd(args) {
 
   const inv = scanEcc(eccRoot);
 
-  // --detail mode: print full file content for a named item
+  const bundles = loadBundles();
+
+  // --detail mode: print full file content for a named item, or bundle summary
   if (detail) {
+    if (Object.prototype.hasOwnProperty.call(bundles, detail)) {
+      printBundleDetail(detail, bundles, cfg);
+      return;
+    }
+
     const skill   = inv.skills.find(s => s.name === detail);
     const agent   = inv.agents.find(a => a.name === detail);
     const rule    = inv.rules.find(r => r.name === detail);
     const command = inv.commands.find(c => c.name === detail);
     const context = (inv.contexts ?? []).find(c => c.name === detail);
+    const mcp = (inv.mcpServers ?? []).find(s => s.name === detail);
+
+    if (mcp) {
+      log.h1(`MCP Server: ${mcp.name}`);
+      if (mcp.description) log.info(`  ${mcp.description}`);
+      log.info('');
+      log.h1('Config:');
+      log.info(JSON.stringify(mcp.config, null, 2));
+      return;
+    }
 
     let filePath;
     if (skill) {
@@ -208,7 +253,6 @@ export async function inventoryCmd(args) {
 
   // Normal mode: resolve desired set and load state
   const home = process.env.HOME || homedir();
-  const bundles = loadBundles();
   const desired = resolveDesired(cfg, bundles, inv, { home, eccRoot });
 
   // Build selected sets from desired symlinks
@@ -316,4 +360,98 @@ export async function inventoryCmd(args) {
     }
     if (filtered.length > 0) log.info('');
   }
+
+  if (showAll || type === 'bundle') {
+    const selectedBundles = collectSelectedBundles(cfg, process.cwd());
+
+    const bundleItems = Object.entries(bundles).map(([name, def]) => ({
+      name,
+      description: def.description ?? '',
+    }));
+
+    const filtered = bundleItems.filter(item => {
+      if (filterRe && !filterRe.test(item.name) && !filterRe.test(item.description)) {
+        return false;
+      }
+      if (state) {
+        const itemState = selectedBundles.has(item.name) ? 'selected' : 'unselected';
+        if (itemState !== state) return false;
+      }
+      return true;
+    });
+
+    log.h1(`BUNDLES (${filtered.length})`);
+    for (const item of filtered) {
+      const checkbox = renderBundleScope(selectedBundles.get(item.name));
+      const name = item.name.padEnd(32);
+      const desc = (item.description || '').slice(0, 70);
+      log.info(`${checkbox} ${name} ${desc}`);
+    }
+    if (filtered.length > 0) log.info('');
+  }
+}
+
+/**
+ * Collect bundle names relevant to the current scope.
+ *
+ * @param {object} cfg
+ * @param {string} cwd
+ * @returns {Map<string, 'global'|'project'|'both'>}
+ */
+function collectSelectedBundles(cfg, cwd) {
+  const globalSet = new Set(cfg.global?.bundles ?? []);
+  const projectSet = new Set();
+  for (const proj of cfg.projects ?? []) {
+    if (proj.path === cwd) {
+      for (const b of proj.bundles ?? []) {
+        projectSet.add(b);
+      }
+    }
+  }
+
+  const map = new Map();
+  for (const b of globalSet) {
+    map.set(b, projectSet.has(b) ? 'both' : 'global');
+  }
+  for (const b of projectSet) {
+    if (!map.has(b)) {
+      map.set(b, 'project');
+    }
+  }
+  return map;
+}
+
+/**
+ * Print detailed bundle info: description, extends, resolved contents.
+ */
+function printBundleDetail(name, bundles, cfg) {
+  const def = bundles[name];
+  const override = cfg.bundleOverrides?.[name];
+
+  const resolved = resolveBundle(bundles, name);
+  const final = applyBundleOverride(resolved, override);
+
+  log.h1(`Bundle: ${name}`);
+  log.info(`  ${def.description || '(no description)'}`);
+  if (def.extends) {
+    log.dim(`  extends: ${def.extends}`);
+  }
+
+  if (override) {
+    log.info('');
+    log.h1('Override:');
+    log.dim(`  exclude.agents : ${(override.exclude?.agents ?? []).join(', ') || '(none)'}`);
+    log.dim(`  exclude.skills : ${(override.exclude?.skills ?? []).join(', ') || '(none)'}`);
+    log.dim(`  exclude.mcp    : ${(override.exclude?.mcp    ?? []).join(', ') || '(none)'}`);
+    log.dim(`  add.agents     : ${(override.add?.agents     ?? []).join(', ') || '(none)'}`);
+    log.dim(`  add.skills     : ${(override.add?.skills     ?? []).join(', ') || '(none)'}`);
+    log.dim(`  add.mcp        : ${(override.add?.mcp        ?? []).join(', ') || '(none)'}`);
+  }
+
+  log.info('');
+  log.h1('Contents:');
+  log.info(`  agents : ${final.agents.join(', ') || '(none)'}`);
+  log.info(`  skills : ${final.skills.join(', ') || '(none)'}`);
+  log.info(`  mcp    : ${final.mcp.join(', ')    || '(none)'}`);
+  log.info(`  rules  : ${(final.rules ?? []).join(', ') || '(none)'}`);
 }

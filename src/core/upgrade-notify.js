@@ -20,35 +20,36 @@ export function shouldFetch(lastFetchISO) {
  * apply, and print a non-blocking hint if so.
  *
  * @param {string} eccRoot - absolute path to the ECC clone
- * @param {object} state   - mutable state object (lastFetch may be updated)
+ * @param {object} state   - state object (not mutated)
+ * @returns {Promise<object>} new state object (lastFetch updated if fetch occurred)
  */
 export async function checkForUpdates(eccRoot, state) {
   // 1. Throttle: skip if fetched recently
-  if (!shouldFetch(state.lastFetch ?? null)) return;
+  if (!shouldFetch(state.lastFetch ?? null)) return state;
 
   // 2. Fetch (best-effort — ignore failures)
   git(['fetch', 'origin', 'main', '--quiet'], { cwd: eccRoot, throwOnError: false });
-  state.lastFetch = new Date().toISOString();
+  state = { ...state, lastFetch: new Date().toISOString() };
 
   // 3. Need a baseline ref to diff against
-  if (!state.eccRef) return;
+  if (!state.eccRef) return state;
 
   // 4. Get remote ref
   const { stdout: remoteRaw, status: revStatus } = git(
     ['rev-parse', 'origin/main'],
     { cwd: eccRoot, throwOnError: false },
   );
-  if (revStatus !== 0) return;
+  if (revStatus !== 0) return state;
 
   const remoteRef = remoteRaw.trim();
-  if (!remoteRef || remoteRef === state.eccRef) return;
+  if (!remoteRef || remoteRef === state.eccRef) return state;
 
   // 5. Diff for added files under skills/ and agents/
   const { stdout: diffRaw, status: diffStatus } = git(
     ['diff', '--name-status', `${state.eccRef}..${remoteRef}`, '--', 'skills/', 'agents/'],
     { cwd: eccRoot, throwOnError: false },
   );
-  if (diffStatus !== 0 || !diffRaw.trim()) return;
+  if (diffStatus !== 0 || !diffRaw.trim()) return state;
 
   // 6. Collect only added files (status starts with 'A')
   const addedSkills = [];
@@ -80,7 +81,7 @@ export async function checkForUpdates(eccRoot, state) {
   const newSkills = uniqueSkills.filter(s => !ignoredSkills.has(s));
   const newAgents = uniqueAgents.filter(a => !ignoredAgents.has(a));
 
-  if (newSkills.length === 0 && newAgents.length === 0) return;
+  if (newSkills.length === 0 && newAgents.length === 0) return state;
 
   // 8. Print hint
   const shortSha = state.eccRef.slice(0, 7);
@@ -93,4 +94,5 @@ export async function checkForUpdates(eccRoot, state) {
     log.info(`    + ${newAgents.length} agents: ${newAgents.join(', ')}`);
   }
   log.info('  Run `ecc-tailor upgrade` to review and opt-in.');
+  return state;
 }

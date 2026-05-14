@@ -9,6 +9,12 @@ import { applyCmd } from '../apply/apply-cmd.js';
 import { removeLayerCmd } from './remove-layer.js';
 
 const VALID_TYPES = ['skill', 'agent', 'bundle', 'rule', 'command', 'context', 'mcp'];
+const GLOBAL_ONLY_TYPES = ['rule', 'command', 'context'];
+
+function printAddUsage() {
+  log.info('Usage: ecc-tailor add <type> <name>[,name] [--to global]');
+  log.info(`<type> is one of: ${VALID_TYPES.join(', ')}`);
+}
 
 /**
  * Parse add/remove CLI args.
@@ -82,28 +88,47 @@ function extrasKey(type) {
 
 /**
  * Ensure config.projects contains an entry for `projectPath`.
- * Creates a skeleton entry if missing.
+ * Creates a skeleton entry if missing. Returns a new cfg (immutable) and the entry.
  *
- * @param {object} cfg  Mutable config object
+ * @param {object} cfg  Config object (not mutated)
  * @param {string} projectPath
- * @returns {object}  The project entry (mutated in place inside cfg.projects)
+ * @returns {{ cfg: object, entry: object }}
  */
 function ensureProject(cfg, projectPath) {
-  let entry = cfg.projects.find(p => p.path === projectPath);
-  if (!entry) {
-    entry = { path: projectPath, bundles: [], extras: { agents: [], skills: [], rulesLanguages: [], commands: [], contexts: [] } };
-    cfg.projects.push(entry);
+  const existing = (cfg.projects ?? []).find(p => p.path === projectPath);
+
+  // Normalise extras sub-keys to arrays (non-mutating)
+  const normaliseExtras = (extras = {}) => ({
+    skills:         Array.isArray(extras.skills)         ? extras.skills         : [],
+    agents:         Array.isArray(extras.agents)         ? extras.agents         : [],
+    rulesLanguages: Array.isArray(extras.rulesLanguages) ? extras.rulesLanguages : [],
+    commands:       Array.isArray(extras.commands)       ? extras.commands       : [],
+    contexts:       Array.isArray(extras.contexts)       ? extras.contexts       : [],
+    mcp:            Array.isArray(extras.mcp)            ? extras.mcp            : [],
+    ...extras,
+  });
+
+  if (existing) {
+    // Return a normalised copy of the entry and a cfg with that copy in place
+    const entry = {
+      ...existing,
+      bundles: Array.isArray(existing.bundles) ? existing.bundles : [],
+      extras:  normaliseExtras(existing.extras),
+    };
+    const newCfg = {
+      ...cfg,
+      projects: (cfg.projects ?? []).map(p => p.path === projectPath ? entry : p),
+    };
+    return { cfg: newCfg, entry };
   }
-  // Ensure extras sub-keys exist
-  if (!entry.extras) entry.extras = {};
-  if (!Array.isArray(entry.extras.skills))         entry.extras.skills = [];
-  if (!Array.isArray(entry.extras.agents))         entry.extras.agents = [];
-  if (!Array.isArray(entry.extras.rulesLanguages)) entry.extras.rulesLanguages = [];
-  if (!Array.isArray(entry.extras.commands))        entry.extras.commands = [];
-  if (!Array.isArray(entry.extras.contexts))        entry.extras.contexts = [];
-  if (!Array.isArray(entry.extras.mcp))            entry.extras.mcp = [];
-  if (!Array.isArray(entry.bundles))               entry.bundles = [];
-  return entry;
+
+  const entry = {
+    path:    projectPath,
+    bundles: [],
+    extras:  normaliseExtras(),
+  };
+  const newCfg = { ...cfg, projects: [...(cfg.projects ?? []), entry] };
+  return { cfg: newCfg, entry };
 }
 
 /**
@@ -112,7 +137,13 @@ function ensureProject(cfg, projectPath) {
 export async function addCmd(args) {
   const { type, names, scope, noApply } = parseArgs(args, 'to');
 
-  if (!type || !VALID_TYPES.includes(type)) {
+  if (!type) {
+    printAddUsage();
+    process.exitCode = 2;
+    return;
+  }
+
+  if (!VALID_TYPES.includes(type)) {
     log.err(`Invalid type "${type}". Must be one of: ${VALID_TYPES.join(', ')}`);
     process.exitCode = 2;
     return;
@@ -133,6 +164,15 @@ export async function addCmd(args) {
     return;
   }
 
+  if (GLOBAL_ONLY_TYPES.includes(type) && parsedScope.kind === 'project') {
+    log.err(`"${type}" can only be added globally — use: ecc-tailor add ${type} ${names.join(',')} --to global`);
+    process.exitCode = 2;
+    return;
+  }
+
+  // Load config once — reused for both validation and writing
+  const cfg = loadConfig();
+
   // Validate names exist in ECC (for skill/agent/rule) or bundles.json (for bundle)
   if (type === 'bundle') {
     const bundles = loadBundles();
@@ -145,7 +185,6 @@ export async function addCmd(args) {
     }
   } else {
     // skill / agent / rule / mcp — scan ECC
-    const cfg = loadConfig();
     let eccRoot;
     try {
       eccRoot = resolveEccRoot(cfg, { clone: false });
@@ -169,45 +208,43 @@ export async function addCmd(args) {
     }
   }
 
-  // Mutate config
-  const cfg = loadConfig();
+  // Build updated config immutably
+  let updated;
 
   if (parsedScope.kind === 'global') {
     if (type === 'bundle') {
-      for (const name of names) {
-        if (!cfg.global.bundles.includes(name)) {
-          cfg.global.bundles.push(name);
-        }
-      }
+      const existing = cfg.global.bundles ?? [];
+      const newBundles = [...new Set([...existing, ...names])];
+      updated = { ...cfg, global: { ...cfg.global, bundles: newBundles } };
     } else {
       const key = extrasKey(type);
-      if (!cfg.global.extras[key]) cfg.global.extras[key] = [];
-      for (const name of names) {
-        if (!cfg.global.extras[key].includes(name)) {
-          cfg.global.extras[key].push(name);
-        }
-      }
+      const oldExtras = cfg.global.extras ?? {};
+      const oldList = oldExtras[key] ?? [];
+      const newExtras = { ...oldExtras, [key]: [...new Set([...oldList, ...names])] };
+      updated = { ...cfg, global: { ...cfg.global, extras: newExtras } };
     }
   } else {
     // project scope
-    const entry = ensureProject(cfg, parsedScope.path);
+    const { cfg: cfgWithProject, entry } = ensureProject(cfg, parsedScope.path);
     if (type === 'bundle') {
-      for (const name of names) {
-        if (!entry.bundles.includes(name)) {
-          entry.bundles.push(name);
-        }
-      }
+      const newBundles = [...new Set([...entry.bundles, ...names])];
+      const newEntry = { ...entry, bundles: newBundles };
+      updated = {
+        ...cfgWithProject,
+        projects: cfgWithProject.projects.map(p => p.path === parsedScope.path ? newEntry : p),
+      };
     } else {
       const key = extrasKey(type);
-      for (const name of names) {
-        if (!entry.extras[key].includes(name)) {
-          entry.extras[key].push(name);
-        }
-      }
+      const newList = [...new Set([...(entry.extras[key] ?? []), ...names])];
+      const newEntry = { ...entry, extras: { ...entry.extras, [key]: newList } };
+      updated = {
+        ...cfgWithProject,
+        projects: cfgWithProject.projects.map(p => p.path === parsedScope.path ? newEntry : p),
+      };
     }
   }
 
-  writeJsonAtomic(paths.configFile(), cfg);
+  writeJsonAtomic(paths.configFile(), updated);
   log.ok(`Added ${names.join(', ')} to ${scope}`);
 
   if (!noApply) {
@@ -243,37 +280,50 @@ export async function removeIncrementalCmd(args) {
     return;
   }
 
+  if (GLOBAL_ONLY_TYPES.includes(type) && parsedScope.kind === 'project') {
+    log.err(`"${type}" can only be removed globally — use: ecc-tailor remove ${type} ${names.join(',')} --from global`);
+    process.exitCode = 2;
+    return;
+  }
+
   const cfg = loadConfig();
+
+  let updated;
 
   if (parsedScope.kind === 'global') {
     if (type === 'bundle') {
-      cfg.global.bundles = cfg.global.bundles.filter(b => !names.includes(b));
+      const newBundles = (cfg.global.bundles ?? []).filter(b => !names.includes(b));
+      updated = { ...cfg, global: { ...cfg.global, bundles: newBundles } };
     } else {
       const key = extrasKey(type);
-      if (cfg.global.extras[key]) {
-        cfg.global.extras[key] = cfg.global.extras[key].filter(n => !names.includes(n));
-      }
+      const oldExtras = cfg.global.extras ?? {};
+      const newExtraList = (oldExtras[key] ?? []).filter(n => !names.includes(n));
+      const newExtras = { ...oldExtras, [key]: newExtraList };
+      updated = { ...cfg, global: { ...cfg.global, extras: newExtras } };
     }
   } else {
-    const entry = cfg.projects.find(p => p.path === parsedScope.path);
-    if (!entry) {
+    const existingEntry = (cfg.projects ?? []).find(p => p.path === parsedScope.path);
+    if (!existingEntry) {
       log.err(`Project "${parsedScope.path}" not found in config`);
       process.exitCode = 2;
       return;
     }
+    let newEntry;
     if (type === 'bundle') {
-      if (Array.isArray(entry.bundles)) {
-        entry.bundles = entry.bundles.filter(b => !names.includes(b));
-      }
+      const newBundles = (existingEntry.bundles ?? []).filter(b => !names.includes(b));
+      newEntry = { ...existingEntry, bundles: newBundles };
     } else {
       const key = extrasKey(type);
-      if (entry.extras?.[key]) {
-        entry.extras[key] = entry.extras[key].filter(n => !names.includes(n));
-      }
+      const newList = (existingEntry.extras?.[key] ?? []).filter(n => !names.includes(n));
+      newEntry = { ...existingEntry, extras: { ...existingEntry.extras, [key]: newList } };
     }
+    updated = {
+      ...cfg,
+      projects: (cfg.projects ?? []).map(p => p.path === parsedScope.path ? newEntry : p),
+    };
   }
 
-  writeJsonAtomic(paths.configFile(), cfg);
+  writeJsonAtomic(paths.configFile(), updated);
   log.ok(`Removed ${names.join(', ')} from ${scope}`);
 
   if (!noApply) {

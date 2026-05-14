@@ -63,7 +63,7 @@ The slash command covers all CLI features. Claude translates your intent into th
 
 ## Core Concepts
 
-**Bundle** — A curated set of agents, skills, rules, and MCP servers for a tech stack or domain. Bundles compose: a fullstack project might use `ts-backend-proj` + `ts-frontend-proj` + `database`. All language bundles automatically include `core` (planner, architect, tdd, etc.).
+**Bundle** — A curated set of agents, skills, rules, and MCP servers for a tech stack or domain. Bundles compose: a fullstack project might use `ts-backend-proj` + `ts-frontend-proj` + `database`. All language bundles automatically include `core` (planner, code-reviewer, tdd, etc.).
 
 **Two-level install** — Stack-agnostic bundles (like `core`) go to `~/.claude/` (available everywhere). Stack-specific bundles go to `<project>/.claude/` (only active in that project).
 
@@ -71,7 +71,7 @@ The slash command covers all CLI features. Claude translates your intent into th
 
 ## Bundles
 
-33 bundles covering 48 agents and 148 skills. A project can combine multiple:
+34 bundles covering 48 agents and 148 skills. A project can combine multiple:
 
 ```json
 { "path": "/path/to/fullstack-app", "bundles": ["ts-backend-proj", "ts-frontend-proj", "database"] }
@@ -82,11 +82,12 @@ The slash command covers all CLI features. Claude translates your intent into th
 
 | Bundle | Agents | Skills | Use case |
 |---|---|---|---|
-| `core` | 15 | 9 | Software development essentials (planner, architect, tdd, etc.) |
+| `core` | 4 | 2 | Software development essentials (planner, code-reviewer, tdd, etc.) |
 | `java-proj` | 2 | 7 | Spring Boot projects |
 | `py-proj` | 1 | 2 | Python projects |
 | `py-django-proj` | extends py-proj | +4 | Django projects |
 | `py-ml-proj` | extends py-proj +1 | +1 | PyTorch / deep learning |
+| `ts-tooling-proj` | 2 | 0 | TypeScript CLI tools and scripts |
 | `ts-backend-proj` | 2 | 3 | Node/Express/Fastify backends |
 | `ts-frontend-proj` | 3 | 7 | React/Next/Vue frontends |
 | `ts-nestjs-proj` | extends ts-backend | +1 | NestJS projects |
@@ -109,20 +110,20 @@ The slash command covers all CLI features. Claude translates your intent into th
 | Bundle | Agents | Skills | Use case |
 |---|---|---|---|
 | `ai-app-dev` | 0 | 5 | Claude API / MCP server / Claude Code extensibility |
-| `security` | 1 | 3 | Security review + scanning |
+| `security` | 2 | 3 | Security review + scanning |
 | `database` | 1 | 3 | Database design, migrations, optimization |
-| `devops` | 0 | 4 | Docker, deployment, benchmarking |
+| `devops` | 1 | 5 | Docker, deployment, benchmarking |
 | `healthcare` | 1 | 5 | Medical / HIPAA / clinical systems |
 | `opensource` | 3 | 1 | Fork, sanitize, package for public release |
 | `a11y` | 1 | 1 | Accessibility / WCAG compliance |
 | `seo` | 1 | 1 | SEO audits and optimization |
 | `gan-harness` | 3 | 1 | GAN multi-agent adversarial generation |
-| `agent-dev` | 2 | 15 | AI agent development and orchestration |
-| `research` | 0 | 4 | Deep research, web search, market analysis |
-| `content` | 0 | 13 | Writing, video, social media, presentations |
+| `agent-dev` | 2 | 16 | AI agent development and orchestration |
+| `research` | 2 | 6 | Deep research, web search, market analysis |
+| `content` | 1 | 13 | Writing, video, social media, presentations |
 | `ops` | 2 | 12 | Email, Jira, GitHub, Slack workflow automation |
 | `crypto` | 0 | 4 | Web3 / DeFi security |
-| `scan` | 0 | 11 | Temporary evaluation tools (attach/detach) |
+| `scan` | 6 | 13 | Temporary evaluation tools (attach/detach) |
 
 </details>
 
@@ -146,6 +147,7 @@ Default scope is the current project. Use `--to global` / `--from global` to tar
 ecc-tailor add skill <name>                              # Add skill to current project
 ecc-tailor add bundle <name>                             # Add bundle to current project
 ecc-tailor add mcp <name>                                # Add MCP server to current project
+ecc-tailor add context <name> --to global                # Add context globally
 ecc-tailor add skill <name> --to global                  # Add skill globally
 ecc-tailor remove skill <name>                           # Remove from current project
 ecc-tailor remove mcp <name> --from global               # Remove MCP server globally
@@ -156,7 +158,9 @@ ecc-tailor remove mcp <name> --from global               # Remove MCP server glo
 ```bash
 ecc-tailor inventory --type skill                        # All skills, with selection status
 ecc-tailor inventory --type skill --state unselected     # Only unselected
-ecc-tailor inventory --detail <name>                     # View full content of a skill
+ecc-tailor inventory --type context                      # All contexts
+ecc-tailor inventory --type bundle                       # All bundles, with selection status
+ecc-tailor inventory --detail <name>                     # View bundle contents or skill/agent detail
 ```
 
 ## Advanced Usage
@@ -219,10 +223,11 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
 
 ## How It Works
 
-- **Symlink** — agents linked per-file, skills and rules linked per-directory, pointing to ECC clone
+- **Symlink** — agents and rules linked per-file, skills linked per-directory, pointing to ECC clone
 - **State** — `~/.local/state/ecc-tailor/state.json` tracks all symlinks, forks, and ephemeral scans
 - **Hooks** — generates a wrapper script that sets `ECC_HOOK_PROFILE` + `ECC_DISABLED_HOOKS` env vars; ECC's own `run-with-flags.js` handles the rest
 - **Rules** — ECC rules auto-installed per bundle (`java-proj` → `rules/java/`); base rules (`common` or `zh`) always included; language-specific rules use `paths:` frontmatter for lazy loading (only enters context when touching matching file types)
+- **Contexts** — ECC conversation presets symlinked to `~/.claude/contexts/`; reference with `@contexts/dev` in a conversation to switch Claude's working mode (dev / review / research); not auto-loaded, zero overhead
 - **MCP** — bundle-defined MCP servers merged into `~/.claude.json` with `[ecc-tailor]` ownership markers; placeholder API keys detected and reported
 - **Provenance** — `apply` prints a dependency report showing which commands/MCP servers were installed and what brought them in
 - **Conflicts** — if the target path exists and isn't managed by ecc-tailor, abort with error (never overwrite)
@@ -245,6 +250,7 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
       "agents": [],
       "skills": ["hexagonal-architecture"],
       "commands": [],
+      "contexts": ["dev", "review", "research"],
       "mcp": [],
       "rulesLanguages": ["common", "java", "python", "typescript", "web"]
     },
@@ -252,6 +258,7 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
       "agents": [],
       "skills": [],
       "commands": [],
+      "rules": [],
       "mcp": []
     }
   },
@@ -287,10 +294,10 @@ Scans all agents and skills for `/command` references and `mcp__server__` tool c
 | `eccPath` | Path to ECC clone (null = auto-managed) |
 | `rulesLanguage` | Base rules language: `en` (common) or `zh` (default: en) |
 | `global.bundles` | Bundles to install globally (default: `["core"]`) |
-| `global.extras.*` | Extra agents/skills/commands/mcp beyond bundles; `rulesLanguages` for additional rule sets |
+| `global.extras.*` | Extra agents/skills/commands/contexts/mcp beyond bundles; `rulesLanguages` for additional rule sets |
 | `global.excludes.*` | Exclude specific items from bundles |
 | `projects[].bundles` | Array — a project can use multiple bundles |
-| `bundleOverrides` | Per-bundle customization (exclude/add agents, skills, mcp) |
+| `bundleOverrides` | Per-bundle customization (exclude/add agents, skills, mcp, rules, commands) |
 | `hooks.profile` | `minimal` / `standard` / `strict` |
 | `hooks.claudeMemCompat` | `null` (auto-detect on first apply) / `true` / `false` — disable 8 hooks that overlap with claude-mem |
 | `hooks.disabled` | Additional manually disabled hook IDs |
@@ -306,10 +313,14 @@ rm -rf ~/.local/state/ecc-tailor     # Remove state
 rm -rf ~/.local/share/ecc-tailor     # Remove ECC clone + wrappers
 ```
 
+## Complementary Skills
+
+ECC doesn't include a brainstorming / design-before-code skill. For structured ideation before implementation, see [superpowers/brainstorming](https://github.com/obra/superpowers/tree/main/skills/brainstorming). ecc-tailor won't touch manually installed skills.
+
 ## Development
 
 ```bash
-npm test                             # Unit + integration tests (156)
+npm test                             # Unit + integration tests (205)
 ECC_PATH=/path/to/ecc npm test       # + real ECC verification (10 E2E tests)
 ```
 

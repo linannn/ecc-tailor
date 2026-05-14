@@ -81,9 +81,9 @@ function cmdSetProfile(args) {
   }
 
   const cfg = loadConfig();
-  cfg.hooks.profile = value;
-  saveConfig(cfg);
-  regenerateWrapper(cfg);
+  const updated = { ...cfg, hooks: { ...cfg.hooks, profile: value } };
+  saveConfig(updated);
+  regenerateWrapper(updated);
   log.ok(`hooks.profile set to "${value}" and wrapper regenerated`);
 }
 
@@ -102,9 +102,9 @@ function cmdDisable(args) {
   const cfg = loadConfig();
   const existing = new Set(cfg.hooks.disabled);
   for (const id of ids) existing.add(id);
-  cfg.hooks.disabled = [...existing];
-  saveConfig(cfg);
-  regenerateWrapper(cfg);
+  const updated = { ...cfg, hooks: { ...cfg.hooks, disabled: [...existing] } };
+  saveConfig(updated);
+  regenerateWrapper(updated);
   log.ok(`Disabled: ${ids.join(', ')}`);
 }
 
@@ -117,9 +117,9 @@ function cmdEnable(args) {
 
   const cfg = loadConfig();
   const toRemove = new Set(ids);
-  cfg.hooks.disabled = cfg.hooks.disabled.filter(id => !toRemove.has(id));
-  saveConfig(cfg);
-  regenerateWrapper(cfg);
+  const updated = { ...cfg, hooks: { ...cfg.hooks, disabled: cfg.hooks.disabled.filter(id => !toRemove.has(id)) } };
+  saveConfig(updated);
+  regenerateWrapper(updated);
   log.ok(`Enabled (removed from disabled): ${ids.join(', ')}`);
 }
 
@@ -131,8 +131,8 @@ function cmdClaudeMemCompat(args) {
   }
 
   const cfg = loadConfig();
-  cfg.hooks.claudeMemCompat = value === 'on';
-  saveConfig(cfg);
-  regenerateWrapper(cfg);
-  log.ok(`hooks.claudeMemCompat set to ${cfg.hooks.claudeMemCompat}`);
+  const updated = { ...cfg, hooks: { ...cfg.hooks, claudeMemCompat: value === 'on' } };
+  saveConfig(updated);
+  regenerateWrapper(updated);
+  log.ok(`hooks.claudeMemCompat set to ${updated.hooks.claudeMemCompat}`);
 }

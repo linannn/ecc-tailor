@@ -1,4 +1,4 @@
-import { test } from 'node:test';
+import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { makeTmpEnv } from './helpers/tmp-env.js';
@@ -8,7 +8,7 @@ import { resolveDesired, resolveMcp } from '../src/core/resolve.js';
 
 // Inline bundle definitions used across tests (no dependency on bundles.json)
 const BUNDLES = {
-  core:        { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'], rules: [] },
+  core:        { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'], rules: ['common/style'] },
   'java-proj': { agents: [],          skills: ['coding-standards'], rules: ['java'] },
   'research':  { agents: [],          skills: [], mcp: ['exa-web-search'], rules: [] },
 };
@@ -71,13 +71,13 @@ test('resolveDesired: project skill deduped when already global', () => {
     assert.equal(csLink.kind, 'skill-dir');
     assert.equal(csLink.ownedBy, 'global');
 
-    // Global: 1 rule (common)
+    // Global: per-file rule for rules/common/style.md
     const ruleLink = links.find(
-      l => l.dst === join(tmp.home, '.claude', 'rules', 'common'),
+      l => l.dst === join(tmp.home, '.claude', 'rules', 'common', 'style.md'),
     );
-    assert.ok(ruleLink, 'global common rule link should exist');
-    assert.equal(ruleLink.eccSrc, 'rules/common');
-    assert.equal(ruleLink.kind, 'rules-dir');
+    assert.ok(ruleLink, 'global common/style.md rule link should exist');
+    assert.equal(ruleLink.eccSrc, 'rules/common/style.md');
+    assert.equal(ruleLink.kind, 'rules-file');
     assert.equal(ruleLink.ownedBy, 'global');
 
     // Project: coding-standards is deduped because it's already installed globally
@@ -478,9 +478,9 @@ test('resolveMcp: bundleOverrides excludes MCP from bundle', () => {
 });
 
 // ---------------------------------------------------------------------------
-// resolveDesired: auto-installs common base rule
+// resolveDesired: core bundle installs common rule
 // ---------------------------------------------------------------------------
-test('resolveDesired: auto-installs common base rule', () => {
+test('resolveDesired: core bundle installs common rule', () => {
   const tmp = makeTmpEnv();
   try {
     const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
@@ -490,8 +490,8 @@ test('resolveDesired: auto-installs common base rule', () => {
 
     const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
 
-    const commonRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/common');
-    assert.ok(commonRule, 'common rule dir should be auto-installed');
+    const commonRule = links.find(l => l.kind === 'rules-file' && l.eccSrc === 'rules/common/style.md');
+    assert.ok(commonRule, 'common/style.md should be auto-installed as rules-file');
     assert.equal(commonRule.ownedBy, 'global');
   } finally {
     tmp.cleanup();
@@ -512,11 +512,11 @@ test('resolveDesired: rulesLanguage zh installs zh instead of common', () => {
 
     const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
 
-    const zhRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/zh');
-    assert.ok(zhRule, 'zh rule dir should be installed when rulesLanguage is zh');
+    const zhRule = links.find(l => l.kind === 'rules-file' && l.eccSrc === 'rules/zh/style.md');
+    assert.ok(zhRule, 'zh/style.md should be installed when rulesLanguage is zh');
 
-    const commonRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/common');
-    assert.equal(commonRule, undefined, 'common rule dir should not be installed when rulesLanguage is zh');
+    const commonRule = links.find(l => l.kind === 'rules-file' && l.eccSrc === 'rules/common/style.md');
+    assert.equal(commonRule, undefined, 'common/style.md should not be installed when rulesLanguage is zh');
   } finally {
     tmp.cleanup();
   }
@@ -539,8 +539,8 @@ test('resolveDesired: bundle rules auto-installed', () => {
 
     const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
 
-    const javaRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/java');
-    assert.ok(javaRule, 'java rule dir should be installed from java-proj bundle');
+    const javaRule = links.find(l => l.kind === 'rules-file' && l.eccSrc === 'rules/java/coding-style.md');
+    assert.ok(javaRule, 'java/coding-style.md should be installed from java-proj bundle');
     assert.equal(javaRule.ownedBy, 'global');
   } finally {
     tmp.cleanup();
@@ -564,14 +564,167 @@ test('resolveDesired: extras.rulesLanguages merged with bundle rules', () => {
 
     const links = resolveDesired(config, BUNDLES, inv, { home: tmp.home, eccRoot });
 
-    const commonRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/common');
-    assert.ok(commonRule, 'common base rule should be present');
+    const commonRule = links.find(l => l.kind === 'rules-file' && l.eccSrc === 'rules/common/style.md');
+    assert.ok(commonRule, 'common/style.md base rule should be present');
 
-    const webRule = links.find(l => l.kind === 'rules-dir' && l.eccSrc === 'rules/web');
-    assert.ok(webRule, 'web rule from extras.rulesLanguages should be present');
+    const webRule = links.find(l => l.kind === 'rules-file' && l.eccSrc === 'rules/web/style.md');
+    assert.ok(webRule, 'web/style.md from extras.rulesLanguages should be present');
   } finally {
     tmp.cleanup();
   }
+});
+
+// ---------------------------------------------------------------------------
+// resolveDesired: project-level rules
+// ---------------------------------------------------------------------------
+describe('project-level rules', () => {
+  // Bundles for this suite: java-proj has rules: ['java'], extends nothing.
+  // global core declares file-level rules.
+  const bundles = {
+    core:        { agents: ['planner'], skills: ['coding-standards'], mcp: ['context7'], rules: ['common/style'] },
+    'java-proj': { agents: [],          skills: [],                    rules: ['java'] },
+  };
+
+  test('project bundle rules are installed at project path', () => {
+    const tmp = makeTmpEnv();
+    try {
+      const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+      const inv = scanEcc(eccRoot);
+
+      const projPath = join(tmp.root, 'my-project');
+
+      const config = {
+        global: {
+          bundles: ['core'],
+          extras:  { agents: [], skills: [], rulesLanguages: [] },
+          excludes: { agents: [], skills: [] },
+        },
+        projects: [
+          {
+            path: projPath,
+            bundles: ['java-proj'],
+            extras:  { agents: [], skills: [] },
+            excludes: { agents: [], skills: [] },
+          },
+        ],
+      };
+
+      const links = resolveDesired(config, bundles, inv, { home: tmp.home, eccRoot });
+
+      // Java rules should be at project path
+      const javaRules = links.filter(
+        l => l.kind === 'rules-file' && l.dst.startsWith(join(projPath, '.claude', 'rules', 'java')),
+      );
+      assert.ok(javaRules.length > 0, 'project should have java rule symlinks under project path');
+      assert.ok(
+        javaRules.every(l => l.ownedBy === `proj:${projPath}`),
+        'all java rule entries should be owned by the project',
+      );
+
+      // common rules (the global base rule) must NOT appear under the project path
+      const projCommonRules = links.filter(
+        l => l.kind === 'rules-file' && l.dst.startsWith(join(projPath, '.claude', 'rules', 'common')),
+      );
+      assert.equal(
+        projCommonRules.length,
+        0,
+        'common rules are global — should not be duplicated at project path',
+      );
+    } finally {
+      tmp.cleanup();
+    }
+  });
+
+  test('project rule excludes work independently from global', () => {
+    const tmp = makeTmpEnv();
+    try {
+      const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+      const inv = scanEcc(eccRoot);
+
+      const projPath = join(tmp.root, 'my-project');
+
+      // bundleOverrides at top level:
+      //   - core gets 'patterns' excluded (core has no java rules → no cross-scope bleed expected)
+      //   - java-proj gets 'hooks' excluded
+      const config = {
+        global: {
+          bundles: ['core'],
+          extras:  { agents: [], skills: [], rulesLanguages: [] },
+          excludes: { agents: [], skills: [] },
+        },
+        bundleOverrides: {
+          core:       { exclude: { rules: ['patterns'] } },
+          'java-proj': { exclude: { rules: ['hooks'] } },
+        },
+        projects: [
+          {
+            path: projPath,
+            bundles: ['java-proj'],
+            extras:  { agents: [], skills: [] },
+            excludes: { agents: [], skills: [] },
+          },
+        ],
+      };
+
+      const links = resolveDesired(config, bundles, inv, { home: tmp.home, eccRoot });
+
+      // java/patterns.md must be present — global core exclude for 'patterns' must not bleed
+      const patternsLink = links.find(
+        l => l.dst === join(projPath, '.claude', 'rules', 'java', 'patterns.md'),
+      );
+      assert.ok(patternsLink, 'java/patterns.md should be present (global exclude on core must not affect project java rules)');
+
+      // java/hooks.md must be absent — project bundleOverrides for java-proj excludes it
+      const hooksLink = links.find(
+        l => l.dst === join(projPath, '.claude', 'rules', 'java', 'hooks.md'),
+      );
+      assert.equal(hooksLink, undefined, 'java/hooks.md should be excluded by project bundleOverrides');
+    } finally {
+      tmp.cleanup();
+    }
+  });
+
+  test('project excludes from config.projects[].excludes.rules also work', () => {
+    const tmp = makeTmpEnv();
+    try {
+      const eccRoot = makeFakeEcc(join(tmp.root, 'fake-ecc'));
+      const inv = scanEcc(eccRoot);
+
+      const projPath = join(tmp.root, 'my-project');
+
+      const config = {
+        global: {
+          bundles: ['core'],
+          extras:  { agents: [], skills: [], rulesLanguages: [] },
+          excludes: { agents: [], skills: [] },
+        },
+        projects: [
+          {
+            path: projPath,
+            bundles: ['java-proj'],
+            extras:  { agents: [], skills: [] },
+            excludes: { agents: [], skills: [], rules: ['security'] },
+          },
+        ],
+      };
+
+      const links = resolveDesired(config, bundles, inv, { home: tmp.home, eccRoot });
+
+      // java/security.md must be absent — project excludes.rules removes it
+      const securityLink = links.find(
+        l => l.dst === join(projPath, '.claude', 'rules', 'java', 'security.md'),
+      );
+      assert.equal(securityLink, undefined, 'java/security.md should be excluded by project excludes.rules');
+
+      // other java rules should still be present
+      const codingStyleLink = links.find(
+        l => l.dst === join(projPath, '.claude', 'rules', 'java', 'coding-style.md'),
+      );
+      assert.ok(codingStyleLink, 'java/coding-style.md should still be present');
+    } finally {
+      tmp.cleanup();
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------

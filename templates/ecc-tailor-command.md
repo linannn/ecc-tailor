@@ -22,12 +22,16 @@ You are an interface to the `ecc-tailor` CLI. Translate natural language into CL
 | Add skill globally | `ecc-tailor add skill <name> --to global` |
 | Add bundle to this project | `ecc-tailor add bundle <name>` |
 | Add MCP server | `ecc-tailor add mcp <name>` |
+| Add context globally | `ecc-tailor add context <name> --to global` |
 | Remove skill | `ecc-tailor remove skill <name>` |
 | Remove MCP server globally | `ecc-tailor remove mcp <name> --from global` |
 | Show what's installed | `ecc-tailor status` |
 | List all ECC skills | `ecc-tailor inventory --type skill` |
 | Show unselected skills | `ecc-tailor inventory --type skill --state unselected` |
-| Show skill details | `ecc-tailor inventory --detail <name>` |
+| List all contexts | `ecc-tailor inventory --type context` |
+| List all bundles | `ecc-tailor inventory --type bundle` |
+| Show bundle contents | `ecc-tailor inventory --detail <bundle-name>` |
+| Show skill/agent details | `ecc-tailor inventory --detail <name>` |
 | Scan this project | `ecc-tailor scan attach $(pwd)` |
 | Finish scan | `ecc-tailor scan detach $(pwd)` |
 | Check health | `ecc-tailor doctor` |

@@ -1,6 +1,6 @@
-import { copyFileSync } from 'node:fs';
 import { writeJsonAtomic } from '../util/json.js';
 import { readJson } from '../util/json.js';
+import { backupFile } from '../util/backup.js';
 
 /**
  * Marker prefix added to every description managed by ecc-tailor.
@@ -9,6 +9,21 @@ import { readJson } from '../util/json.js';
  * subsequent merges.
  */
 export const MARKER_PREFIX = '[ecc-tailor] ';
+
+const ECC_TAILOR_CMD_SIGNATURES = ['ecc-tailor', 'CLAUDE_PLUGIN_ROOT'];
+
+/**
+ * Claude Code strips `description` when it rewrites settings.json,
+ * so we fall back to matching command content for ownership detection.
+ */
+export function isOwnedByEccTailor(entry) {
+  if ((entry.description ?? '').startsWith(MARKER_PREFIX)) return true;
+
+  return (entry.hooks ?? []).some(hook => {
+    const cmd = hook.command ?? '';
+    return ECC_TAILOR_CMD_SIGNATURES.some(sig => cmd.includes(sig));
+  });
+}
 
 /**
  * Regex to extract <id> <script> <profiles> from the tail of a
@@ -78,6 +93,32 @@ export function rewriteEccHooksJson(eccHooksJson, wrapperPath, eccRoot) {
 }
 
 /**
+ * Remove entries whose `id` is in the disabled set.
+ *
+ * @param {Record<string, Array<object>>} rewrittenEvents
+ * @param {string[]} disabledIds
+ * @returns {Record<string, Array<object>>}
+ */
+export function filterDisabledHooks(rewrittenEvents, disabledIds) {
+  if (!disabledIds || disabledIds.length === 0) return rewrittenEvents;
+
+  const disabled = new Set(disabledIds.map(id => id.toLowerCase()));
+  const result = {};
+
+  for (const [event, entries] of Object.entries(rewrittenEvents)) {
+    const kept = entries.filter(entry => {
+      const id = (entry.id ?? '').toLowerCase();
+      return !id || !disabled.has(id);
+    });
+    if (kept.length > 0) {
+      result[event] = kept;
+    }
+  }
+
+  return result;
+}
+
+/**
  * Merge rewritten ECC hook entries into the user's settings.json.
  *
  * Steps:
@@ -88,39 +129,49 @@ export function rewriteEccHooksJson(eccHooksJson, wrapperPath, eccRoot) {
  *
  * @param {Record<string, Array<object>>} rewrittenEvents
  *   Output of `rewriteEccHooksJson`.
- * @param {{ settingsFile: string }} opts
+ * @param {{ settingsFile: string, eccRoot?: string }} opts
  * @returns {{ backupPath: string, addedCounts: Record<string, number> }}
  */
-export async function mergeHooksIntoSettings(rewrittenEvents, { settingsFile }) {
+export async function mergeHooksIntoSettings(rewrittenEvents, { settingsFile, eccRoot }) {
   // 1. Read existing settings
   const settings = readJson(settingsFile) ?? {};
 
-  // 2. Backup
-  const backupPath = `${settingsFile}.bak.${new Date().toISOString()}`;
-  try {
-    copyFileSync(settingsFile, backupPath);
-  } catch (err) {
-    if (err.code !== 'ENOENT') throw err;
-  }
+  // 2. Backup (rotated — keeps last 3)
+  const backupPath = backupFile(settingsFile);
 
-  // 3. Merge
-  const hooks = settings.hooks ?? {};
+  // 3. Merge — first strip all prior ecc-tailor entries from every event,
+  //    then append new ones. This ensures disabled hooks (removed from
+  //    rewrittenEvents) don't linger from a previous apply.
+  const oldHooks = settings.hooks ?? {};
   const addedCounts = {};
 
+  // Build newHooks immutably: strip ecc-tailor entries from each existing event
+  let newHooks = {};
+  for (const event of Object.keys(oldHooks)) {
+    const entries = oldHooks[event] ?? [];
+    const userOnly = entries.filter(e => !isOwnedByEccTailor(e));
+    if (userOnly.length > 0) {
+      newHooks = { ...newHooks, [event]: userOnly };
+    }
+  }
+
+  // Append new ecc-tailor entries immutably
   for (const [event, newEntries] of Object.entries(rewrittenEvents)) {
-    const existing = hooks[event] ?? [];
-    // Filter out prior ecc-tailor entries
-    const userEntries = existing.filter(
-      e => !(e.description ?? '').startsWith(MARKER_PREFIX),
-    );
-    hooks[event] = [...userEntries, ...newEntries];
+    const existing = newHooks[event] ?? [];
+    newHooks = { ...newHooks, [event]: [...existing, ...newEntries] };
     addedCounts[event] = newEntries.length;
   }
 
-  settings.hooks = hooks;
+  // 3b. Set CLAUDE_PLUGIN_ROOT so inline-bootstrap hooks find ECC
+  const oldEnv = settings.env ?? {};
+  const newEnv = eccRoot ? { ...oldEnv, CLAUDE_PLUGIN_ROOT: eccRoot } : oldEnv;
+
+  const newSettings = eccRoot
+    ? { ...settings, hooks: newHooks, env: newEnv }
+    : { ...settings, hooks: newHooks };
 
   // 4. Write back atomically
-  writeJsonAtomic(settingsFile, settings);
+  writeJsonAtomic(settingsFile, newSettings);
 
   return { backupPath, addedCounts };
 }
@@ -135,26 +186,35 @@ export async function mergeHooksIntoSettings(rewrittenEvents, { settingsFile }) 
  */
 export async function removeEccTailorHooks({ settingsFile }) {
   const settings = readJson(settingsFile) ?? {};
-  const hooks = settings.hooks ?? {};
+  const oldHooks = settings.hooks ?? {};
   let removed = 0;
 
-  for (const [event, entries] of Object.entries(hooks)) {
-    const filtered = entries.filter(e => !(e.description ?? '').startsWith(MARKER_PREFIX));
+  // Build newHooks immutably: strip ecc-tailor entries, omit empty events
+  let newHooks = {};
+  for (const [event, entries] of Object.entries(oldHooks)) {
+    const filtered = entries.filter(e => !isOwnedByEccTailor(e));
     removed += entries.length - filtered.length;
-    if (filtered.length === 0) {
-      delete hooks[event];
-    } else {
-      hooks[event] = filtered;
+    if (filtered.length > 0) {
+      newHooks = { ...newHooks, [event]: filtered };
     }
   }
 
-  if (Object.keys(hooks).length === 0) {
-    delete settings.hooks;
+  // Clean up CLAUDE_PLUGIN_ROOT env var immutably
+  let newSettings;
+  if (settings.env?.CLAUDE_PLUGIN_ROOT) {
+    const { CLAUDE_PLUGIN_ROOT: _, ...restEnv } = settings.env;
+    const hasOtherEnv = Object.keys(restEnv).length > 0;
+    const hooksUpdate = Object.keys(newHooks).length > 0 ? { hooks: newHooks } : {};
+    const envUpdate = hasOtherEnv ? { env: restEnv } : {};
+    const { hooks: _h, env: _e, ...restSettings } = settings;
+    newSettings = { ...restSettings, ...hooksUpdate, ...envUpdate };
   } else {
-    settings.hooks = hooks;
+    const hooksUpdate = Object.keys(newHooks).length > 0 ? { hooks: newHooks } : {};
+    const { hooks: _h, ...restSettings } = settings;
+    newSettings = { ...restSettings, ...hooksUpdate };
   }
 
-  writeJsonAtomic(settingsFile, settings);
+  writeJsonAtomic(settingsFile, newSettings);
 
   return { removed };
 }
