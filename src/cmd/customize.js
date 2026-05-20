@@ -22,6 +22,7 @@ function printUsage() {
   log.info('  ecc-tailor customize <bundle>');
   log.info('  ecc-tailor customize <bundle> add <type> <name>[,name]');
   log.info('  ecc-tailor customize <bundle> exclude <type> <name>[,name]');
+  log.info('  ecc-tailor customize <bundle> include <type> <name>[,name]');
   log.info('  ecc-tailor customize <bundle> reset');
   log.info('');
   log.info(`<type> is one of: ${TYPE_HINT}`);
@@ -202,6 +203,55 @@ function cmdExclude(bundleName, args) {
   log.ok(`Excluded ${names.join(', ')} from ${bundleName}.${type}`);
 }
 
+function cmdInclude(bundleName, args) {
+  const [rawType, nameArg] = args;
+  const type = normalizeType(rawType);
+
+  if (!type || !VALID_TYPES.includes(type)) {
+    log.err(`Invalid type "${rawType}". Must be one of: ${TYPE_HINT}`);
+    process.exit(2);
+  }
+
+  if (!nameArg) {
+    log.err('No name(s) provided.');
+    process.exit(2);
+  }
+
+  const names = nameArg.split(',').map(n => n.trim()).filter(Boolean);
+  if (names.length === 0) {
+    log.err('No name(s) provided.');
+    process.exit(2);
+  }
+
+  const cfg = loadConfig();
+  const currentExcludes = cfg.bundleOverrides?.[bundleName]?.exclude?.[type] ?? [];
+  const toRemove = new Set(names);
+  const missing = names.filter(n => !currentExcludes.includes(n));
+
+  if (missing.length > 0) {
+    for (const name of missing) {
+      log.warn(`"${name}" is not in ${bundleName}.exclude.${type} — nothing to remove`);
+    }
+  }
+
+  const newExcludes = currentExcludes.filter(n => !toRemove.has(n));
+
+  if (newExcludes.length === currentExcludes.length) {
+    log.dim('No changes.');
+    return;
+  }
+
+  const { cfg: updatedCfg, ov } = ensureOverride(cfg, bundleName);
+  const newOv = { ...ov, exclude: { ...ov.exclude, [type]: newExcludes } };
+  const finalCfg = {
+    ...updatedCfg,
+    bundleOverrides: { ...updatedCfg.bundleOverrides, [bundleName]: newOv },
+  };
+
+  writeJsonAtomic(paths.configFile(), finalCfg);
+  log.ok(`Included ${names.filter(n => !missing.includes(n)).join(', ')} back into ${bundleName}.${type}`);
+}
+
 function cmdReset(bundleName) {
   const cfg = loadConfig();
 
@@ -245,6 +295,9 @@ export async function customizeCmd(args) {
       break;
     case 'exclude':
       cmdExclude(bundleName, rest);
+      break;
+    case 'include':
+      cmdInclude(bundleName, rest);
       break;
     case 'reset':
       cmdReset(bundleName);
